@@ -1,0 +1,225 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Calendar, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { studentService, Lesson } from '@/services/student';
+import { useAuth } from '@/contexts/AuthContext';
+
+export default function StudentAgendaScreen() {
+  const { user } = useAuth();
+  const [upcomingLessons, setUpcomingLessons] = useState<Lesson[]>([]);
+  const [pastLessons, setPastLessons] = useState<Lesson[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadLessons();
+  }, []);
+
+  const loadLessons = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      const [upcoming, past] = await Promise.all([
+        studentService.getUpcomingLessons(user.id),
+        studentService.getPastLessons(user.id)
+      ]);
+      setUpcomingLessons(upcoming);
+      setPastLessons(past);
+    } catch (err: any) {
+      setError('Não foi possível carregar suas aulas. Tente novamente.');
+      console.error('Erro ao carregar aulas:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatLessonDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatDuration = (duration: number) => {
+    if (duration >= 60) {
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+      if (minutes === 0) {
+        return `${hours} hora${hours > 1 ? 's' : ''}`;
+      }
+      return `${hours} hora${hours > 1 ? 's' : ''} e ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+    }
+    return `${duration} minuto${duration > 1 ? 's' : ''}`;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'emerald';
+      case 'SCHEDULED': return 'blue';
+      case 'COMPLETED': return 'neutral';
+      case 'CANCELLED': return 'red';
+      default: return 'neutral';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED': return 'Confirmada';
+      case 'SCHEDULED': return 'Agendada';
+      case 'COMPLETED': return 'Concluída';
+      case 'CANCELLED': return 'Cancelada';
+      default: return status;
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <View className="flex-1">
+        {/* Header */}
+        <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ArrowLeft size={24} color="#374151" />
+          </TouchableOpacity>
+          <Text className="text-lg font-semibold text-neutral-900">Minha Agenda</Text>
+          <View className="w-6" />
+        </View>
+
+        <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
+          <Text className="text-neutral-600 mb-6">
+            Veja suas aulas agendadas e aulas anteriores
+          </Text>
+
+          {/* Loading State */}
+          {isLoading && (
+            <View className="flex-1 items-center justify-center py-8">
+              <ActivityIndicator size="large" color="#10B981" />
+              <Text className="text-neutral-500 mt-4">Carregando suas aulas...</Text>
+            </View>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <View className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <View className="flex-row items-start">
+                <AlertCircle size={20} color="#EF4444" />
+                <View className="ml-3 flex-1">
+                  <Text className="text-red-900 font-semibold">Erro</Text>
+                  <Text className="text-red-700 text-sm mt-1">{error}</Text>
+                  <TouchableOpacity 
+                    className="mt-3"
+                    onPress={loadLessons}
+                  >
+                    <Text className="text-red-600 text-sm font-medium">Tentar novamente</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Dados Reais */}
+          {!isLoading && !error && (
+            <>
+              {/* Próximas Aulas */}
+              <View className="mb-6">
+                <Text className="text-lg font-semibold text-neutral-900 mb-4">Próximas Aulas</Text>
+                {upcomingLessons.length === 0 ? (
+                  <View className="bg-neutral-50 rounded-xl p-6 text-center">
+                    <Text className="text-neutral-500">Você não tem aulas agendadas.</Text>
+                  </View>
+                ) : (
+                  <View className="space-y-3">
+                    {upcomingLessons.map((lesson) => {
+                      const color = getStatusColor(lesson.status);
+                      return (
+                        <View key={lesson.id} className={`bg-${color}-50 border border-${color}-200 rounded-xl p-4`}>
+                          <View className="flex-row items-start justify-between mb-2">
+                            <View>
+                              <Text className={`text-${color}-900 font-semibold`}>Aula Prática</Text>
+                              <Text className={`text-${color}-700 text-sm`}>
+                                {lesson.instructor?.name || 'Instrutor'}
+                              </Text>
+                            </View>
+                            <View className={`bg-${color}-500 px-2 py-1 rounded-full`}>
+                              <Text className="text-white text-xs font-medium">
+                                {getStatusText(lesson.status)}
+                              </Text>
+                            </View>
+                          </View>
+                          <View className={`flex-row items-center text-${color}-700 text-sm`}>
+                            <Calendar size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
+                            <Text className="ml-2">{formatLessonDate(lesson.date)}</Text>
+                          </View>
+                          <View className={`flex-row items-center text-${color}-700 text-sm mt-1`}>
+                            <Clock size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
+                            <Text className="ml-2">{formatDuration(lesson.duration)} - {lesson.location || 'Local a definir'}</Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
+              {/* Aulas Anteriores */}
+              <View>
+                <Text className="text-lg font-semibold text-neutral-900 mb-4">Aulas Anteriores</Text>
+                {pastLessons.length === 0 ? (
+                  <View className="bg-neutral-50 rounded-xl p-6 text-center">
+                    <Text className="text-neutral-500">Você não tem aulas anteriores.</Text>
+                  </View>
+                ) : (
+                  <View className="space-y-3">
+                    {pastLessons.map((lesson) => {
+                      const color = getStatusColor(lesson.status);
+                      return (
+                        <View key={lesson.id} className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
+                          <View className="flex-row items-start justify-between mb-2">
+                            <View>
+                              <Text className="text-neutral-900 font-semibold">Aula Prática</Text>
+                              <Text className="text-neutral-600 text-sm">
+                                {lesson.instructor?.name || 'Instrutor'}
+                              </Text>
+                            </View>
+                            <View className="flex-row items-center">
+                              {lesson.status === 'COMPLETED' ? (
+                                <>
+                                  <CheckCircle size={16} color="#10B981" />
+                                  <Text className="text-emerald-600 text-sm font-medium ml-1">Concluída</Text>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle size={16} color="#EF4444" />
+                                  <Text className="text-red-600 text-sm font-medium ml-1">Cancelada</Text>
+                                </>
+                              )}
+                            </View>
+                          </View>
+                          <View className="flex-row items-center text-neutral-600 text-sm">
+                            <Calendar size={16} color="#9CA3AF" />
+                            <Text className="ml-2">{formatLessonDate(lesson.date)}</Text>
+                          </View>
+                          <View className="flex-row items-center text-neutral-600 text-sm mt-1">
+                            <Clock size={16} color="#9CA3AF" />
+                            <Text className="ml-2">{formatDuration(lesson.duration)} - {lesson.location || 'Local'}</Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+            </>
+          )}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
+  );
+}

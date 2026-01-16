@@ -1,0 +1,161 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
+import { router } from 'expo-router';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/Button';
+
+export default function LoginScreen() {
+  const { signIn, isLoading } = useAuth();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  async function handleLogin() {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
+    }
+
+    try {
+      await signIn({ email: email.trim(), password });
+      // Redirecionamento é gerenciado automaticamente pelo _layout.tsx baseado no role
+    } catch (error: any) {
+      console.log('🔐 Login screen error:', error);
+      const errorMessage = error?.message || error?.error?.message || 'Erro ao fazer login';
+      console.log('🔐 Final message to show:', errorMessage);
+      
+      // Usar Alert nativo que sempre funciona
+      Alert.alert('Erro de Login', errorMessage);
+    }
+  }
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      className="flex-1 bg-white"
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="flex-1 px-6 pt-20 pb-8">
+          {/* Logo Section */}
+          <View className="items-center mb-12">
+            <View className="w-32 h-32 bg-white rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
+              <View className="items-center">
+                <View className="w-20 h-20 bg-brand-primary rounded-xl items-center justify-center mb-2">
+                  <Text className="text-white text-3xl font-bold">GD</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <View className="w-8 h-1 bg-brand-primary rounded-full mr-1"></View>
+                  <View className="w-2 h-2 bg-brand-primary rounded-full"></View>
+                  <View className="w-8 h-1 bg-brand-primary rounded-full ml-1"></View>
+                </View>
+              </View>
+            </View>
+            <Text className="text-2xl font-bold text-neutral-900 tracking-wide">GO DRIVE</Text>
+          </View>
+
+          {/* Form Section */}
+          <View className="space-y-4">
+            <Text className="text-2xl font-semibold text-neutral-900 mb-6">
+              Entrar na sua conta
+            </Text>
+
+            {/* Email Input */}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Email</Text>
+              <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                <Mail size={20} color="#6B7280" />
+                <TextInput
+                  className="flex-1 py-4 px-3 text-base text-neutral-900"
+                  placeholder="seu@email.com"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+            </View>
+
+            {/* Password Input */}
+            <View className="mb-6">
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Senha</Text>
+              <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                <Lock size={20} color="#6B7280" />
+                <TextInput
+                  className="flex-1 py-4 px-3 text-base text-neutral-900"
+                  placeholder="••••••••"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <Button
+                  variant="ghost"
+                  onPress={() => setShowPassword(!showPassword)}
+                  className="p-2"
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="#6B7280" />
+                  ) : (
+                    <Eye size={20} color="#6B7280" />
+                  )}
+                </Button>
+              </View>
+            </View>
+
+            {/* Login Button */}
+            <Button
+              onPress={handleLogin}
+              loading={isLoading}
+              className="bg-brand-primary py-4 rounded-xl"
+            >
+              <Text className="text-white text-base font-semibold">Entrar</Text>
+            </Button>
+
+            {/* Sign Up Link */}
+            <Button
+              variant="ghost"
+              onPress={() => router.push('/(auth)/profile-selection')}
+              className="mt-4"
+            >
+              <Text className="text-brand-primary text-sm">Não tem uma conta? Cadastre-se</Text>
+            </Button>
+
+            {/* Forgot Password */}
+            <Button
+              variant="ghost"
+              onPress={() => Alert.alert('Informação', 'Em breve: recuperação de senha')}
+              className="mt-2"
+            >
+              <Text className="text-neutral-500 text-sm">Esqueceu sua senha?</Text>
+            </Button>
+          </View>
+
+          {/* Footer */}
+          <View className="mt-auto pt-8">
+            <Text className="text-center text-neutral-400 text-xs">
+              © 2025 Delta Pro Tecnologia
+            </Text>
+            <Text className="text-center text-neutral-400 text-xs mt-1">
+              Versão 1.0.0
+            </Text>
+          </View>
+
+          {/* Dev Hint */}
+          <View className="mt-4 p-3 bg-neutral-100 rounded-lg">
+            <Text className="text-xs text-neutral-500 text-center">
+              🔐 Dev: instrutor@godrive.com / 123456
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+    </KeyboardAvoidingView>
+  );
+}
