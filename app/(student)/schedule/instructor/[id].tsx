@@ -19,16 +19,16 @@ export default function InstructorProfileScreen() {
   }, [instructor?.vehicle]);
 
   const displayTransmission = useMemo(() => {
-    if (instructor?.transmission === 'AUTOMATIC') return 'Automático';
-    if (instructor?.transmission === 'MANUAL') return 'Manual';
+    if (instructor?.vehicle?.transmission === 'AUTOMATIC') return 'Automático';
+    if (instructor?.vehicle?.transmission === 'MANUAL') return 'Manual';
     return '';
-  }, [instructor?.transmission]);
+  }, [instructor?.vehicle?.transmission]);
 
   const displayEngine = useMemo(() => {
-    if (instructor?.engineType === 'ELECTRIC') return 'Elétrico';
-    if (instructor?.engineType === 'COMBUSTION') return 'Combustão';
+    if (instructor?.vehicle?.engineType === 'ELECTRIC') return 'Elétrico';
+    if (instructor?.vehicle?.engineType === 'COMBUSTION') return 'Combustão';
     return '';
-  }, [instructor?.engineType]);
+  }, [instructor?.vehicle?.engineType]);
 
   const displayHeaderLine = useMemo(() => {
     const parts: string[] = [];

@@ -4,20 +4,18 @@ export interface Instructor {
   id: string;
   name: string;
   email: string;
-  phone?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  phone: string;
+  status: string;
   vehicle?: {
     make: string;
     model: string;
     year?: number;
     plate: string;
+    transmission: 'MANUAL' | 'AUTOMATIC';
+    engineType: 'COMBUSTION' | 'ELECTRIC';
   };
   cnh?: string;
   hourlyRate?: number;
-  vehicleMake?: string;
-  vehicleYear?: number;
-  transmission?: 'MANUAL' | 'AUTOMATIC';
-  engineType?: 'COMBUSTION' | 'ELECTRIC';
   state?: string;
   city?: string;
   neighborhoodReside?: string;
