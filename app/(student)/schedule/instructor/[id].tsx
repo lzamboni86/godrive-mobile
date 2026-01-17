@@ -159,14 +159,14 @@ export default function InstructorProfileScreen() {
 
           {/* Informações Detalhadas */}
           <View className="px-6 py-6">
-            {/* Biografia */}
+            {/* Sobre */}
             <View className="mb-6">
               <Text className="text-neutral-900 font-semibold text-lg mb-3">Sobre</Text>
-              <Text className="text-neutral-600 leading-relaxed">
-                Instrutor experiente com mais de 5 anos de prática em formação de condutores. 
-                Especializado em condução defensiva e preparação para exames práticos. 
-                Paciente e dedicado, foco total no sucesso dos alunos.
-              </Text>
+              <View className="bg-neutral-50 rounded-xl p-4">
+                <Text className="text-neutral-700 leading-relaxed">
+                  {instructor.bio || 'Instrutor experiente com mais de 5 anos de prática em formação de condutores. Especializado em condução defensiva e preparação para exames práticos. Paciente e dedicado, foco total no sucesso dos alunos.'}
+                </Text>
+              </View>
             </View>
 
             {/* Veículo */}
@@ -206,16 +206,6 @@ export default function InstructorProfileScreen() {
               </View>
             </View>
 
-            {/* Sobre */}
-            {instructor.bio && (
-              <View className="mb-6">
-                <Text className="text-neutral-900 font-semibold text-lg mb-3">Sobre</Text>
-                <View className="bg-neutral-50 rounded-xl p-4">
-                  <Text className="text-neutral-700 leading-relaxed">{instructor.bio}</Text>
-                </View>
-              </View>
-            )}
-
             {/* Contato */}
             <View className="mb-6">
               <Text className="text-neutral-900 font-semibold text-lg mb-3">Contato</Text>
@@ -252,6 +242,7 @@ export default function InstructorProfileScreen() {
             </View>
           </View>
         </ScrollView>
+        </View>
 
         {/* Botão de Agendar */}
         <View className="p-6 border-t border-neutral-100 bg-white">
