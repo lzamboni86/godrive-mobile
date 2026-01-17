@@ -107,7 +107,7 @@ export default function InstructorProfileScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="flex-1">
         {/* Header com overlay */}
-        <View className="relative">
+        <View className="flex-1">
           <View className="flex-row items-center justify-between p-4 absolute top-0 left-0 right-0 z-10">
             <TouchableOpacity onPress={() => router.back()}>
               <View className="w-8 h-8 bg-black/20 rounded-full items-center justify-center">
@@ -120,7 +120,7 @@ export default function InstructorProfileScreen() {
 
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             {/* Foto e Informações Básicas */}
-            <View className="bg-gradient-to-b from-emerald-500 to-emerald-600 px-6 pt-16 pb-8">
+            <View className="bg-emerald-600 px-6 pt-16 pb-8">
               <View className="items-center">
                 <View className="w-24 h-24 bg-white rounded-full items-center justify-center mb-4">
                   <Text className="text-emerald-600 text-3xl font-bold">
@@ -192,13 +192,13 @@ export default function InstructorProfileScreen() {
             {/* Estatísticas */}
             <View className="mb-6">
               <Text className="text-neutral-900 font-semibold text-lg mb-3">Estatísticas</Text>
-              <View className="grid grid-cols-2 gap-4">
-                <View className="bg-emerald-50 rounded-xl p-4">
+              <View className="flex-row gap-4">
+                <View className="flex-1 bg-emerald-50 rounded-xl p-4">
                   <Users size={24} color="#10B981" />
                   <Text className="text-emerald-900 text-2xl font-bold mt-2">{instructor.completedLessonsCount || 0}</Text>
                   <Text className="text-emerald-700 text-sm">Aulas Realizadas</Text>
                 </View>
-                <View className="bg-blue-50 rounded-xl p-4">
+                <View className="flex-1 bg-blue-50 rounded-xl p-4">
                   <Star size={24} color="#3B82F6" fill="#3B82F6" />
                   <Text className="text-blue-900 text-2xl font-bold mt-2">{ratingValue}</Text>
                   <Text className="text-blue-700 text-sm">Avaliação</Text>
