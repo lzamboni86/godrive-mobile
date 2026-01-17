@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Go Drive",
-    "slug": "godrive",
+    "slug": "godrive-instrutor",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -43,7 +43,7 @@
     },
     "owner": "luis.zamboni",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "experiments": {
       "typedRoutes": true
