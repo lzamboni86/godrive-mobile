@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "GoDrive Instrutor",
-    "slug": "godrive-instrutor",
+    "name": "Go Drive",
+    "slug": "godrive",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -35,17 +35,15 @@
       "expo-secure-store"
     ],
     "extra": {
+      "apiUrl": "https://godrive-7j7x.onrender.com",
+      "router": {},
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
-      },
-      "apiUrl": "https://godrive-backend.onrender.com"
+        "projectId": "389c60e3-be20-4ed0-9ad4-66f0689cfe60"
+      }
     },
-    "owner": "deltapro",
+    "owner": "luis.zamboni",
     "runtimeVersion": {
       "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID"
     },
     "experiments": {
       "typedRoutes": true
