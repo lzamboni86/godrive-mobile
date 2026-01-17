@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Calendar, Clock, ChevronRight } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { studentService, Instructor } from '@/services/student';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ScheduleData {
   instructorId: string;
@@ -17,12 +18,27 @@ export default function ScheduleStep1Screen() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [completedLessons, setCompletedLessons] = useState(0);
 
   useEffect(() => {
     if (id) {
       loadInstructor();
+      loadCompletedLessons();
     }
   }, [id]);
+
+  const loadCompletedLessons = async () => {
+    try {
+      const { user } = useAuth();
+      if (!user?.id) return;
+      
+      const pastLessons = await studentService.getPastLessons(user.id);
+      const completed = pastLessons.filter(lesson => lesson.status === 'COMPLETED').length;
+      setCompletedLessons(completed);
+    } catch (error) {
+      console.error('Erro ao carregar aulas concluídas:', error);
+    }
+  };
 
   const loadInstructor = async () => {
     try {
@@ -55,9 +71,6 @@ export default function ScheduleStep1Screen() {
     // Não permitir datas passadas
     if (selectedDate < today) return false;
     
-    // Não permitir domingos (0 = domingo)
-    if (selectedDate.getDay() === 0) return false;
-    
     return true;
   };
 
@@ -80,8 +93,10 @@ export default function ScheduleStep1Screen() {
   };
 
   const handleContinue = () => {
-    if (selectedDates.length < 2) {
-      Alert.alert('Aviso', 'Selecione pelo menos 2 datas para continuar.');
+    const minRequired = completedLessons >= 2 ? 1 : 2;
+    
+    if (selectedDates.length < minRequired) {
+      Alert.alert('Aviso', `Selecione pelo menos ${minRequired} ${minRequired === 1 ? 'data' : 'datas'} para continuar.`);
       return;
     }
     
@@ -225,9 +240,7 @@ export default function ScheduleStep1Screen() {
             <View className="flex-row mb-2">
               {weekDays.map((day, index) => (
                 <View key={day} className="w-14">
-                  <Text className={`text-xs font-medium text-center ${
-                    index === 0 ? 'text-red-500' : 'text-neutral-600'
-                  }`}>
+                  <Text className="text-xs font-medium text-center text-neutral-600">
                     {day}
                   </Text>
                 </View>
@@ -265,7 +278,7 @@ export default function ScheduleStep1Screen() {
           <View className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
             <Text className="text-amber-900 font-semibold mb-2">Importante:</Text>
             <Text className="text-amber-700 text-sm">
-              • Selecione no mínimo 2 datas{'\n'}• Domingos não estão disponíveis{'\n'}• Máximo 10 datas por solicitação
+              • Selecione no mínimo {completedLessons >= 2 ? '1' : '2'} {completedLessons >= 2 ? 'aula' : 'aulas'}{'\n'}• Máximo 10 datas por solicitação
             </Text>
           </View>
         </ScrollView>
@@ -274,15 +287,15 @@ export default function ScheduleStep1Screen() {
         <View className="p-6 border-t border-neutral-100 bg-white">
           <TouchableOpacity 
             className={`rounded-xl p-4 ${
-              selectedDates.length >= 2 
+              selectedDates.length >= (completedLessons >= 2 ? 1 : 2) 
                 ? 'bg-emerald-500' 
                 : 'bg-neutral-300'
             }`}
             onPress={handleContinue}
-            disabled={selectedDates.length < 2}
+            disabled={selectedDates.length < (completedLessons >= 2 ? 1 : 2)}
           >
             <Text className={`text-center font-semibold text-lg ${
-              selectedDates.length >= 2 
+              selectedDates.length >= (completedLessons >= 2 ? 1 : 2) 
                 ? 'text-white' 
                 : 'text-neutral-500'
             }`}>
