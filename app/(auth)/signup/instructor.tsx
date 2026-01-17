@@ -144,7 +144,7 @@ export default function InstructorSignupScreen() {
         phone: phone.trim(),
         cnh: cnh.trim(),
         gender: gender,
-        state: (stateLabel || state).trim(),
+        state: state.trim(),
         city: city.trim(),
         neighborhoodReside: neighborhoodReside.trim(),
         neighborhoodTeach: neighborhoodTeach.trim(),

@@ -74,7 +74,7 @@ export default function ScheduleSearchScreen() {
 
       // Montar filtros apenas com valores preenchidos
       const filters: any = {};
-      if (filterState) filters.state = filterState;
+      if (filterUf) filters.state = filterUf;
       if (filterCity) filters.city = filterCity;
       if (filterNeighborhoodTeach) filters.neighborhoodTeach = filterNeighborhoodTeach;
       if (filterGender) filters.gender = filterGender;
