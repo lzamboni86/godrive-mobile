@@ -1,10 +1,24 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { Alert, View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckCircle, ArrowLeft, Calendar } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 export default function ScheduleSuccessScreen() {
+  const params = useLocalSearchParams<{ collection_status?: string }>();
+
+  useEffect(() => {
+    const status = (params.collection_status || '').toString();
+    const isApproved = status === 'approved';
+
+    Alert.alert(
+      isApproved ? 'Pagamento aprovado!' : 'Pagamento processado!',
+      isApproved
+        ? 'Sua solicitação foi registrada com sucesso. Suas aulas aparecerão na agenda e aguardam aprovação do instrutor.'
+        : 'Seu pagamento está sendo processado. Em instantes suas aulas aparecerão na agenda.',
+    );
+  }, [params.collection_status]);
+
   const handleGoToAgenda = () => {
     router.replace('/(student)/agenda');
   };

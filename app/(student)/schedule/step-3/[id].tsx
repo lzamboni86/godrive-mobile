@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Clock, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { studentService, Instructor } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -130,9 +131,11 @@ export default function ScheduleStep3Screen() {
         return;
       }
       
-      // Abrir checkout no browser
-      console.log('🌐 [MP] Iniciando WebBrowser...');
-      const result = await WebBrowser.openBrowserAsync(checkoutUrl, {
+      const redirectUrl = Linking.createURL('schedule');
+
+      // Abrir checkout no browser (auth session) para voltar automaticamente ao app via deep link
+      console.log('🌐 [MP] Iniciando WebBrowser (AuthSession)...');
+      const result = await WebBrowser.openAuthSessionAsync(checkoutUrl, redirectUrl, {
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
         controlsColor: '#10B981',
       });
@@ -144,6 +147,15 @@ export default function ScheduleStep3Screen() {
         Alert.alert('Cancelado', 'O pagamento foi cancelado. Você pode tentar novamente.');
       } else if (result.type === 'dismiss') {
         Alert.alert('Cancelado', 'O pagamento foi cancelado. Você pode tentar novamente.');
+      } else if (result.type === 'success') {
+        const returnedUrl = (result as any).url as string | undefined;
+        if (returnedUrl?.includes('/schedule/failure')) {
+          router.replace('/(student)/schedule/failure' as any);
+        } else if (returnedUrl?.includes('/schedule/pending')) {
+          router.replace('/(student)/schedule/pending' as any);
+        } else {
+          router.replace('/(student)/schedule/success');
+        }
       } else {
         // Em produção, verificar se o pagamento foi realmente aprovado
         // Por enquanto, assume sucesso mas em prod deveria verificar status
