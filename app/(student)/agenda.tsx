@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Calendar, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, CheckCircle, XCircle, AlertCircle, MessageCircle, Star } from 'lucide-react-native';
+ import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { studentService, Lesson } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,13 @@ export default function StudentAgendaScreen() {
   useEffect(() => {
     loadLessons();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadLessons();
+      return undefined;
+    }, [user?.id])
+  );
 
   const loadLessons = async () => {
     if (!user?.id) return;
@@ -80,6 +88,14 @@ export default function StudentAgendaScreen() {
     }
   };
 
+  const openChat = (lessonId: string) => {
+    router.push(`/chat/${lessonId}`);
+  };
+
+  const openReview = (lessonId: string) => {
+    router.push(`/reviews/${lessonId}`);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="flex-1">
@@ -139,18 +155,36 @@ export default function StudentAgendaScreen() {
                     {upcomingLessons.map((lesson) => {
                       const color = getStatusColor(lesson.status);
                       return (
-                        <View key={lesson.id} className={`bg-${color}-50 border border-${color}-200 rounded-xl p-4`}>
+                        <TouchableOpacity
+                          key={lesson.id}
+                          onPress={() => lesson.status === 'CONFIRMED' && openChat(lesson.id)}
+                          className={`bg-${color}-50 border border-${color}-200 rounded-xl p-4`}
+                          disabled={lesson.status !== 'CONFIRMED'}
+                        >
                           <View className="flex-row items-start justify-between mb-2">
-                            <View>
+                            <View className="flex-1">
                               <Text className={`text-${color}-900 font-semibold`}>Aula Prática</Text>
                               <Text className={`text-${color}-700 text-sm`}>
                                 {lesson.instructor?.name || 'Instrutor'}
                               </Text>
                             </View>
-                            <View className={`bg-${color}-500 px-2 py-1 rounded-full`}>
-                              <Text className="text-white text-xs font-medium">
-                                {getStatusText(lesson.status)}
-                              </Text>
+                            <View className="flex-row items-center">
+                              <View className={`bg-${color}-500 px-2 py-1 rounded-full mr-2`}>
+                                <Text className="text-white text-xs font-medium">
+                                  {getStatusText(lesson.status)}
+                                </Text>
+                              </View>
+                              {lesson.status === 'CONFIRMED' && (
+                                <TouchableOpacity
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    openChat(lesson.id);
+                                  }}
+                                  className="bg-emerald-500 p-2 rounded-full"
+                                >
+                                  <MessageCircle size={16} color="white" />
+                                </TouchableOpacity>
+                              )}
                             </View>
                           </View>
                           <View className={`flex-row items-center text-${color}-700 text-sm`}>
@@ -161,7 +195,14 @@ export default function StudentAgendaScreen() {
                             <Clock size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
                             <Text className="ml-2">{formatDuration(lesson.duration)} - {lesson.location || 'Local a definir'}</Text>
                           </View>
-                        </View>
+                          {lesson.status === 'CONFIRMED' && (
+                            <View className="mt-2 pt-2 border-t border-neutral-200">
+                              <Text className="text-xs text-emerald-600 font-medium">
+                                Toque para conversar com o instrutor
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
                       );
                     })}
                   </View>
@@ -179,6 +220,8 @@ export default function StudentAgendaScreen() {
                   <View className="space-y-3">
                     {pastLessons.map((lesson) => {
                       const color = getStatusColor(lesson.status);
+                      const isEvaluated = lesson.status === 'EVALUATED';
+                      const canReview = lesson.status === 'COMPLETED';
                       return (
                         <View key={lesson.id} className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
                           <View className="flex-row items-start justify-between mb-2">
@@ -189,7 +232,12 @@ export default function StudentAgendaScreen() {
                               </Text>
                             </View>
                             <View className="flex-row items-center">
-                              {lesson.status === 'COMPLETED' ? (
+                              {isEvaluated ? (
+                                <>
+                                  <CheckCircle size={16} color="#10B981" />
+                                  <Text className="text-emerald-600 text-sm font-medium ml-1">Avaliada</Text>
+                                </>
+                              ) : lesson.status === 'COMPLETED' ? (
                                 <>
                                   <CheckCircle size={16} color="#10B981" />
                                   <Text className="text-emerald-600 text-sm font-medium ml-1">Concluída</Text>
@@ -210,6 +258,16 @@ export default function StudentAgendaScreen() {
                             <Clock size={16} color="#9CA3AF" />
                             <Text className="ml-2">{formatDuration(lesson.duration)} - {lesson.location || 'Local'}</Text>
                           </View>
+
+                          {canReview && (
+                            <TouchableOpacity
+                              onPress={() => openReview(lesson.id)}
+                              className="mt-3 bg-emerald-500 rounded-xl py-2 px-3 flex-row items-center justify-center"
+                            >
+                              <Star size={16} color="white" />
+                              <Text className="text-white font-medium ml-2">Avaliar instrutor</Text>
+                            </TouchableOpacity>
+                          )}
                         </View>
                       );
                     })}

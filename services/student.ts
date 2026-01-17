@@ -23,7 +23,7 @@ export interface Lesson {
   date: string;
   time: string;
   duration: number;
-  status: 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'EVALUATED' | 'CANCELLED';
   price: number;
   location?: string;
   instructor?: {
@@ -68,6 +68,7 @@ export interface ScheduleResponse {
   preferenceId?: string;
   initPoint?: string;
   sandboxInitPoint?: string;
+  isSandbox?: boolean;
   message: string;
 }
 

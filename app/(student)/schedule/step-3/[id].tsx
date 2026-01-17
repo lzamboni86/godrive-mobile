@@ -80,24 +80,19 @@ export default function ScheduleStep3Screen() {
       console.log('📦 Resposta do backend:', JSON.stringify(response, null, 2));
       
       // Se tiver preference_id do Mercado Pago, iniciar pagamento
-      if (response.initPoint) {
-        // PRODUÇÃO: Usar init_point (modo produção)
-        console.log('🚀 Usando PRODUÇÃO init point:', response.initPoint);
-        openMercadoPagoCheckout(response.initPoint);
-      } else if (response.sandboxInitPoint) {
-        // SANDBOX: Usar sandbox_init_point (fallback)
-        console.log('🧪 Usando SANDBOX init point:', response.sandboxInitPoint);
-        openMercadoPagoCheckout(response.sandboxInitPoint);
-      } else if (response.preferenceId) {
-        // Fallback - construir URL produção manualmente
-        const checkoutUrl = `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=${response.preferenceId}`;
-        console.log('⚠️ Fallback URL:', checkoutUrl);
-        openMercadoPagoCheckout(checkoutUrl);
-      } else {
-        // Fallback - mostrar sucesso (simulado)
-        console.log('⚠️ Sem URL de pagamento, mostrando sucesso simulado');
-        showSuccessScreen();
+      const isSandbox = !!(response as any).isSandbox;
+      const checkoutUrl =
+        isSandbox && response.sandboxInitPoint
+          ? response.sandboxInitPoint
+          : response.initPoint;
+
+      if (!checkoutUrl) {
+        Alert.alert('Erro', 'Não foi possível iniciar o pagamento. Tente novamente.');
+        return;
       }
+
+      console.log(isSandbox ? '🧪 Usando SANDBOX init point:' : '🚀 Usando PRODUÇÃO init point:', checkoutUrl);
+      openMercadoPagoCheckout(checkoutUrl);
 
     } catch (error: any) {
       console.error('Erro ao criar solicitação:', error);

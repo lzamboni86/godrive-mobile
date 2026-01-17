@@ -70,8 +70,48 @@ export default function StudentTabLayout() {
         }}
       />
     {/* Telas que não devem aparecer como tabs */}
+      <Tabs.Screen
+        name="agenda"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="lessons"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="payments"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="services"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
       <Tabs.Screen 
         name="schedule" 
+        options={{ 
+          href: null,
+          headerShown: false,
+          title: ''
+        }} 
+      />
+      <Tabs.Screen 
+        name="schedule/index" 
         options={{ 
           href: null,
           headerShown: false,
@@ -118,17 +158,22 @@ export default function StudentTabLayout() {
           title: ''
         }} 
       />
-      <Tabs.Screen 
-        name="agenda" 
-        options={{ href: null }} 
+
+      <Tabs.Screen
+        name="chat/[lessonId]"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
       />
-      <Tabs.Screen 
-        name="payments" 
-        options={{ href: null }} 
-      />
-      <Tabs.Screen 
-        name="services" 
-        options={{ href: null }} 
+      <Tabs.Screen
+        name="reviews/[lessonId]"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
       />
     </Tabs>
   );
