@@ -23,6 +23,7 @@ export interface Instructor {
   gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED';
   completedLessonsCount?: number;
   rating?: number;
+  bio?: string;
   createdAt: string;
 }
 

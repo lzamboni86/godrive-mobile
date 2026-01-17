@@ -106,37 +106,40 @@ export default function InstructorProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="flex-1">
-        {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-lg font-semibold text-neutral-900">Perfil do Instrutor</Text>
-          <View className="w-6" />
-        </View>
-
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Foto e Informações Básicas */}
-          <View className="bg-gradient-to-b from-emerald-500 to-emerald-600 px-6 pt-6 pb-8">
-            <View className="items-center">
-              <View className="w-24 h-24 bg-white rounded-full items-center justify-center mb-4">
-                <Text className="text-emerald-600 text-3xl font-bold">
-                  {instructor.name.charAt(0).toUpperCase()}
-                </Text>
+        {/* Header com overlay */}
+        <View className="relative">
+          <View className="flex-row items-center justify-between p-4 absolute top-0 left-0 right-0 z-10">
+            <TouchableOpacity onPress={() => router.back()}>
+              <View className="w-8 h-8 bg-black/20 rounded-full items-center justify-center">
+                <ArrowLeft size={20} color="#FFFFFF" />
               </View>
-              
-              <Text className="text-white text-2xl font-bold mb-2">{instructor.name}</Text>
+            </TouchableOpacity>
+            <Text className="text-lg font-semibold text-white">Perfil do Instrutor</Text>
+            <View className="w-8" />
+          </View>
 
-              {displayHeaderLine ? (
-                <Text className="text-emerald-100 text-sm mb-3 text-center">
-                  {displayHeaderLine}
-                </Text>
-              ) : (
-                <View className="mb-3" />
-              )}
-              
-              <View className="flex-row items-center mb-4">
-                <Star size={20} color="#FFFFFF" fill="#FFFFFF" />
+          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+            {/* Foto e Informações Básicas */}
+            <View className="bg-gradient-to-b from-emerald-500 to-emerald-600 px-6 pt-16 pb-8">
+              <View className="items-center">
+                <View className="w-24 h-24 bg-white rounded-full items-center justify-center mb-4">
+                  <Text className="text-emerald-600 text-3xl font-bold">
+                    {instructor.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                
+                <Text className="text-white text-2xl font-bold mb-2">{instructor.name}</Text>
+
+                {displayHeaderLine ? (
+                  <Text className="text-emerald-100 text-sm mb-3 text-center">
+                    {displayHeaderLine}
+                  </Text>
+                ) : (
+                  <View className="mb-3" />
+                )}
+                
+                <View className="flex-row items-center mb-4">
+                  <Star size={20} color="#FFFFFF" fill="#FFFFFF" />
                 <Text className="text-white font-semibold ml-1">{ratingValue}</Text>
                 <Text className="text-emerald-100 ml-2">({instructor.completedLessonsCount || 0} aulas)</Text>
               </View>
@@ -203,6 +206,16 @@ export default function InstructorProfileScreen() {
               </View>
             </View>
 
+            {/* Sobre */}
+            {instructor.bio && (
+              <View className="mb-6">
+                <Text className="text-neutral-900 font-semibold text-lg mb-3">Sobre</Text>
+                <View className="bg-neutral-50 rounded-xl p-4">
+                  <Text className="text-neutral-700 leading-relaxed">{instructor.bio}</Text>
+                </View>
+              </View>
+            )}
+
             {/* Contato */}
             <View className="mb-6">
               <Text className="text-neutral-900 font-semibold text-lg mb-3">Contato</Text>
@@ -246,7 +259,7 @@ export default function InstructorProfileScreen() {
             className="bg-emerald-500 rounded-xl p-4"
             onPress={handleSchedulePress}
           >
-            <Text className="text-white text-center font-semibold text-lg">AGENDAR</Text>
+            <Text className="text-white text-center font-semibold">Agendar Aula</Text>
           </TouchableOpacity>
         </View>
       </View>
