@@ -32,6 +32,8 @@ export default function ScheduleSearchScreen() {
 
   useEffect(() => {
     setIsLoading(false);
+    // Carregar instrutores sem filtros ao iniciar
+    loadInstructors();
   }, []);
 
   useEffect(() => {
@@ -41,20 +43,17 @@ export default function ScheduleSearchScreen() {
   const loadInstructors = async () => {
     try {
       setIsLoading(true);
-      if (!hasRequiredFilters) {
-        setInstructors([]);
-        setFilteredInstructors([]);
-        return;
-      }
 
-      const data = await studentService.getApprovedInstructors({
-        state: filterState,
-        city: filterCity,
-        neighborhoodTeach: filterNeighborhoodTeach,
-        gender: filterGender || undefined,
-        transmission: filterTransmission || undefined,
-        engineType: filterEngineType || undefined,
-      });
+      // Montar filtros apenas com valores preenchidos
+      const filters: any = {};
+      if (filterState) filters.state = filterState;
+      if (filterCity) filters.city = filterCity;
+      if (filterNeighborhoodTeach) filters.neighborhoodTeach = filterNeighborhoodTeach;
+      if (filterGender) filters.gender = filterGender;
+      if (filterTransmission) filters.transmission = filterTransmission;
+      if (filterEngineType) filters.engineType = filterEngineType;
+
+      const data = await studentService.getApprovedInstructors(filters);
       setInstructors(data);
     } catch (error: any) {
       Alert.alert('Erro', 'Não foi possível carregar os instrutores. Tente novamente.');
@@ -166,15 +165,18 @@ export default function ScheduleSearchScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Obrigatórios */}
-              <Text className="text-neutral-700 font-semibold mb-2">Obrigatórios</Text>
+              {/* Filtros de Localização */}
+              <Text className="text-neutral-700 font-semibold mb-2">Localização</Text>
               <View className="space-y-2">
                 <TouchableOpacity
                   className="bg-neutral-100 rounded-xl p-3"
                   onPress={() =>
                     openPicker(
                       'Estado',
-                      STATES.map((s) => ({ label: s, value: s })),
+                      [
+                        { label: 'Qualquer', value: '' },
+                        ...STATES.map((s) => ({ label: s, value: s })),
+                      ],
                       (v) => {
                         setFilterState(v);
                         setFilterCity('');
@@ -185,7 +187,7 @@ export default function ScheduleSearchScreen() {
                   }
                 >
                   <Text className="text-neutral-500 text-xs">Estado</Text>
-                  <Text className="text-neutral-900 font-medium">{filterState || 'Selecione'}</Text>
+                  <Text className="text-neutral-900 font-medium">{filterState || 'Qualquer'}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -193,7 +195,10 @@ export default function ScheduleSearchScreen() {
                   onPress={() =>
                     openPicker(
                       'Cidade',
-                      CITIES.map((c) => ({ label: c, value: c })),
+                      [
+                        { label: 'Qualquer', value: '' },
+                        ...CITIES.map((c) => ({ label: c, value: c })),
+                      ],
                       (v) => {
                         setFilterCity(v);
                         setFilterNeighborhoodTeach('');
@@ -203,7 +208,7 @@ export default function ScheduleSearchScreen() {
                   }
                 >
                   <Text className="text-neutral-500 text-xs">Cidade</Text>
-                  <Text className="text-neutral-900 font-medium">{filterCity || 'Selecione'}</Text>
+                  <Text className="text-neutral-900 font-medium">{filterCity || 'Qualquer'}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -211,7 +216,10 @@ export default function ScheduleSearchScreen() {
                   onPress={() =>
                     openPicker(
                       'Bairro de Atendimento',
-                      NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                      [
+                        { label: 'Qualquer', value: '' },
+                        ...NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                      ],
                       (v) => {
                         setFilterNeighborhoodTeach(v);
                         setPicker(null);
@@ -220,7 +228,7 @@ export default function ScheduleSearchScreen() {
                   }
                 >
                   <Text className="text-neutral-500 text-xs">Bairro de Atendimento</Text>
-                  <Text className="text-neutral-900 font-medium">{filterNeighborhoodTeach || 'Selecione'}</Text>
+                  <Text className="text-neutral-900 font-medium">{filterNeighborhoodTeach || 'Qualquer'}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -350,16 +358,12 @@ export default function ScheduleSearchScreen() {
                 <TouchableOpacity
                   className="flex-1 bg-emerald-500 rounded-xl p-4"
                   onPress={() => {
-                    if (!hasRequiredFilters) {
-                      Alert.alert('Filtros', 'Selecione Estado, Cidade e Bairro de Atendimento.');
-                      return;
-                    }
                     setFilterModalOpen(false);
                     setPicker(null);
                     loadInstructors();
                   }}
                 >
-                  <Text className="text-center font-semibold text-white">Aplicar</Text>
+                  <Text className="text-center font-semibold text-white">Aplicar Filtros</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -400,22 +404,10 @@ export default function ScheduleSearchScreen() {
 
         {/* Lista de Instrutores */}
         <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-          {!hasRequiredFilters ? (
-            <View className="flex-1 items-center justify-center py-10">
-              <Text className="text-neutral-900 font-semibold mb-2">Selecione os filtros obrigatórios</Text>
-              <Text className="text-neutral-500 text-center mb-4">
-                Estado, Cidade e Bairro de Atendimento
-              </Text>
-              <TouchableOpacity
-                className="bg-emerald-500 px-6 py-3 rounded-full"
-                onPress={() => setFilterModalOpen(true)}
-              >
-                <Text className="text-white font-semibold">Abrir filtros</Text>
-              </TouchableOpacity>
-            </View>
-          ) : filteredInstructors.length === 0 ? (
+          {filteredInstructors.length === 0 && !isLoading ? (
             <View className="flex-1 items-center justify-center py-8">
               <Text className="text-neutral-500">Nenhum instrutor encontrado.</Text>
+              <Text className="text-neutral-400 text-sm mt-2">Tente ajustar os filtros ou buscar todos.</Text>
             </View>
           ) : (
             <View className="space-y-4 pb-4">
