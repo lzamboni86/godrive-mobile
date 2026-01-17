@@ -59,6 +59,10 @@ export default function ScheduleStep3Screen() {
 
     try {
       setIsSubmitting(true);
+      console.log('🚀 [STEP-3] Iniciando criação de solicitação...');
+      console.log('👤 [STEP-3] User ID:', user.id);
+      console.log('👨‍🏫 [STEP-3] Instructor ID:', instructor.id);
+      console.log('📅 [STEP-3] Selected Times:', JSON.stringify(selectedTimes, null, 2));
 
       // Criar solicitação de agendamento
       const scheduleData = {
@@ -74,10 +78,16 @@ export default function ScheduleStep3Screen() {
         status: 'PENDING_PAYMENT'
       };
 
+      console.log('📦 [STEP-3] Dados enviados:', JSON.stringify(scheduleData, null, 2));
+
       // Enviar para backend
       const response = await studentService.createScheduleRequest(scheduleData);
       
-      console.log('📦 Resposta do backend:', JSON.stringify(response, null, 2));
+      console.log('📦 [STEP-3] Resposta do backend:', JSON.stringify(response, null, 2));
+      console.log('💳 [STEP-3] Preference ID:', response.preferenceId);
+      console.log('🔗 [STEP-3] Init Point:', response.initPoint);
+      console.log('🧪 [STEP-3] Sandbox Init Point:', response.sandboxInitPoint);
+      console.log('🏷️ [STEP-3] Is Sandbox:', (response as any).isSandbox);
       
       // Se tiver preference_id do Mercado Pago, iniciar pagamento
       const isSandbox = !!(response as any).isSandbox;
@@ -86,17 +96,23 @@ export default function ScheduleStep3Screen() {
           ? response.sandboxInitPoint
           : response.initPoint;
 
+      console.log('🎯 [STEP-3] Checkout URL final:', checkoutUrl);
+      console.log('🧪 [STEP-3] Modo:', isSandbox ? 'SANDBOX' : 'PRODUÇÃO');
+
       if (!checkoutUrl) {
+        console.error('❌ [STEP-3] Checkout URL não encontrado na resposta');
         Alert.alert('Erro', 'Não foi possível iniciar o pagamento. Tente novamente.');
         return;
       }
 
-      console.log(isSandbox ? '🧪 Usando SANDBOX init point:' : '🚀 Usando PRODUÇÃO init point:', checkoutUrl);
+      console.log('🌐 [STEP-3] Abrindo checkout...');
       openMercadoPagoCheckout(checkoutUrl);
 
     } catch (error: any) {
-      console.error('Erro ao criar solicitação:', error);
-      Alert.alert('Erro', 'Não foi possível enviar sua solicitação. Tente novamente.');
+      console.error('❌ [STEP-3] Erro ao criar solicitação:', error);
+      console.error('❌ [STEP-3] Error details:', error.response?.data);
+      console.error('❌ [STEP-3] Error message:', error.message);
+      Alert.alert('Erro', error.message || 'Não foi possível enviar sua solicitação. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -104,20 +120,29 @@ export default function ScheduleStep3Screen() {
 
   const openMercadoPagoCheckout = async (checkoutUrl: string) => {
     try {
-      console.log('🔗 Abrindo checkout Mercado Pago');
-      console.log('🌐 URL completa:', checkoutUrl);
+      console.log('🔗 [MP] Abrindo checkout Mercado Pago');
+      console.log('🌐 [MP] URL completa:', checkoutUrl);
+      
+      // Verificar se a URL é válida
+      if (!checkoutUrl || !checkoutUrl.startsWith('https://')) {
+        console.error('❌ [MP] URL inválida:', checkoutUrl);
+        Alert.alert('Erro', 'URL de pagamento inválida.');
+        return;
+      }
       
       // Abrir checkout no browser
+      console.log('🌐 [MP] Iniciando WebBrowser...');
       const result = await WebBrowser.openBrowserAsync(checkoutUrl, {
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
         controlsColor: '#10B981',
       });
       
-      // Verificar resultado do pagamento
-      console.log('💳 Resultado do pagamento:', result);
+      console.log('💳 [MP] Resultado do pagamento:', result);
       
       // Se o pagamento foi concluído, mostrar tela de sucesso
       if (result.type === 'cancel') {
+        Alert.alert('Cancelado', 'O pagamento foi cancelado. Você pode tentar novamente.');
+      } else if (result.type === 'dismiss') {
         Alert.alert('Cancelado', 'O pagamento foi cancelado. Você pode tentar novamente.');
       } else {
         // Em produção, verificar se o pagamento foi realmente aprovado
@@ -135,7 +160,7 @@ export default function ScheduleStep3Screen() {
       }
       
     } catch (error) {
-      console.error('❌ Erro ao abrir checkout:', error);
+      console.error('❌ [MP] Erro ao abrir checkout:', error);
       Alert.alert('Erro', 'Não foi possível iniciar o pagamento.');
     }
   };
