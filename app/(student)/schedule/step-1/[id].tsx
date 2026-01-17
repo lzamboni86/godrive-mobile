@@ -14,6 +14,7 @@ interface ScheduleData {
 
 export default function ScheduleStep1Screen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -25,30 +26,38 @@ export default function ScheduleStep1Screen() {
       loadInstructor();
       loadCompletedLessons();
     }
-  }, [id]);
+  }, [id, user?.id]);
 
   const loadCompletedLessons = async () => {
     try {
-      const { user } = useAuth();
       if (!user?.id) return;
       
+      console.log('📚 [STEP-1] Carregando aulas concluídas para user:', user.id);
       const pastLessons = await studentService.getPastLessons(user.id);
+      console.log('📚 [STEP-1] Aulas passadas recebidas:', pastLessons.length);
+      
       const completed = pastLessons.filter(lesson => lesson.status === 'COMPLETED').length;
+      console.log('📚 [STEP-1] Aulas completas:', completed);
       setCompletedLessons(completed);
     } catch (error) {
-      console.error('Erro ao carregar aulas concluídas:', error);
+      console.error('❌ [STEP-1] Erro ao carregar aulas concluídas:', error);
+      // Em caso de erro, assume que é novo aluno (0 aulas completas)
+      setCompletedLessons(0);
     }
   };
 
   const loadInstructor = async () => {
     try {
       setIsLoading(true);
+      console.log('👨‍🏫 [STEP-1] Carregando instrutores...');
       const instructors = await studentService.getApprovedInstructors();
+      console.log('👨‍🏫 [STEP-1] Instrutores recebidos:', instructors.length);
       const found = instructors.find(i => i.id === id);
+      console.log('👨‍🏫 [STEP-1] Instrutor encontrado:', !!found);
       setInstructor(found || null);
     } catch (error: any) {
-      Alert.alert('Erro', 'Não foi possível carregar os dados do instrutor.');
-      console.error('Erro ao carregar instrutor:', error);
+      console.error('❌ [STEP-1] Erro ao carregar instrutor:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados do instrutor. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
