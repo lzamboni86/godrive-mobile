@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft, User, Mail, Phone, FileText, Car, Lock, Check, Eye, EyeOff, MapPin } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
+import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState } from '@/services/ibge';
 export default function InstructorSignupScreen() {
   
   const [name, setName] = useState('');
@@ -34,10 +35,46 @@ export default function InstructorSignupScreen() {
   const [picker, setPicker] = useState<{ title: string; options: { label: string; value: string }[]; onSelect: (v: string) => void } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const [ibgeStates, setIbgeStates] = useState<IbgeState[]>([]);
+  const [ibgeCities, setIbgeCities] = useState<IbgeCity[]>([]);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+
   const VEHICLE_MAKES = ['GM', 'Renault', 'Ford'];
-  const STATES = ['Paraná', 'São Paulo'];
-  const CITIES = ['Curitiba', 'Araucária', 'São Paulo'];
   const NEIGHBORHOODS = ['Água Verde', 'Portão', 'Centro'];
+
+  const stateLabel = useMemo(() => {
+    if (!state) return '';
+    return ibgeStates.find((s) => s.sigla === state)?.nome || state;
+  }, [ibgeStates, state]);
+
+  const loadStates = async () => {
+    try {
+      setIsLoadingStates(true);
+      const data = await getIbgeStates();
+      setIbgeStates(data);
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível carregar os estados. Verifique sua conexão.');
+    } finally {
+      setIsLoadingStates(false);
+    }
+  };
+
+  const loadCities = async (uf: string) => {
+    try {
+      setIsLoadingCities(true);
+      const data = await getIbgeCitiesByUf(uf);
+      setIbgeCities(data);
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível carregar as cidades. Verifique sua conexão.');
+    } finally {
+      setIsLoadingCities(false);
+    }
+  };
+
+  useEffect(() => {
+    loadStates();
+  }, []);
 
   const openPicker = (title: string, options: { label: string; value: string }[], onSelect: (v: string) => void) => {
     setPicker({ title, options, onSelect });
@@ -107,7 +144,7 @@ export default function InstructorSignupScreen() {
         phone: phone.trim(),
         cnh: cnh.trim(),
         gender: gender,
-        state: state.trim(),
+        state: (stateLabel || state).trim(),
         city: city.trim(),
         neighborhoodReside: neighborhoodReside.trim(),
         neighborhoodTeach: neighborhoodTeach.trim(),
@@ -297,21 +334,26 @@ export default function InstructorSignupScreen() {
                 <Text className="text-sm font-medium text-neutral-700 mb-2">Estado</Text>
                 <TouchableOpacity
                   className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  disabled={isLoadingStates}
                   onPress={() =>
                     openPicker(
                       'Estado',
-                      STATES.map((s) => ({ label: s, value: s })),
+                      ibgeStates.map((s) => ({ label: s.nome, value: s.sigla })),
                       (v) => {
                         setState(v);
                         setCity('');
+                        setIbgeCities([]);
                         setNeighborhoodReside('');
                         setNeighborhoodTeach('');
+                        loadCities(v);
                       }
                     )
                   }
                 >
                   <MapPin size={20} color="#6B7280" />
-                  <Text className="flex-1 px-3 text-base text-neutral-900">{state || 'Selecione'}</Text>
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {stateLabel || (isLoadingStates ? 'Carregando...' : 'Selecione')}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -319,11 +361,14 @@ export default function InstructorSignupScreen() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-700 mb-2">Cidade</Text>
                 <TouchableOpacity
-                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  className={`flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4 ${
+                    state && !isLoadingCities ? '' : 'opacity-50'
+                  }`}
+                  disabled={!state || isLoadingCities}
                   onPress={() =>
                     openPicker(
                       'Cidade',
-                      CITIES.map((c) => ({ label: c, value: c })),
+                      ibgeCities.map((c) => ({ label: c.nome, value: c.nome })),
                       (v) => {
                         setCity(v);
                         setNeighborhoodReside('');
@@ -333,7 +378,13 @@ export default function InstructorSignupScreen() {
                   }
                 >
                   <MapPin size={20} color="#6B7280" />
-                  <Text className="flex-1 px-3 text-base text-neutral-900">{city || 'Selecione'}</Text>
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {!state
+                      ? 'Selecione o estado'
+                      : isLoadingCities
+                        ? 'Carregando...'
+                        : city || 'Selecione'}
+                  </Text>
                 </TouchableOpacity>
               </View>
 

@@ -5,6 +5,7 @@ import { Search, Filter, ArrowLeft, MapPin, Star, Calendar, Clock } from 'lucide
 import { router } from 'expo-router';
 import { studentService, Instructor, InstructorSearchFilters } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
+import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState } from '@/services/ibge';
 
 export default function ScheduleSearchScreen() {
   const { user } = useAuth();
@@ -14,26 +15,53 @@ export default function ScheduleSearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  const STATES = useMemo(() => ['Paraná', 'São Paulo'], []);
-  const CITIES = useMemo(() => ['Curitiba', 'Araucária', 'São Paulo'], []);
   const NEIGHBORHOODS = useMemo(() => ['Água Verde', 'Portão', 'Centro'], []);
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [picker, setPicker] = useState<{ title: string; options: { label: string; value: string }[]; onSelect: (v: string) => void } | null>(null);
 
   const [filterState, setFilterState] = useState<string>('');
+  const [filterUf, setFilterUf] = useState<string>('');
   const [filterCity, setFilterCity] = useState<string>('');
   const [filterNeighborhoodTeach, setFilterNeighborhoodTeach] = useState<string>('');
   const [filterGender, setFilterGender] = useState<InstructorSearchFilters['gender'] | ''>('');
   const [filterTransmission, setFilterTransmission] = useState<InstructorSearchFilters['transmission'] | ''>('');
   const [filterEngineType, setFilterEngineType] = useState<InstructorSearchFilters['engineType'] | ''>('');
 
-  const hasRequiredFilters = !!(filterState && filterCity && filterNeighborhoodTeach);
+  const [ibgeStates, setIbgeStates] = useState<IbgeState[]>([]);
+  const [ibgeCities, setIbgeCities] = useState<IbgeCity[]>([]);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+
+  const loadStates = async () => {
+    try {
+      setIsLoadingStates(true);
+      const data = await getIbgeStates();
+      setIbgeStates(data);
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível carregar os estados. Verifique sua conexão.');
+    } finally {
+      setIsLoadingStates(false);
+    }
+  };
+
+  const loadCities = async (uf: string) => {
+    try {
+      setIsLoadingCities(true);
+      const data = await getIbgeCitiesByUf(uf);
+      setIbgeCities(data);
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível carregar as cidades. Verifique sua conexão.');
+    } finally {
+      setIsLoadingCities(false);
+    }
+  };
 
   useEffect(() => {
     setIsLoading(false);
     // Carregar instrutores sem filtros ao iniciar
     loadInstructors();
+    loadStates();
   }, []);
 
   useEffect(() => {
@@ -170,34 +198,45 @@ export default function ScheduleSearchScreen() {
               <View className="space-y-2">
                 <TouchableOpacity
                   className="bg-neutral-100 rounded-xl p-3"
+                  disabled={isLoadingStates}
                   onPress={() =>
                     openPicker(
                       'Estado',
                       [
                         { label: 'Qualquer', value: '' },
-                        ...STATES.map((s) => ({ label: s, value: s })),
+                        ...ibgeStates.map((s) => ({ label: s.nome, value: s.sigla })),
                       ],
                       (v) => {
-                        setFilterState(v);
+                        const uf = (v || '').trim();
+                        const name = uf ? ibgeStates.find((s) => s.sigla === uf)?.nome || '' : '';
+                        setFilterUf(uf);
+                        setFilterState(name);
                         setFilterCity('');
+                        setIbgeCities([]);
                         setFilterNeighborhoodTeach('');
+                        if (uf) {
+                          loadCities(uf);
+                        }
                         setPicker(null);
                       }
                     )
                   }
                 >
                   <Text className="text-neutral-500 text-xs">Estado</Text>
-                  <Text className="text-neutral-900 font-medium">{filterState || 'Qualquer'}</Text>
+                  <Text className="text-neutral-900 font-medium">
+                    {filterState || (isLoadingStates ? 'Carregando...' : 'Qualquer')}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="bg-neutral-100 rounded-xl p-3"
+                  className={`bg-neutral-100 rounded-xl p-3 ${filterUf && !isLoadingCities ? '' : 'opacity-50'}`}
+                  disabled={!filterUf || isLoadingCities}
                   onPress={() =>
                     openPicker(
                       'Cidade',
                       [
                         { label: 'Qualquer', value: '' },
-                        ...CITIES.map((c) => ({ label: c, value: c })),
+                        ...ibgeCities.map((c) => ({ label: c.nome, value: c.nome })),
                       ],
                       (v) => {
                         setFilterCity(v);
@@ -208,7 +247,13 @@ export default function ScheduleSearchScreen() {
                   }
                 >
                   <Text className="text-neutral-500 text-xs">Cidade</Text>
-                  <Text className="text-neutral-900 font-medium">{filterCity || 'Qualquer'}</Text>
+                  <Text className="text-neutral-900 font-medium">
+                    {!filterUf
+                      ? 'Selecione o estado'
+                      : isLoadingCities
+                        ? 'Carregando...'
+                        : filterCity || 'Qualquer'}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -345,7 +390,9 @@ export default function ScheduleSearchScreen() {
                   className="flex-1 bg-neutral-200 rounded-xl p-4"
                   onPress={() => {
                     setFilterState('');
+                    setFilterUf('');
                     setFilterCity('');
+                    setIbgeCities([]);
                     setFilterNeighborhoodTeach('');
                     setFilterGender('');
                     setFilterTransmission('');
