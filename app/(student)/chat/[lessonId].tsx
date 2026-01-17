@@ -57,6 +57,15 @@ export default function StudentChatScreen() {
     loadChat();
   }, [lessonId]);
 
+  useEffect(() => {
+    // Scroll para o final quando mensagens carregam
+    if (messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
   const loadChat = async () => {
     try {
       setIsLoading(true);
@@ -168,6 +177,7 @@ export default function StudentChatScreen() {
         ref={scrollViewRef}
         className="flex-1 p-4"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
         {messages.length === 0 ? (
           <View className="flex-1 justify-center items-center py-8">
