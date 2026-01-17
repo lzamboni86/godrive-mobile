@@ -1,11 +1,11 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Filter, ArrowLeft, MapPin, Star, Calendar, Clock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { studentService, Instructor, InstructorSearchFilters } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
-import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState } from '@/services/ibge';
+import { getIbgeCitiesByUf, getIbgeStates, getNeighborhoodsByCity, IbgeCity, IbgeState } from '@/services/ibge';
 
 export default function ScheduleSearchScreen() {
   const { user } = useAuth();
@@ -14,8 +14,6 @@ export default function ScheduleSearchScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-
-  const NEIGHBORHOODS = useMemo(() => ['Água Verde', 'Portão', 'Centro'], []);
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [picker, setPicker] = useState<{ title: string; options: { label: string; value: string }[]; onSelect: (v: string) => void } | null>(null);
@@ -30,6 +28,7 @@ export default function ScheduleSearchScreen() {
 
   const [ibgeStates, setIbgeStates] = useState<IbgeState[]>([]);
   const [ibgeCities, setIbgeCities] = useState<IbgeCity[]>([]);
+  const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
   const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
@@ -56,6 +55,21 @@ export default function ScheduleSearchScreen() {
       setIsLoadingCities(false);
     }
   };
+
+  // Atualizar bairros quando a cidade muda
+  useEffect(() => {
+    if (filterCity) {
+      const cityNeighborhoods = getNeighborhoodsByCity(filterCity);
+      setNeighborhoods(cityNeighborhoods);
+      // Limpar bairro selecionado se não existir na nova lista
+      if (filterNeighborhoodTeach && !cityNeighborhoods.includes(filterNeighborhoodTeach)) {
+        setFilterNeighborhoodTeach('');
+      }
+    } else {
+      setNeighborhoods([]);
+      setFilterNeighborhoodTeach('');
+    }
+  }, [filterCity]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -258,12 +272,13 @@ export default function ScheduleSearchScreen() {
 
                 <TouchableOpacity
                   className="bg-neutral-100 rounded-xl p-3"
+                  disabled={!filterCity}
                   onPress={() =>
                     openPicker(
                       'Bairro de Atendimento',
                       [
                         { label: 'Qualquer', value: '' },
-                        ...NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                        ...neighborhoods.map((b) => ({ label: b, value: b })),
                       ],
                       (v) => {
                         setFilterNeighborhoodTeach(v);
@@ -273,7 +288,11 @@ export default function ScheduleSearchScreen() {
                   }
                 >
                   <Text className="text-neutral-500 text-xs">Bairro de Atendimento</Text>
-                  <Text className="text-neutral-900 font-medium">{filterNeighborhoodTeach || 'Qualquer'}</Text>
+                  <Text className="text-neutral-900 font-medium">
+                    {!filterCity
+                      ? 'Selecione a cidade'
+                      : filterNeighborhoodTeach || 'Qualquer'}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -289,7 +308,6 @@ export default function ScheduleSearchScreen() {
                         { label: 'Qualquer', value: '' },
                         { label: 'Masculino', value: 'MALE' },
                         { label: 'Feminino', value: 'FEMALE' },
-                        { label: 'Outro', value: 'OTHER' },
                       ],
                       (v) => {
                         setFilterGender((v as any) || '');
@@ -304,9 +322,7 @@ export default function ScheduleSearchScreen() {
                       ? 'Masculino'
                       : filterGender === 'FEMALE'
                         ? 'Feminino'
-                        : filterGender === 'OTHER'
-                          ? 'Outro'
-                          : 'Qualquer'}
+                        : 'Qualquer'}
                   </Text>
                 </TouchableOpacity>
 
@@ -393,6 +409,7 @@ export default function ScheduleSearchScreen() {
                     setFilterUf('');
                     setFilterCity('');
                     setIbgeCities([]);
+                    setNeighborhoods([]);
                     setFilterNeighborhoodTeach('');
                     setFilterGender('');
                     setFilterTransmission('');
