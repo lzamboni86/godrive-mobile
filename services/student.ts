@@ -9,10 +9,22 @@ export interface Instructor {
   vehicle?: {
     make: string;
     model: string;
+    year?: number;
     plate: string;
   };
   cnh?: string;
   hourlyRate?: number;
+  vehicleMake?: string;
+  vehicleYear?: number;
+  transmission?: 'MANUAL' | 'AUTOMATIC';
+  engineType?: 'COMBUSTION' | 'ELECTRIC';
+  state?: string;
+  city?: string;
+  neighborhoodReside?: string;
+  neighborhoodTeach?: string;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED';
+  completedLessonsCount?: number;
+  rating?: number;
   createdAt: string;
 }
 
@@ -72,10 +84,30 @@ export interface ScheduleResponse {
   message: string;
 }
 
+export type InstructorSearchFilters = {
+  state: string;
+  city: string;
+  neighborhoodTeach: string;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'UNDISCLOSED';
+  transmission?: 'MANUAL' | 'AUTOMATIC';
+  engineType?: 'COMBUSTION' | 'ELECTRIC';
+};
+
 export const studentService = {
   // Instrutores
-  async getApprovedInstructors(): Promise<Instructor[]> {
-    return api.get<Instructor[]>('/student/instructors/approved');
+  async getApprovedInstructors(filters?: Partial<InstructorSearchFilters>): Promise<Instructor[]> {
+    const params = new URLSearchParams();
+
+    if (filters?.state) params.set('state', filters.state);
+    if (filters?.city) params.set('city', filters.city);
+    if (filters?.neighborhoodTeach) params.set('neighborhoodTeach', filters.neighborhoodTeach);
+    if (filters?.gender) params.set('gender', filters.gender);
+    if (filters?.transmission) params.set('transmission', filters.transmission);
+    if (filters?.engineType) params.set('engineType', filters.engineType);
+
+    const qs = params.toString();
+    const url = qs ? `/student/instructors/approved?${qs}` : '/student/instructors/approved';
+    return api.get<Instructor[]>(url);
   },
 
   // Aulas

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Modal } from 'react-native';
 import { router } from 'expo-router';
-import { ArrowLeft, User, Mail, Phone, FileText, Car, Lock, Check, Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, User, Mail, Phone, FileText, Car, Lock, Check, Eye, EyeOff, MapPin } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,17 @@ export default function InstructorSignupScreen() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [cnh, setCnh] = useState('');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | ''>('');
+
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [neighborhoodReside, setNeighborhoodReside] = useState('');
+  const [neighborhoodTeach, setNeighborhoodTeach] = useState('');
+
+  const [vehicleMake, setVehicleMake] = useState('');
+  const [vehicleYear, setVehicleYear] = useState('');
+  const [transmission, setTransmission] = useState<'MANUAL' | 'AUTOMATIC' | ''>('');
+  const [engineType, setEngineType] = useState<'COMBUSTION' | 'ELECTRIC' | ''>('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
@@ -20,14 +31,44 @@ export default function InstructorSignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [picker, setPicker] = useState<{ title: string; options: { label: string; value: string }[]; onSelect: (v: string) => void } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const VEHICLE_MAKES = ['GM', 'Renault', 'Ford'];
+  const STATES = ['Paraná', 'São Paulo'];
+  const CITIES = ['Curitiba', 'Araucária', 'São Paulo'];
+  const NEIGHBORHOODS = ['Água Verde', 'Portão', 'Centro'];
+
+  const openPicker = (title: string, options: { label: string; value: string }[], onSelect: (v: string) => void) => {
+    setPicker({ title, options, onSelect });
+    setPickerOpen(true);
+  };
+
   async function handleSignup() {
     console.log('🔐 Instructor Signup - Dados:', { 
-      name, email, phone, cnh, vehicleModel, vehiclePlate, hourlyRate, password: '***' 
+      name,
+      email,
+      phone,
+      cnh,
+      gender,
+      state,
+      city,
+      neighborhoodReside,
+      neighborhoodTeach,
+      vehicleMake,
+      vehicleYear,
+      transmission,
+      engineType,
+      vehicleModel,
+      vehiclePlate,
+      hourlyRate,
+      password: '***'
     });
     
-    if (!name.trim() || !email.trim() || !phone.trim() || !cnh.trim() || 
-        !vehicleModel.trim() || !vehiclePlate.trim() || !hourlyRate.trim() || 
-        !password.trim() || !confirmPassword.trim()) {
+    if (!name.trim() || !email.trim() || !phone.trim() || !cnh.trim() ||
+        !gender.trim() || !state.trim() || !city.trim() || !neighborhoodReside.trim() || !neighborhoodTeach.trim() ||
+        !vehicleMake.trim() || !vehicleYear.trim() || !transmission.trim() || !engineType.trim() || !vehicleModel.trim() ||
+        !vehiclePlate.trim() || !hourlyRate.trim() || !password.trim() || !confirmPassword.trim()) {
       console.log('🔐 Instructor Signup - Validação falhou: campos vazios');
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
@@ -37,6 +78,12 @@ export default function InstructorSignupScreen() {
     const rate = parseFloat(hourlyRate);
     if (isNaN(rate) || rate <= 0) {
       Alert.alert('Erro', 'Digite um valor válido para a hora/aula');
+      return;
+    }
+
+    const year = parseInt(vehicleYear, 10);
+    if (isNaN(year) || year < 1980 || year > 2100) {
+      Alert.alert('Erro', 'Digite um ano de veículo válido');
       return;
     }
 
@@ -59,6 +106,15 @@ export default function InstructorSignupScreen() {
         email: email.trim(),
         phone: phone.trim(),
         cnh: cnh.trim(),
+        gender: gender,
+        state: state.trim(),
+        city: city.trim(),
+        neighborhoodReside: neighborhoodReside.trim(),
+        neighborhoodTeach: neighborhoodTeach.trim(),
+        vehicleMake: vehicleMake.trim(),
+        vehicleYear: year,
+        transmission: transmission,
+        engineType: engineType,
         vehicleModel: vehicleModel.trim(),
         vehiclePlate: vehiclePlate.trim(),
         hourlyRate: rate,
@@ -103,6 +159,50 @@ export default function InstructorSignupScreen() {
 
             {/* Form */}
             <View className="space-y-4">
+              <Modal
+                visible={pickerOpen}
+                transparent
+                animationType="slide"
+                onRequestClose={() => {
+                  setPickerOpen(false);
+                  setPicker(null);
+                }}
+              >
+                <View className="flex-1 bg-black/40 justify-end">
+                  <View className="bg-white rounded-t-3xl p-5">
+                    <View className="flex-row items-center justify-between mb-4">
+                      <Text className="text-neutral-900 font-semibold text-lg">{picker?.title || 'Selecionar'}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPickerOpen(false);
+                          setPicker(null);
+                        }}
+                      >
+                        <Text className="text-blue-600 font-semibold">Fechar</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View className="max-h-64">
+                      <ScrollView showsVerticalScrollIndicator={false}>
+                        {(picker?.options || []).map((opt) => (
+                          <TouchableOpacity
+                            key={`${picker?.title}-${opt.value}`}
+                            className="py-3 border-b border-neutral-100"
+                            onPress={() => {
+                              picker?.onSelect(opt.value);
+                              setPickerOpen(false);
+                              setPicker(null);
+                            }}
+                          >
+                            <Text className="text-neutral-900">{opt.label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+
               {/* Name Input */}
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-700 mb-2">Nome Completo</Text>
@@ -166,6 +266,191 @@ export default function InstructorSignupScreen() {
                     onChangeText={setCnh}
                   />
                 </View>
+              </View>
+
+              {/* Gender */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Sexo</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Sexo',
+                      [
+                        { label: 'Masculino', value: 'MALE' },
+                        { label: 'Feminino', value: 'FEMALE' },
+                        { label: 'Outro', value: 'OTHER' },
+                      ],
+                      (v) => setGender(v as any)
+                    )
+                  }
+                >
+                  <User size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {gender === 'MALE' ? 'Masculino' : gender === 'FEMALE' ? 'Feminino' : gender === 'OTHER' ? 'Outro' : 'Selecione'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* State */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Estado</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Estado',
+                      STATES.map((s) => ({ label: s, value: s })),
+                      (v) => {
+                        setState(v);
+                        setCity('');
+                        setNeighborhoodReside('');
+                        setNeighborhoodTeach('');
+                      }
+                    )
+                  }
+                >
+                  <MapPin size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">{state || 'Selecione'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* City */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Cidade</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Cidade',
+                      CITIES.map((c) => ({ label: c, value: c })),
+                      (v) => {
+                        setCity(v);
+                        setNeighborhoodReside('');
+                        setNeighborhoodTeach('');
+                      }
+                    )
+                  }
+                >
+                  <MapPin size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">{city || 'Selecione'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Neighborhood Reside */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Bairro de Residência</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Bairro de Residência',
+                      NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                      (v) => setNeighborhoodReside(v)
+                    )
+                  }
+                >
+                  <MapPin size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">{neighborhoodReside || 'Selecione'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Neighborhood Teach */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Bairro de Atendimento</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Bairro de Atendimento',
+                      NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                      (v) => setNeighborhoodTeach(v)
+                    )
+                  }
+                >
+                  <MapPin size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">{neighborhoodTeach || 'Selecione'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Vehicle Make */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Marca do Veículo</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Marca do Veículo',
+                      VEHICLE_MAKES.map((m) => ({ label: m, value: m })),
+                      (v) => setVehicleMake(v)
+                    )
+                  }
+                >
+                  <Car size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">{vehicleMake || 'Selecione'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Vehicle Year */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Ano do Veículo</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <Car size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Ex: 2022"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numeric"
+                    value={vehicleYear}
+                    onChangeText={setVehicleYear}
+                  />
+                </View>
+              </View>
+
+              {/* Transmission */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Câmbio</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Câmbio',
+                      [
+                        { label: 'Manual', value: 'MANUAL' },
+                        { label: 'Automático', value: 'AUTOMATIC' },
+                      ],
+                      (v) => setTransmission(v as any)
+                    )
+                  }
+                >
+                  <Car size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {transmission === 'MANUAL' ? 'Manual' : transmission === 'AUTOMATIC' ? 'Automático' : 'Selecione'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Engine Type */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Motor</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Motor',
+                      [
+                        { label: 'Combustão', value: 'COMBUSTION' },
+                        { label: 'Elétrico', value: 'ELECTRIC' },
+                      ],
+                      (v) => setEngineType(v as any)
+                    )
+                  }
+                >
+                  <Car size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {engineType === 'COMBUSTION' ? 'Combustão' : engineType === 'ELECTRIC' ? 'Elétrico' : 'Selecione'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               {/* Vehicle Model Input */}
