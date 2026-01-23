@@ -144,4 +144,9 @@ export const studentService = {
   async createScheduleRequest(data: ScheduleRequest): Promise<ScheduleResponse> {
     return api.post<ScheduleResponse>('/student/schedule', data);
   },
+
+  // Perfil
+  async updateProfile(data: { name: string; email: string; phone?: string }): Promise<void> {
+    return api.put('/student/profile', data);
+  },
 };

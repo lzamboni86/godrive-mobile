@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Users, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react-native';
+import { Users, TrendingUp, AlertTriangle, CheckCircle, ChevronRight } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { adminService, Dashboard } from '@/services/admin';
 import { Toast, useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminDashboardScreen() {
   const { showToast } = useToast();
+  const { isLoading: authLoading, isAuthenticated, isAdmin, isInstructor } = useAuth();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!isAuthenticated) {
+      router.replace('/(auth)/login');
+      return;
+    }
+
+    if (!isAdmin) {
+      router.replace(isInstructor ? '/(tabs)' : ('/(student)' as any));
+      return;
+    }
+
     loadDashboard();
-  }, []);
+  }, [authLoading, isAuthenticated, isAdmin, isInstructor]);
 
   async function loadDashboard() {
     try {
@@ -96,27 +111,33 @@ export default function AdminDashboardScreen() {
             </Text>
             
             <View className="space-y-3">
-              <View className="flex-row items-center justify-between p-3 bg-amber-50 rounded-xl">
+              <TouchableOpacity 
+                className="flex-row items-center justify-between p-3 bg-amber-50 rounded-xl active:scale-95 transition-transform"
+                onPress={() => router.push('/(admin)/instructors')}
+              >
                 <View className="flex-row items-center">
                   <AlertTriangle size={20} color="#F59E0B" />
                   <View className="ml-3">
                     <Text className="text-amber-900 font-medium">Aprovações Pendentes</Text>
-                    <Text className="text-amber-700 text-sm">3 instrutores aguardando</Text>
+                    <Text className="text-amber-700 text-sm">{dashboard?.pendingInstructors || 0} instrutores aguardando</Text>
                   </View>
                 </View>
-                <Text className="text-amber-600 text-sm font-medium">Ver →</Text>
-              </View>
+                <ChevronRight size={20} color="#F59E0B" />
+              </TouchableOpacity>
               
-              <View className="flex-row items-center justify-between p-3 bg-blue-50 rounded-xl">
+              <TouchableOpacity 
+                className="flex-row items-center justify-between p-3 bg-blue-50 rounded-xl active:scale-95 transition-transform"
+                onPress={() => router.push('/(admin)/students')}
+              >
                 <View className="flex-row items-center">
                   <Users size={20} color="#3B82F6" />
                   <View className="ml-3">
                     <Text className="text-blue-900 font-medium">Novos Usuários</Text>
-                    <Text className="text-blue-700 text-sm">12 esta semana</Text>
+                    <Text className="text-blue-700 text-sm">{dashboard?.totalUsers || 0} cadastrados</Text>
                   </View>
                 </View>
-                <Text className="text-blue-600 text-sm font-medium">Ver →</Text>
-              </View>
+                <ChevronRight size={20} color="#3B82F6" />
+              </TouchableOpacity>
             </View>
           </View>
 

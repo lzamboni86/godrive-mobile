@@ -1,14 +1,29 @@
 import api from './api';
 
 export interface InstructorProfile {
+  name?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
   hourlyRate?: number;
   pixKey?: string;
 }
 
+export interface ContactForm {
+  name: string;
+  email: string;
+  message: string;
+  contactPreference: 'whatsapp' | 'email';
+}
+
 export const instructorService = {
   // Perfil
-  async updateProfile(instructorId: string, data: InstructorProfile) {
-    return api.patch(`/instructor/${instructorId}/profile`, data);
+  async getProfile(instructorId: string) {
+    return api.get(`/instructor/${instructorId}/profile`);
+  },
+
+  async updateProfile(data: InstructorProfile) {
+    return api.patch(`/instructor/profile`, data);
   },
 
   // Solicitações
@@ -32,5 +47,10 @@ export const instructorService = {
 
   async rejectRequest(requestId: string) {
     return api.patch(`/instructor/requests/${requestId}/reject`);
+  },
+
+  // SAC
+  async sendContactForm(data: ContactForm): Promise<void> {
+    return api.post('/instructor/contact', data);
   },
 };

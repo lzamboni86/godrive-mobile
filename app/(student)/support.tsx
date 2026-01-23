@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MessageCircle, Phone, Mail, Clock, HelpCircle, FileText, Send, AlertCircle } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -25,10 +25,18 @@ export default function StudentSupportScreen() {
     try {
       setIsSubmitting(true);
       await studentService.sendContactForm(formData);
+      
+      // Limpar formulário após envio bem-sucedido
+      setFormData({
+        ...formData,
+        message: '',
+        contactPreference: 'whatsapp'
+      });
+      
       Alert.alert(
         'Sucesso!',
         'Sua mensagem foi enviada. Entraremos em contato em breve.',
-        [{ text: 'OK', onPress: () => router.back() }]
+        [{ text: 'OK' }]
       );
     } catch (error: any) {
       Alert.alert(
@@ -43,7 +51,7 @@ export default function StudentSupportScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <View className="flex-1">
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
@@ -103,39 +111,21 @@ export default function StudentSupportScreen() {
             {/* Preferência de Contato */}
             <View className="mb-6">
               <Text className="text-sm font-medium text-neutral-700 mb-2">Preferência de Contato</Text>
-              <View className="flex-row gap-3">
-                <TouchableOpacity
-                  className={`flex-1 flex-row items-center justify-center px-4 py-3 rounded-xl border ${
-                    formData.contactPreference === 'whatsapp'
-                      ? 'bg-emerald-500 border-emerald-500'
-                      : 'bg-white border-neutral-300'
-                  }`}
-                  onPress={() => setFormData({ ...formData, contactPreference: 'whatsapp' })}
-                >
-                  <MessageCircle size={20} color={formData.contactPreference === 'whatsapp' ? '#FFFFFF' : '#10B981'} />
-                  <Text className={`ml-2 font-medium ${
-                    formData.contactPreference === 'whatsapp' ? 'text-white' : 'text-neutral-700'
-                  }`}>
-                    WhatsApp
-                  </Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  className={`flex-1 flex-row items-center justify-center px-4 py-3 rounded-xl border ${
-                    formData.contactPreference === 'email'
-                      ? 'bg-blue-500 border-blue-500'
-                      : 'bg-white border-neutral-300'
-                  }`}
-                  onPress={() => setFormData({ ...formData, contactPreference: 'email' })}
-                >
-                  <Mail size={20} color={formData.contactPreference === 'email' ? '#FFFFFF' : '#3B82F6'} />
-                  <Text className={`ml-2 font-medium ${
-                    formData.contactPreference === 'email' ? 'text-white' : 'text-neutral-700'
-                  }`}>
-                    E-mail
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                className={`flex-row items-center justify-center px-4 py-3 rounded-xl border ${
+                  formData.contactPreference === 'email'
+                    ? 'bg-blue-500 border-blue-500'
+                    : 'bg-white border-neutral-300'
+                }`}
+                onPress={() => setFormData({ ...formData, contactPreference: 'email' })}
+              >
+                <Mail size={20} color={formData.contactPreference === 'email' ? '#FFFFFF' : '#3B82F6'} />
+                <Text className={`ml-2 font-medium ${
+                  formData.contactPreference === 'email' ? 'text-white' : 'text-neutral-700'
+                }`}>
+                  E-mail
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Botão Enviar */}
@@ -157,37 +147,36 @@ export default function StudentSupportScreen() {
 
           {/* Canais de Atendimento */}
           <View className="space-y-4 mb-6">
-            <TouchableOpacity className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <View className="flex-row items-center">
-                <View className="w-12 h-12 bg-emerald-500 rounded-full items-center justify-center mr-4">
-                  <MessageCircle size={24} color="#FFFFFF" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-emerald-900 font-semibold">Chat Online</Text>
-                  <Text className="text-emerald-700 text-sm">Atendimento imediato</Text>
-                </View>
-                <View className="bg-emerald-500 px-3 py-1 rounded-full">
-                  <Text className="text-white text-xs font-medium">Online</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-              <View className="flex-row items-center">
-                <View className="w-12 h-12 bg-blue-500 rounded-full items-center justify-center mr-4">
-                  <Phone size={24} color="#FFFFFF" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-blue-900 font-semibold">Telefone</Text>
-                  <Text className="text-blue-700 text-sm">(11) 99999-9999</Text>
-                </View>
-                <View className="bg-blue-500 px-3 py-1 rounded-full">
-                  <Text className="text-white text-xs font-medium">Ligar</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
+            <TouchableOpacity 
+              className="bg-purple-50 border border-purple-200 rounded-2xl p-4"
+              onPress={() => {
+                // Abrir cliente de e-mail
+                Alert.alert(
+                  'Contato por E-mail',
+                  'Deseja abrir seu aplicativo de e-mail para entrar em contato conosco?',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { 
+                      text: 'Abrir E-mail', 
+                      onPress: () => {
+                        // Tentar abrir o cliente de e-mail
+                        const email = 'contato@godrivegroup.com.br';
+                        const subject = 'Contato - GoDrive';
+                        const body = 'Olá, gostaria de entrar em contato sobre...';
+                        
+                        // Para React Native/Expo, precisaríamos de Linking
+                        // Por enquanto, apenas mostramos o e-mail
+                        Alert.alert(
+                          'E-mail para Contato',
+                          `Envie sua mensagem para:\n\n${email}\n\nAssunto: ${subject}\n\nMensagem: ${body}`,
+                          [{ text: 'OK' }]
+                        );
+                      }
+                    }
+                  ]
+                );
+              }}
+            >
               <View className="flex-row items-center">
                 <View className="w-12 h-12 bg-purple-500 rounded-full items-center justify-center mr-4">
                   <Mail size={24} color="#FFFFFF" />
@@ -226,27 +215,76 @@ export default function StudentSupportScreen() {
           </View>
 
           {/* Ajuda Rápida */}
-          <View>
+          <View className="mb-8">
             <Text className="text-lg font-semibold text-neutral-900 mb-4">Ajuda Rápida</Text>
             <View className="space-y-3">
-              <TouchableOpacity className="bg-white border border-neutral-200 rounded-xl p-4">
+              <TouchableOpacity 
+                className="bg-white border border-neutral-200 rounded-xl p-4"
+                onPress={() => {
+                  Alert.alert(
+                    'Perguntas Frequentes',
+                    'Deseja abrir a página de Perguntas Frequentes em seu navegador?',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { 
+                        text: 'Abrir', 
+                        onPress: async () => {
+                          const url = 'https://www.godrivegroup.com.br/perguntas-frequentes';
+                          try {
+                            const supported = await Linking.canOpenURL(url);
+                            if (supported) {
+                              await Linking.openURL(url);
+                            } else {
+                              Alert.alert('Erro', 'Não foi possível abrir o navegador.');
+                            }
+                          } catch (error) {
+                            console.error('Erro ao abrir URL:', error);
+                            Alert.alert('Erro', 'Não foi possível abrir a página.');
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
                 <View className="flex-row items-center">
                   <HelpCircle size={20} color="#6B7280" />
                   <Text className="text-neutral-900 font-medium ml-3">Perguntas Frequentes</Text>
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity className="bg-white border border-neutral-200 rounded-xl p-4">
+              <TouchableOpacity 
+                className="bg-white border border-neutral-200 rounded-xl p-4"
+                onPress={() => {
+                  Alert.alert(
+                    'Manual do Aluno',
+                    'Deseja abrir o Manual do Aluno em seu navegador?',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { 
+                        text: 'Abrir', 
+                        onPress: async () => {
+                          const url = 'https://www.godrivegroup.com.br/manual-aluno';
+                          try {
+                            const supported = await Linking.canOpenURL(url);
+                            if (supported) {
+                              await Linking.openURL(url);
+                            } else {
+                              Alert.alert('Erro', 'Não foi possível abrir o navegador.');
+                            }
+                          } catch (error) {
+                            console.error('Erro ao abrir URL:', error);
+                            Alert.alert('Erro', 'Não foi possível abrir a página.');
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
                 <View className="flex-row items-center">
                   <FileText size={20} color="#6B7280" />
                   <Text className="text-neutral-900 font-medium ml-3">Manual do Aluno</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity className="bg-white border border-neutral-200 rounded-xl p-4">
-                <View className="flex-row items-center">
-                  <MessageCircle size={20} color="#6B7280" />
-                  <Text className="text-neutral-900 font-medium ml-3">Reportar Problema</Text>
                 </View>
               </TouchableOpacity>
             </View>

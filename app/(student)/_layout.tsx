@@ -46,6 +46,7 @@ export default function StudentTabLayout() {
         options={{
           title: 'Buscar',
           tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
+          href: '/schedule'
         }}
       />
       <Tabs.Screen
@@ -58,7 +59,7 @@ export default function StudentTabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Configuração',
+          title: 'Config',
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
@@ -103,22 +104,6 @@ export default function StudentTabLayout() {
         }}
       />
       <Tabs.Screen 
-        name="schedule" 
-        options={{ 
-          href: null,
-          headerShown: false,
-          title: ''
-        }} 
-      />
-      <Tabs.Screen 
-        name="schedule/index" 
-        options={{ 
-          href: null,
-          headerShown: false,
-          title: ''
-        }} 
-      />
-      <Tabs.Screen 
         name="schedule/instructor/[id]" 
         options={{ 
           href: null,
@@ -159,6 +144,24 @@ export default function StudentTabLayout() {
         }} 
       />
 
+      <Tabs.Screen 
+        name="schedule/pending" 
+        options={{ 
+          href: null,
+          headerShown: false,
+          title: ''
+        }} 
+      />
+
+      <Tabs.Screen 
+        name="schedule/failure" 
+        options={{ 
+          href: null,
+          headerShown: false,
+          title: ''
+        }} 
+      />
+
       <Tabs.Screen
         name="chat/[lessonId]"
         options={{
@@ -174,6 +177,33 @@ export default function StudentTabLayout() {
           headerShown: false,
           title: ''
         }}
+      />
+
+      <Tabs.Screen
+        name="edit-profile"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+
+      <Tabs.Screen 
+        name="schedule" 
+        options={{ 
+          href: null,
+          headerShown: false,
+          title: ''
+        }} 
+      />
+
+      <Tabs.Screen 
+        name="schedule/index" 
+        options={{ 
+          href: null,
+          headerShown: false,
+          title: ''
+        }} 
       />
     </Tabs>
   );

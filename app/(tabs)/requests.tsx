@@ -36,6 +36,23 @@ export default function RequestsScreen() {
     loadRequests();
   }, []);
 
+  const formatTime = (timeString: string) => {
+  try {
+    // Se for um ISO string, extrair apenas o tempo
+    if (timeString.includes('T')) {
+      const timePart = timeString.split('T')[1]?.split('Z')[0] || '00:00:00';
+      const [hours, minutes] = timePart.split(':');
+      return `${hours}:${minutes}`;
+    }
+    
+    // Se for apenas tempo, retornar direto
+    return timeString.substring(0, 5);
+  } catch (error) {
+    console.error('Erro ao formatar horário:', error);
+    return timeString;
+  }
+};
+
   const loadRequests = async () => {
     try {
       setIsLoading(true);
@@ -226,10 +243,7 @@ export default function RequestsScreen() {
                     <View className="flex-row items-center">
                       <Clock size={16} color="#6B7280" />
                       <Text className="text-neutral-700 text-sm ml-2">
-                        {new Date(request.lessonTime).toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {formatTime(request.lessonTime)}
                       </Text>
                     </View>
                   </View>

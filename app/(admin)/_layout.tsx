@@ -1,10 +1,29 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
-import { Users, Settings, CheckCircle, AlertTriangle } from 'lucide-react-native';
+import React, { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import { Users, Settings, CheckCircle, AlertTriangle, FileText, DollarSign } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AdminLayout() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { isLoading, isAuthenticated, isAdmin, isInstructor } = useAuth();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      router.replace('/(auth)/login');
+      return;
+    }
+
+    if (!isAdmin) {
+      router.replace(isInstructor ? '/(tabs)' : ('/(student)' as any));
+    }
+  }, [isLoading, isAuthenticated, isAdmin, isInstructor, router]);
+
+  if (isLoading) return null;
+  if (!isAuthenticated || !isAdmin) return null;
   
   return (
     <Tabs
@@ -53,6 +72,20 @@ export default function AdminLayout() {
         options={{
           title: 'Alunos',
           tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="finance"
+        options={{
+          title: 'Fin',
+          tabBarIcon: ({ color, size }) => <DollarSign size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="logs"
+        options={{
+          title: 'Logs',
+          tabBarIcon: ({ color, size }) => <FileText size={size} color={color} />,
         }}
       />
       <Tabs.Screen

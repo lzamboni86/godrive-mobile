@@ -2,7 +2,7 @@
   "expo": {
     "name": "Go Drive",
     "slug": "godrive-instrutor",
-    "version": "1.0.0",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "godrive",
@@ -15,17 +15,22 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.godrive.instrutor",
+      "bundleIdentifier": "com.deltaprotecnologia.godrive",
+      "buildNumber": "10",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Precisamos de acesso à sua biblioteca de fotos para você escolher uma foto de perfil.",
+        "NSCameraUsageDescription": "Precisamos de acesso à câmera para você tirar uma foto de perfil.",
+        "NSPhotoLibraryAddUsageDescription": "Precisamos de permissão para salvar imagens no seu dispositivo."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#1E3A8A"
+        "backgroundColor": "#FFFFFF"
       },
-      "package": "com.godrive.instrutor"
+      "package": "com.godrive.instrutor",
+      "versionCode": 22
     },
     "web": {
       "bundler": "metro",

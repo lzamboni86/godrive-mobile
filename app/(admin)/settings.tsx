@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Settings, LogOut, Shield, Database, Bell } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/Button';
+import { router } from 'expo-router';
 
 export default function AdminSettingsScreen() {
   const { user, signOut } = useAuth();
@@ -12,8 +14,8 @@ export default function AdminSettingsScreen() {
       <View className="flex-1 p-6">
         {/* Header */}
         <View className="items-center mb-8">
-          <View className="w-24 h-24 rounded-full bg-red-500 items-center justify-center mb-4">
-            <Text className="text-white text-3xl font-bold">A</Text>
+          <View className="w-32 h-32 rounded-full bg-red-500 items-center justify-center mb-4">
+            <Text className="text-white text-4xl font-bold">A</Text>
           </View>
           <Text className="text-neutral-900 text-xl font-bold text-center">
             {user?.name || 'Administrador'}
@@ -37,11 +39,14 @@ export default function AdminSettingsScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center py-3 border-b border-neutral-100 active:bg-neutral-50">
+          <TouchableOpacity 
+            className="flex-row items-center py-3 border-b border-neutral-100 active:bg-neutral-50"
+            onPress={() => router.push('/(common)/security-privacy' as any)}
+          >
             <Shield size={20} color="#6B7280" />
             <View className="ml-3 flex-1">
               <Text className="text-neutral-900 text-base font-medium">Segurança</Text>
-              <Text className="text-neutral-500 text-sm">Permissões e acessos</Text>
+              <Text className="text-neutral-500 text-sm">Privacidade e segurança</Text>
             </View>
           </TouchableOpacity>
 
@@ -70,8 +75,8 @@ export default function AdminSettingsScreen() {
           
           <View className="space-y-3">
             <View className="flex-row justify-between">
-              <Text className="text-neutral-600 text-sm">Versão do App</Text>
-              <Text className="text-neutral-900 text-sm font-medium">1.0.0</Text>
+              <Text className="text-neutral-600 text-sm">Desenvolvedor</Text>
+              <Text className="text-neutral-900 text-sm font-medium">Delta Pro Tecnologia</Text>
             </View>
             <View className="flex-row justify-between">
               <Text className="text-neutral-600 text-sm">Backend</Text>
@@ -89,21 +94,20 @@ export default function AdminSettingsScreen() {
         </View>
 
         {/* Logout */}
-        <View className="mt-auto">
-          <TouchableOpacity
+        <View className="mt-auto mb-8">
+          <Button
+            title="Sair da Conta"
             onPress={signOut}
-            className="bg-red-500 rounded-xl p-4 active:scale-95 transition-transform"
-          >
-            <Text className="text-white text-center font-semibold text-base">
-              Sair da Conta
-            </Text>
-          </TouchableOpacity>
+            variant="outline"
+            fullWidth
+            icon={<LogOut size={20} color="#DC2626" />}
+          />
           
           <Text className="text-center text-neutral-400 text-xs mt-4">
-            © 2025 Delta Pro Tecnologia
+            Go Drive Group
           </Text>
           <Text className="text-center text-neutral-400 text-xs mt-1">
-            Versão 1.0.0
+            Desenvolvido por: Delta Pro Tecnologia
           </Text>
         </View>
       </View>

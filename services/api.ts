@@ -8,7 +8,26 @@ const API_BASE_URL =
   (Constants.expoConfig?.extra as any)?.apiUrl ||
   (Constants.manifest?.extra as any)?.apiUrl ||
   process.env.EXPO_PUBLIC_API_BASE_URL ||
-  (__DEV__ ? 'http://192.168.15.12:3000' : 'https://godrive-7j7x.onrender.com'); // Produção: Render, Dev: IP local
+  (__DEV__ ? 'http://192.168.15.14:3000' : 'https://godrive-7j7x.onrender.com'); // Produção: Render, Dev: IP local
+
+const isLocalOrPrivateBaseUrl = (baseUrl?: string) => {
+  if (!baseUrl) return false;
+  try {
+    const hostname = new URL(baseUrl).hostname;
+
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+    if (hostname.startsWith('10.')) return true;
+    if (hostname.startsWith('192.168.')) return true;
+
+    const match = hostname.match(/^172\.(\d+)\./);
+    if (!match) return false;
+
+    const secondOctet = Number(match[1]);
+    return secondOctet >= 16 && secondOctet <= 31;
+  } catch {
+    return false;
+  }
+};
 
 class ApiService {
   private instance: AxiosInstance;
@@ -73,7 +92,13 @@ class ApiService {
         if (error.code === 'ECONNABORTED') {
           apiError.message = 'Tempo de conexão esgotado. Verifique sua internet.';
         } else if (!error.response) {
-          apiError.message = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+          const baseURL = error.config?.baseURL || API_BASE_URL;
+          if (isLocalOrPrivateBaseUrl(baseURL)) {
+            apiError.message =
+              'Não foi possível conectar ao servidor local. Verifique se o celular está na mesma rede Wi‑Fi do computador, sem VPN, e se a porta 3000 está liberada no firewall.';
+          } else {
+            apiError.message = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+          }
         }
 
         return Promise.reject(apiError);

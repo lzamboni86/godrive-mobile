@@ -88,4 +88,51 @@ export const adminService = {
       throw error;
     }
   },
+
+  // Financeiro
+  async getPayments(): Promise<any[]> {
+    console.log('🔍 [FRONTEND] Buscando pagamentos...');
+    try {
+      const data = await api.get<any[]>('/admin/payments');
+      console.log('🔍 [FRONTEND] Response pagamentos:', data);
+      return data || [];
+    } catch (error) {
+      console.error('🔍 [FRONTEND] Erro ao buscar pagamentos:', error);
+      return [];
+    }
+  },
+
+  async processPayment(paymentId: string): Promise<void> {
+    console.log('🔍 [FRONTEND] Processando pagamento:', paymentId);
+    try {
+      await api.post(`/admin/payments/${paymentId}/process`);
+      console.log('🔍 [FRONTEND] Pagamento processado com sucesso');
+    } catch (error) {
+      console.error('🔍 [FRONTEND] Erro ao processar pagamento:', error);
+      throw error;
+    }
+  },
+
+  async generateInvoice(paymentId: string): Promise<void> {
+    console.log('🔍 [FRONTEND] Gerando nota fiscal:', paymentId);
+    try {
+      await api.post(`/admin/payments/${paymentId}/invoice`);
+      console.log('🔍 [FRONTEND] Nota fiscal gerada com sucesso');
+    } catch (error) {
+      console.error('🔍 [FRONTEND] Erro ao gerar nota fiscal:', error);
+      throw error;
+    }
+  },
+
+  async getLogs(): Promise<any[]> {
+    console.log('🔍 [FRONTEND] Buscando logs...');
+    try {
+      const data = await api.get<any[]>('/admin/logs');
+      console.log('🔍 [FRONTEND] Response logs:', data);
+      return data || [];
+    } catch (error) {
+      console.error('🔍 [FRONTEND] Erro ao buscar logs:', error);
+      return [];
+    }
+  },
 };

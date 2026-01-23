@@ -16,8 +16,8 @@ export default function ProfileSelectionScreen() {
           >
             <ArrowLeft size={24} color="#1E3A8A" />
           </TouchableOpacity>
-          <View className="w-24 h-24 bg-brand-primary rounded-3xl items-center justify-center mb-6">
-            <Text className="text-white text-4xl font-bold">G</Text>
+          <View className="w-32 h-32 bg-brand-primary rounded-3xl items-center justify-center mb-6">
+            <Text className="text-white text-5xl font-bold">G</Text>
           </View>
           <Text className="text-3xl font-bold text-brand-primary">GO DRIVE</Text>
           <Text className="text-neutral-500 mt-2 text-base">Escolha seu perfil</Text>
@@ -69,10 +69,10 @@ export default function ProfileSelectionScreen() {
         {/* Footer */}
         <View className="mt-auto pt-8">
           <Text className="text-center text-neutral-400 text-xs">
-            © 2025 Delta Pro Tecnologia
+            Go Drive Group
           </Text>
           <Text className="text-center text-neutral-400 text-xs mt-1">
-            Versão 1.0.0
+            Desenvolvido por: Delta Pro Tecnologia
           </Text>
         </View>
       </View>

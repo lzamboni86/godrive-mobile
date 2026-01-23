@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, CreditCard, TrendingUp, TrendingDown, Calendar, AlertCircle } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { studentService, Payment } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -20,6 +21,13 @@ export default function StudentPaymentsScreen() {
   useEffect(() => {
     loadPayments();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPayments();
+      return undefined;
+    }, [user?.id])
+  );
 
   const loadPayments = async () => {
     if (!user?.id) return;

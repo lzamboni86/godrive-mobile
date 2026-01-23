@@ -68,7 +68,10 @@ export default function ScheduleStep1Screen() {
   };
 
   const getFirstDayOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    // JavaScript getDay() retorna: 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sáb
+    // Ajuste para calendário brasileiro começando na Segunda (1=Seg)
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    return firstDay === 0 ? 6 : firstDay - 1; // Converte Dom(0) para 6, outros para -1
   };
 
   const isDateSelectable = (date: Date) => {
@@ -123,11 +126,12 @@ export default function ScheduleStep1Screen() {
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
     const firstDay = getFirstDayOfMonth(currentMonth);
-    const days = [];
+    let currentWeekDays: any[] = [];
+    const calendarRows: any[] = [];
     
     // Dias vazios antes do primeiro dia do mês
     for (let i = 0; i < firstDay; i++) {
-      days.push(<View key={`empty-${i}`} className="w-14 h-14 mx-1" />);
+      currentWeekDays.push(<View key={`empty-${i}`} className="flex-1 h-12" />);
     }
     
     // Dias do mês
@@ -137,10 +141,10 @@ export default function ScheduleStep1Screen() {
       const isSelected = selectedDates.includes(dateString);
       const isSelectable = isDateSelectable(date);
       
-      days.push(
+      currentWeekDays.push(
         <TouchableOpacity
           key={day}
-          className={`w-14 h-14 rounded-lg items-center justify-center mx-1 ${
+          className={`flex-1 h-12 rounded-lg items-center justify-center ${
             isSelected 
               ? 'bg-emerald-500' 
               : isSelectable 
@@ -161,14 +165,37 @@ export default function ScheduleStep1Screen() {
           </Text>
         </TouchableOpacity>
       );
+      
+      // Criar uma linha a cada 7 dias
+      if (currentWeekDays.length === 7) {
+        calendarRows.push(
+          <View key={`row-${calendarRows.length}`} className="flex-row mb-1">
+            {currentWeekDays}
+          </View>
+        );
+        currentWeekDays = [];
+      }
     }
     
-    return days;
+    // Adicionar os dias restantes da última linha
+    if (currentWeekDays.length > 0) {
+      // Completar a linha com células vazias se necessário
+      while (currentWeekDays.length < 7) {
+        currentWeekDays.push(<View key={`empty-end-${currentWeekDays.length}`} className="flex-1 h-12" />);
+      }
+      calendarRows.push(
+        <View key={`row-${calendarRows.length}`} className="flex-row mb-1">
+          {currentWeekDays}
+        </View>
+      );
+    }
+    
+    return calendarRows;
   };
 
   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
   if (isLoading) {
     return (
@@ -248,7 +275,7 @@ export default function ScheduleStep1Screen() {
             {/* Dias da semana */}
             <View className="flex-row mb-2">
               {weekDays.map((day, index) => (
-                <View key={day} className="w-14">
+                <View key={day} className="flex-1">
                   <Text className="text-xs font-medium text-center text-neutral-600">
                     {day}
                   </Text>
@@ -257,7 +284,7 @@ export default function ScheduleStep1Screen() {
             </View>
             
             {/* Dias do mês */}
-            <View className="flex-row flex-wrap">
+            <View className="flex-col">
               {renderCalendar()}
             </View>
           </View>
@@ -286,8 +313,12 @@ export default function ScheduleStep1Screen() {
           {/* Informações Importantes */}
           <View className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
             <Text className="text-amber-900 font-semibold mb-2">Importante:</Text>
-            <Text className="text-amber-700 text-sm">
+            <Text className="text-amber-700 text-sm mb-3">
               • Selecione no mínimo {completedLessons >= 2 ? '1' : '2'} {completedLessons >= 2 ? 'aula' : 'aulas'}{'\n'}• Máximo 10 datas por solicitação
+            </Text>
+            <Text className="text-amber-900 font-semibold mb-2">Entenda como funciona:</Text>
+            <Text className="text-amber-700 text-sm">
+              • Você reserva a aula e faz o pagamento{'\n'}• Sua reserva vai para o instrutor{'\n'}• Ele aprova ou recusa{'\n'}• Se aprovar, um chat será gerado automaticamente para alinhar detalhes{'\n'}• Se recusar, o saldo fica disponível para escolher outro instrutor
             </Text>
           </View>
         </ScrollView>

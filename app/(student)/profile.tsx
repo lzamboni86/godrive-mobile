@@ -1,22 +1,28 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, LogOut, Mail, Phone, Headphones, HelpCircle } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, Linking, Image } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { User, LogOut, Mail, Phone, ShoppingBag, HelpCircle } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
+import { router } from 'expo-router';
 
 export default function StudentProfileScreen() {
   const { user, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom']}>
-      <View className="flex-1 p-6">
+      <View className="flex-1 p-6" style={{ paddingBottom: 24 + Math.max(insets.bottom, 16) }}>
         <View className="items-center mb-8">
-          <View className="w-24 h-24 rounded-full bg-emerald-500 items-center justify-center mb-4">
-            <Text className="text-white text-3xl font-bold">
-              {user?.name?.charAt(0) || 'A'}
-            </Text>
-          </View>
+          {user?.avatar ? (
+            <Image source={{ uri: user.avatar }} className="w-32 h-32 rounded-full mb-4" />
+          ) : (
+            <View className="w-32 h-32 rounded-full bg-emerald-500 items-center justify-center mb-4">
+              <Text className="text-white text-4xl font-bold">
+                {user?.name?.charAt(0) || 'A'}
+              </Text>
+            </View>
+          )}
           <Text className="text-neutral-900 text-xl font-bold text-center">
             {user?.name || 'Aluno'}
           </Text>
@@ -56,15 +62,21 @@ export default function StudentProfileScreen() {
             Serviços
           </Text>
           
-          <TouchableOpacity className="flex-row items-center py-3 border-b border-neutral-100 active:bg-neutral-50">
-            <Headphones size={20} color="#10B981" />
+          <TouchableOpacity 
+            className="flex-row items-center py-3 border-b border-neutral-100 active:bg-neutral-50"
+            onPress={() => router.push('services' as any)}
+          >
+            <ShoppingBag size={20} color="#10B981" />
             <View className="ml-3 flex-1">
               <Text className="text-neutral-900 text-base font-medium">Hub de Serviços</Text>
               <Text className="text-neutral-500 text-sm">Acessar todos os serviços</Text>
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center py-3 active:bg-neutral-50">
+          <TouchableOpacity 
+            className="flex-row items-center py-3 active:bg-neutral-50"
+            onPress={() => router.push('support' as any)}
+          >
             <HelpCircle size={20} color="#3B82F6" />
             <View className="ml-3 flex-1">
               <Text className="text-neutral-900 text-base font-medium">Contato SAC</Text>
@@ -74,15 +86,8 @@ export default function StudentProfileScreen() {
         </View>
 
         <View className="mt-auto">
-          <Button
-            title="Sair da Conta"
-            onPress={signOut}
-            variant="outline"
-            fullWidth
-            icon={<LogOut size={20} color="#10B981" />}
-          />
           <Text className="text-center text-neutral-400 text-xs mt-4">
-            GoDrive v1.0.0 • Delta Pro Tecnologia
+            GoDrive v1.0.3 • Delta Pro Tecnologia
           </Text>
         </View>
       </View>

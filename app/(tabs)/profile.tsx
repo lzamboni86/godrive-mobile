@@ -1,19 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, LogOut, Mail, Phone, Award, CreditCard, Edit2, Check } from 'lucide-react-native';
+import { User, LogOut, Mail, Phone, Award, CreditCard, Edit2, Check, Shield, ChevronRight, Edit, Trash2 } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { instructorService } from '@/services/instructor';
+import { router } from 'expo-router';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
-  const [pixKey, setPixKey] = useState('luis.h.zamboni@gmail.com');
+  const [pixKey, setPixKey] = useState('');
   const [isEditingPix, setIsEditingPix] = useState(false);
   const [tempPixKey, setTempPixKey] = useState('');
   const [lessonPrice, setLessonPrice] = useState(80);
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [tempPrice, setTempPrice] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar dados do perfil ao montar o componente
+  useEffect(() => {
+    loadProfileData();
+  }, [user?.id]);
+
+  const loadProfileData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await instructorService.getProfile(user.id) as { instructor: { pixKey?: string; hourlyRate?: number } };
+      const instructor = response.instructor;
+      
+      if (instructor) {
+        setPixKey(instructor.pixKey || '');
+        setLessonPrice(instructor.hourlyRate || 80);
+      }
+    } catch (error: any) {
+      console.error('Erro ao carregar perfil:', error);
+      // Manter valores padrão em caso de erro
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSavePix = async () => {
     if (!tempPixKey.trim()) {
@@ -22,7 +49,7 @@ export default function ProfileScreen() {
     }
 
     try {
-      await instructorService.updateProfile(user?.id || '', { pixKey: tempPixKey.trim() });
+      await instructorService.updateProfile({ pixKey: tempPixKey.trim() });
       setPixKey(tempPixKey.trim());
       setIsEditingPix(false);
       Alert.alert('Sucesso', 'Chave PIX atualizada com sucesso!');
@@ -40,7 +67,7 @@ export default function ProfileScreen() {
     }
 
     try {
-      await instructorService.updateProfile(user?.id || '', { hourlyRate: price });
+      await instructorService.updateProfile({ hourlyRate: price });
       setLessonPrice(price);
       setIsEditingPrice(false);
       Alert.alert('Sucesso', `Valor da aula atualizado para R$ ${price.toFixed(2)}!`);
@@ -51,15 +78,26 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom']}>
-      <View className="flex-1 p-6">
+    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top', 'bottom']}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <View className="p-6 pb-8">
         {/* Avatar e Nome */}
         <View className="items-center mb-8">
-          <View className="w-24 h-24 rounded-full bg-brand-primary items-center justify-center mb-4">
-            <Text className="text-white text-3xl font-bold">
-              {user?.name?.charAt(0) || 'I'}
-            </Text>
-          </View>
+          {isLoading ? (
+            <View className="w-32 h-32 rounded-full bg-neutral-200 items-center justify-center mb-4">
+              <Text className="text-neutral-400 text-4xl font-bold">...</Text>
+            </View>
+          ) : (
+            user?.avatar ? (
+              <Image source={{ uri: user.avatar }} className="w-32 h-32 rounded-full mb-4" />
+            ) : (
+              <View className="w-32 h-32 rounded-full bg-brand-primary items-center justify-center mb-4">
+                <Text className="text-white text-4xl font-bold">
+                  {user?.name?.charAt(0) || 'I'}
+                </Text>
+              </View>
+            )
+          )}
           <Text className="text-neutral-900 text-xl font-bold text-center">
             {user?.name || 'Instrutor'}
           </Text>
@@ -104,7 +142,7 @@ export default function ProfileScreen() {
                 <CreditCard size={20} color="#6B7280" />
                 <Text className="text-neutral-400 text-xs ml-3">Chave PIX</Text>
               </View>
-              {!isEditingPix && (
+              {!isEditingPix && !isLoading && (
                 <TouchableOpacity 
                   onPress={() => {
                     setTempPixKey(pixKey);
@@ -141,7 +179,7 @@ export default function ProfileScreen() {
               </View>
             ) : (
               <Text className="text-neutral-900 text-base">
-                {pixKey || 'Não configurada'}
+                {isLoading ? 'Carregando...' : (pixKey || 'Não configurada')}
               </Text>
             )}
           </View>
@@ -153,7 +191,7 @@ export default function ProfileScreen() {
                 <CreditCard size={20} color="#6B7280" />
                 <Text className="text-neutral-400 text-xs ml-3">Valor da Aula</Text>
               </View>
-              {!isEditingPrice && (
+              {!isEditingPrice && !isLoading && (
                 <TouchableOpacity 
                   onPress={() => {
                     setTempPrice(lessonPrice.toString());
@@ -191,7 +229,7 @@ export default function ProfileScreen() {
               </View>
             ) : (
               <Text className="text-neutral-900 text-base">
-                R$ {lessonPrice.toFixed(2)}
+                {isLoading ? 'Carregando...' : `R$ ${lessonPrice.toFixed(2)}`}
               </Text>
             )}
           </View>
@@ -219,8 +257,50 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
+        <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+          <Text className="text-neutral-500 text-xs font-medium uppercase mb-3">
+            Conta
+          </Text>
+
+          <TouchableOpacity
+            className="flex-row items-center py-3 active:bg-neutral-50"
+            onPress={() => router.push('/(tabs)/edit-profile')}
+          >
+            <Edit size={20} color="#6B7280" />
+            <View className="ml-3 flex-1">
+              <Text className="text-neutral-900 text-base font-medium">Editar Perfil</Text>
+              <Text className="text-neutral-500 text-sm">Nome, e-mail, telefone e foto</Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-row items-center py-3 active:bg-neutral-50"
+            onPress={() => router.push('/delete-account' as any)}
+          >
+            <Trash2 size={20} color="#DC2626" />
+            <View className="ml-3 flex-1">
+              <Text className="text-red-600 text-base font-medium">Excluir Conta</Text>
+              <Text className="text-neutral-500 text-sm">Remover permanentemente todos os seus dados</Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-row items-center py-3 active:bg-neutral-50"
+            onPress={() => router.push('/(common)/security-privacy' as any)}
+          >
+            <Shield size={20} color="#6B7280" />
+            <View className="ml-3 flex-1">
+              <Text className="text-neutral-900 text-base font-medium">Privacidade e Segurança</Text>
+              <Text className="text-neutral-500 text-sm">LGPD, exportação de dados e exclusão de conta</Text>
+            </View>
+            <ChevronRight size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+
         {/* Botão Logout */}
-        <View className="mt-auto">
+        <View className="mt-6 mb-8">
           <Button
             title="Sair da Conta"
             onPress={signOut}
@@ -233,6 +313,7 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

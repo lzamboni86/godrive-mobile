@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 
 export default function LoginScreen() {
   const { signIn, isLoading } = useAuth();
+  const insets = useSafeAreaInsets();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,18 +42,18 @@ export default function LoginScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 px-6 pt-20 pb-8">
+        <View className="flex-1 px-6 pt-20" style={{ paddingBottom: 24 + Math.max(insets.bottom, 16) }}>
           {/* Logo Section */}
           <View className="items-center mb-12">
-            <View className="w-32 h-32 bg-white rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
+            <View className="w-40 h-40 bg-white rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
               <View className="items-center">
-                <View className="w-20 h-20 bg-brand-primary rounded-xl items-center justify-center mb-2">
-                  <Text className="text-white text-3xl font-bold">GD</Text>
+                <View className="w-24 h-24 bg-brand-primary rounded-xl items-center justify-center mb-3">
+                  <Text className="text-white text-4xl font-bold">GD</Text>
                 </View>
                 <View className="flex-row items-center">
-                  <View className="w-8 h-1 bg-brand-primary rounded-full mr-1"></View>
-                  <View className="w-2 h-2 bg-brand-primary rounded-full"></View>
-                  <View className="w-8 h-1 bg-brand-primary rounded-full ml-1"></View>
+                  <View className="w-10 h-1 bg-brand-primary rounded-full mr-1"></View>
+                  <View className="w-3 h-3 bg-brand-primary rounded-full"></View>
+                  <View className="w-10 h-1 bg-brand-primary rounded-full ml-1"></View>
                 </View>
               </View>
             </View>
@@ -130,27 +132,37 @@ export default function LoginScreen() {
             {/* Forgot Password */}
             <Button
               variant="ghost"
-              onPress={() => Alert.alert('Informação', 'Em breve: recuperação de senha')}
+              onPress={() => router.push('/(auth)/forgot-password' as any)}
               className="mt-2"
             >
-              <Text className="text-neutral-500 text-sm">Esqueceu sua senha?</Text>
+              <Text className="text-brand-primary text-sm">Esqueceu sua senha?</Text>
             </Button>
           </View>
 
           {/* Footer */}
           <View className="mt-auto pt-8">
+            <View className="flex-row justify-center space-x-4 mb-4">
+              <Button
+                variant="ghost"
+                onPress={() => router.push('/(auth)/privacy-policy' as any)}
+                className="p-0"
+              >
+                <Text className="text-brand-primary text-xs underline">Política de Privacidade</Text>
+              </Button>
+              <Text className="text-neutral-400 text-xs">•</Text>
+              <Button
+                variant="ghost"
+                onPress={() => router.push('/(auth)/terms-of-use' as any)}
+                className="p-0"
+              >
+                <Text className="text-brand-primary text-xs underline">Termo de uso</Text>
+              </Button>
+            </View>
             <Text className="text-center text-neutral-400 text-xs">
-              © 2025 Delta Pro Tecnologia
+              Go Drive Group
             </Text>
             <Text className="text-center text-neutral-400 text-xs mt-1">
-              Versão 1.0.0
-            </Text>
-          </View>
-
-          {/* Dev Hint */}
-          <View className="mt-4 p-3 bg-neutral-100 rounded-lg">
-            <Text className="text-xs text-neutral-500 text-center">
-              🔐 Dev: instrutor@godrive.com / 123456
+              Desenvolvido por: Delta Pro Tecnologia
             </Text>
           </View>
         </View>

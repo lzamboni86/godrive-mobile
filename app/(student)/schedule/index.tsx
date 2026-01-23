@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Filter, ArrowLeft, MapPin, Star, Calendar, Clock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { studentService, Instructor, InstructorSearchFilters } from '@/services/student';
@@ -9,6 +9,8 @@ import { getIbgeCitiesByUf, getIbgeStates, getNeighborhoodsByCity, IbgeCity, Ibg
 
 export default function ScheduleSearchScreen() {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const filterModalBottomPadding = 24 + Math.max(insets.bottom, 16);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [filteredInstructors, setFilteredInstructors] = useState<Instructor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -194,7 +196,7 @@ export default function ScheduleSearchScreen() {
           }}
         >
           <View className="flex-1 bg-black/40 justify-end">
-            <View className="bg-white rounded-t-3xl p-5">
+            <View className="bg-white rounded-t-3xl p-5" style={{ paddingBottom: filterModalBottomPadding }}>
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-neutral-900 font-semibold text-lg">Filtros</Text>
                 <TouchableOpacity

@@ -10,6 +10,7 @@ interface AuthContextData {
   isAdmin: boolean;
   signIn: (credentials: LoginCredentials) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -64,6 +65,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const updateUser = useCallback((userData: Partial<User>) => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      const updatedUser = { ...prevUser, ...userData };
+      authService.updateStoredUser(updatedUser).catch(() => {});
+
+      if (typeof userData.avatar === 'string' && userData.avatar) {
+        authService.updateStoredAvatar(prevUser.id, userData.avatar).catch(() => {});
+      }
+
+      return updatedUser;
+    });
+  }, []);
+
   const isAuthenticated = !!user;
   const isInstructor = user?.role === UserRole.INSTRUCTOR;
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -78,6 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isAdmin,
         signIn,
         signOut,
+        updateUser,
       }}
     >
       {children}

@@ -22,8 +22,9 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
     const inStudentGroup = segments[0] === '(student)';
     const inTabsGroup = segments[0] === '(tabs)';
+    const inAdminGroup = segments[0] === '(admin)';
 
-    console.log('🔐 Navigation check:', { inAuthGroup, inStudentGroup, inTabsGroup });
+    console.log('🔐 Navigation check:', { inAuthGroup, inStudentGroup, inTabsGroup, inAdminGroup });
 
     if (!isAuthenticated && !inAuthGroup) {
       console.log('🔐 Redirecting to login (not authenticated)');
@@ -39,14 +40,18 @@ function RootLayoutNav() {
         console.log('🔐 Redirecting STUDENT to student area');
         router.replace('/(student)' as any);
       }
-    } else if (isAuthenticated && isAdmin && inStudentGroup) {
-      router.replace('/(admin)' as any);
-    } else if (isAuthenticated && isAdmin && inTabsGroup) {
-      router.replace('/(admin)' as any);
-    } else if (isAuthenticated && isInstructor && inStudentGroup) {
-      router.replace('/(tabs)');
-    } else if (isAuthenticated && !isInstructor && !isAdmin && inTabsGroup) {
+    } else if (isAuthenticated && !isAdmin && !isInstructor && inTabsGroup) {
+      console.log('🔐 Redirecting STUDENT from tabs to student area');
       router.replace('/(student)' as any);
+    } else if (isAuthenticated && !isInstructor && !isAdmin && inStudentGroup) {
+      // Aluno está no lugar certo - não redirecionar
+      console.log('🔐 STUDENT is in correct area');
+    } else if (isAuthenticated && isAdmin && !inAdminGroup) {
+      console.log('🔐 Redirecting ADMIN to admin area');
+      router.replace('/(admin)' as any);
+    } else if (isAuthenticated && isInstructor && !inTabsGroup) {
+      console.log('🔐 Redirecting INSTRUCTOR to tabs');
+      router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, segments, isInstructor, isAdmin]);
 

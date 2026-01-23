@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, MessageSquare, Settings, User } from 'lucide-react-native';
+import { Home, MessageSquare, Settings, User, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePendingRequests } from '@/hooks/usePendingRequests';
 
@@ -48,7 +48,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="requests"
         options={{
-          title: 'Solicitações',
+          title: 'Solic',
           headerTitle: 'Solicitações de Aula',
           tabBarIcon: ({ color, size }) => <MessageSquare size={size} color={color} />,
           tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
@@ -65,9 +65,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Configuração',
+          title: 'Config',
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
-          href: null
+        }}
+      />
+      <Tabs.Screen
+        name="support"
+        options={{
+          title: 'SAC',
+          tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -75,6 +81,79 @@ export default function TabLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+        }}
+      />
+    {/* Telas que não devem aparecer como tabs */}
+      <Tabs.Screen
+        name="explore"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="payments"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="services"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="edit-profile"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="delete-account"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="chat/[lessonId]"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+      <Tabs.Screen
+        name="chat/index"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
         }}
       />
     </Tabs>

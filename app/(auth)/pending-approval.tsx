@@ -97,10 +97,10 @@ export default function PendingApprovalScreen() {
         {/* Footer */}
         <View className="mt-auto pt-8">
           <Text className="text-center text-neutral-400 text-xs">
-            © 2025 Delta Pro Tecnologia
+            Go Drive Group
           </Text>
           <Text className="text-center text-neutral-400 text-xs mt-1">
-            Versão 1.0.0
+            Desenvolvido por: Delta Pro Tecnologia
           </Text>
         </View>
       </View>

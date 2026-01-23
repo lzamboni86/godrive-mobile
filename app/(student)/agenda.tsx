@@ -45,12 +45,27 @@ export default function StudentAgendaScreen() {
     }
   };
 
-  const formatLessonDate = (dateString: string) => {
+  const formatLessonDate = (dateString: string, timeString?: string) => {
     const date = new Date(dateString);
+    
+    // Se tiver timeString, usa o horário dela
+    if (timeString) {
+      const timeDate = new Date(timeString);
+      date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
+    }
+    
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    const time = new Date(timeString);
+    return time.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -189,11 +204,11 @@ export default function StudentAgendaScreen() {
                           </View>
                           <View className={`flex-row items-center text-${color}-700 text-sm`}>
                             <Calendar size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
-                            <Text className="ml-2">{formatLessonDate(lesson.date)}</Text>
+                            <Text className="ml-2">{formatLessonDate(lesson.date, lesson.time)}</Text>
                           </View>
                           <View className={`flex-row items-center text-${color}-700 text-sm mt-1`}>
                             <Clock size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
-                            <Text className="ml-2">{formatDuration(lesson.duration)} - {lesson.location || 'Local a definir'}</Text>
+                            <Text className="ml-2">{formatTime(lesson.time)} - {formatDuration(lesson.duration)} - {lesson.location || 'Local a definir'}</Text>
                           </View>
                           {lesson.status === 'CONFIRMED' && (
                             <View className="mt-2 pt-2 border-t border-neutral-200">
@@ -252,11 +267,11 @@ export default function StudentAgendaScreen() {
                           </View>
                           <View className="flex-row items-center text-neutral-600 text-sm">
                             <Calendar size={16} color="#9CA3AF" />
-                            <Text className="ml-2">{formatLessonDate(lesson.date)}</Text>
+                            <Text className="ml-2">{formatLessonDate(lesson.date, lesson.time)}</Text>
                           </View>
                           <View className="flex-row items-center text-neutral-600 text-sm mt-1">
                             <Clock size={16} color="#9CA3AF" />
-                            <Text className="ml-2">{formatDuration(lesson.duration)} - {lesson.location || 'Local'}</Text>
+                            <Text className="ml-2">{formatTime(lesson.time)} - {formatDuration(lesson.duration)} - {lesson.location || 'Local'}</Text>
                           </View>
 
                           {canReview && (
