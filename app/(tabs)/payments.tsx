@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, DollarSign, TrendingUp, Calendar, Clock, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, DollarSign, Calendar, Clock, CheckCircle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
@@ -57,20 +57,124 @@ export default function PaymentsScreen() {
     return grossAmount * PLATFORM_FEE_PERCENTAGE;
   };
 
+  const formatTimestampDate = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+
+  const formatLessonDate = (value?: string) => {
+    if (!value) return '';
+    // Se vier ISO, usa parser por Date; se vier YYYY-MM-DD, usa utilitário sem timezone.
+    if (value.includes('T')) return formatTimestampDate(value);
+    if (value.includes('-')) return formatDateToBrazilianFull(value);
+    return value;
+  };
+
+  const formatLessonTime = (value?: string) => {
+    if (!value) return '';
+    // Se vier ISO datetime, extrai hora:minuto.
+    if (value.includes('T')) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    // Se vier HH:mm ou HH:mm:ss, reduz para HH:mm
+    const match = value.match(/^\d{2}:\d{2}/);
+    return match ? match[0] : value;
+  };
+
   useEffect(() => {
-    loadPayments();
-  }, []);
+    if (user?.id) {
+      loadPayments();
+    }
+  }, [user?.id]);
 
   const loadPayments = async () => {
     try {
+      if (!user?.id) return;
       setIsLoading(true);
       const [paymentsData, summaryData] = await Promise.all([
-        api.get<Payment[]>(`/instructor/${user?.id}/payments`),
-        api.get(`/instructor/${user?.id}/payments/summary`)
+        api.get<any[]>(`/instructor/${user.id}/payments`),
+        api.get<any>(`/instructor/${user.id}/payments/summary`)
       ]);
-      
-      setPayments(paymentsData);
-      setSummary(summaryData as any);
+
+      const paymentsPayload = Array.isArray(paymentsData)
+        ? paymentsData
+        : Array.isArray((paymentsData as any)?.data)
+          ? (paymentsData as any).data
+          : [];
+
+      const summaryPayload = (summaryData as any)?.data ?? summaryData;
+
+      const normalizedPayments: Payment[] = (paymentsPayload || []).map((p: any) => {
+        const grossAmount = Number(p.originalAmount ?? p.amount ?? 0);
+        const netAmount = Number(p.amount);
+
+        // Se o backend ainda envia apenas `amount` (formato antigo), tratamos como bruto.
+        const computedNet = calculateNetAmount(grossAmount);
+        const amountToUse = Number.isFinite(netAmount) && p.originalAmount != null ? netAmount : computedNet;
+
+        // Backend antigo usa REFUNDED; por enquanto mapeamos para PAID ("Já pago") para não quebrar a UI.
+        const status = (p.status === 'REFUNDED' ? 'PAID' : p.status) as Payment['status'];
+
+        return {
+          id: String(p.id),
+          lessonId: String(p.lessonId ?? p.lesson_id ?? ''),
+          lesson: {
+            lessonDate: String(p.lesson?.lessonDate ?? p.lesson?.lesson_date ?? p.lessonDate ?? ''),
+            lessonTime: String(p.lesson?.lessonTime ?? p.lesson?.lesson_time ?? p.lessonTime ?? ''),
+            student: {
+              user: {
+                name: String(p.lesson?.student?.user?.name ?? ''),
+                email: String(p.lesson?.student?.user?.email ?? ''),
+              },
+            },
+          },
+          originalAmount: grossAmount,
+          amount: Number.isFinite(amountToUse) ? amountToUse : computedNet,
+          status,
+          releasedAt: p.releasedAt ?? p.released_at,
+          paidAt: p.paidAt ?? p.paid_at,
+          createdAt: p.createdAt ?? p.created_at,
+        };
+      });
+
+      const platformFeeFromPayments = normalizedPayments.reduce(
+        (acc, p) => acc + calculatePlatformFee(p.originalAmount || 0),
+        0
+      );
+
+      const normalizedSummary: PaymentSummary = {
+        totalReleased: Number(summaryPayload?.totalReleased ?? 0),
+        totalHeld: Number(summaryPayload?.totalHeld ?? 0),
+        totalPaid: Number(summaryPayload?.totalPaid ?? summaryPayload?.totalRefunded ?? 0),
+        platformFee: Number(summaryPayload?.platformFee ?? platformFeeFromPayments ?? 0),
+      };
+
+      // Se summary vier no formato antigo (sem taxa / totalPaid), calculamos do histórico normalizado.
+      const shouldComputeFromPayments =
+        summaryPayload == null ||
+        summaryPayload.totalPaid == null && summaryPayload.totalRefunded == null && summaryPayload.platformFee == null;
+
+      const computedSummaryFromPayments: PaymentSummary = normalizedPayments.reduce(
+        (acc, p) => {
+          if (p.status === 'RELEASED') acc.totalReleased += p.amount;
+          else if (p.status === 'HELD') acc.totalHeld += p.amount;
+          else if (p.status === 'PAID') acc.totalPaid += p.amount;
+          acc.platformFee += calculatePlatformFee(p.originalAmount || 0);
+          return acc;
+        },
+        { totalReleased: 0, totalHeld: 0, totalPaid: 0, platformFee: 0 }
+      );
+
+      setPayments(normalizedPayments);
+      setSummary(shouldComputeFromPayments ? computedSummaryFromPayments : normalizedSummary);
     } catch (error) {
       console.error('Erro ao carregar pagamentos:', error);
       Alert.alert('Erro', 'Não foi possível carregar os pagamentos.');
@@ -97,7 +201,16 @@ export default function PaymentsScreen() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'RELEASED': return 'Disponível e será pago';
-      case 'HELD': return 'Retido para pagamento';
+      case 'HELD': return 'Retido';
+      case 'PAID': return 'Já pago';
+      default: return status;
+    }
+  };
+
+  const getStatusChipText = (status: string) => {
+    switch (status) {
+      case 'RELEASED': return 'Disponível';
+      case 'HELD': return 'Retido';
       case 'PAID': return 'Já pago';
       default: return status;
     }
@@ -159,7 +272,7 @@ export default function PaymentsScreen() {
                 <Text className="text-amber-900 text-xl font-bold mt-1">
                   R$ {summary.totalHeld.toFixed(2)}
                 </Text>
-                <Text className="text-amber-700 text-xs">Retido para pagamento</Text>
+                <Text className="text-amber-700 text-xs">Retido para pagamento após conclusão das aulas agendadas</Text>
               </View>
               
               <View className="bg-blue-50 rounded-xl p-3">
@@ -219,7 +332,7 @@ export default function PaymentsScreen() {
                               ? 'text-amber-700'
                               : 'text-blue-700'
                         }`}>
-                          {getStatusText(payment.status)}
+                          {getStatusChipText(payment.status)}
                         </Text>
                       </View>
                     </View>
@@ -236,13 +349,13 @@ export default function PaymentsScreen() {
                       <View className="flex-row items-center mb-2">
                         <Calendar size={16} color="#6B7280" />
                         <Text className="text-neutral-700 text-sm ml-2">
-                          {formatDateToBrazilianFull(payment.lesson.lessonDate)}
+                          {formatLessonDate(payment.lesson.lessonDate)}
                         </Text>
                       </View>
                       <View className="flex-row items-center">
                         <Clock size={16} color="#6B7280" />
                         <Text className="text-neutral-700 text-sm ml-2">
-                          {payment.lesson.lessonTime}
+                          {formatLessonTime(payment.lesson.lessonTime)}
                         </Text>
                       </View>
                     </View>
@@ -276,10 +389,10 @@ export default function PaymentsScreen() {
                       <View className="flex-row items-center justify-between">
                         <Text className="text-neutral-500 text-xs">
                           {payment.paidAt 
-                            ? `Pago em ${formatDateToBrazilianFull(payment.paidAt)}`
+                            ? `Pago em ${formatTimestampDate(payment.paidAt)}`
                             : payment.releasedAt 
-                              ? `Liberado em ${formatDateToBrazilianFull(payment.releasedAt)}`
-                              : `Criado em ${formatDateToBrazilianFull(payment.createdAt)}`
+                              ? `Liberado em ${formatTimestampDate(payment.releasedAt)}`
+                              : `Criado em ${formatTimestampDate(payment.createdAt)}`
                           }
                         </Text>
                       </View>
