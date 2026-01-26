@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Clock, ChevronRight } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { studentService, Instructor } from '@/services/student';
+import { formatDateToBrazilian, formatDateToBrazilianFull } from '@/utils/dateUtils';
 
 interface ScheduleData {
   instructorId: string;
@@ -192,10 +193,7 @@ export default function ScheduleStep2Screen() {
                             ? 'text-emerald-600' 
                             : 'text-neutral-700'
                       }`}>
-                        {new Date(date).toLocaleDateString('pt-BR', { 
-                          day: '2-digit', 
-                          month: '2-digit' 
-                        })}
+                        {formatDateToBrazilian(date)}
                       </Text>
                       {isCompleted && (
                         <Text className="text-emerald-600 text-xs mt-1">
@@ -212,7 +210,7 @@ export default function ScheduleStep2Screen() {
           {/* Grade de Horários */}
           <View className="mb-6">
             <Text className="text-neutral-900 font-semibold mb-3">
-              Horários Disponíveis - {new Date(selectedDates[currentDateIndex]).toLocaleDateString('pt-BR')}
+              Horários Disponíveis - {formatDateToBrazilian(selectedDates[currentDateIndex])}
             </Text>
             {renderTimeGrid()}
           </View>
@@ -234,10 +232,7 @@ export default function ScheduleStep2Screen() {
                         </Text>
                       </View>
                       <Text className="text-emerald-600 text-sm">
-                        {new Date(time.date).toLocaleDateString('pt-BR', { 
-                          day: '2-digit', 
-                          month: '2-digit' 
-                        })}
+                        {formatDateToBrazilianFull(time.date)}
                       </Text>
                     </View>
                   </View>

@@ -8,6 +8,7 @@ import { studentService, Instructor } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
 import { walletService } from '@/services/wallet';
 import { WalletBalance } from '@/types';
+import { formatDateWithWeekday } from '@/utils/dateUtils';
 
 interface ScheduleData {
   instructorId: string;
@@ -255,11 +256,7 @@ export default function ScheduleStep3Screen() {
                     <View className="flex-row items-center">
                       <Calendar size={16} color="#10B981" />
                       <Text className="text-neutral-700 font-medium ml-2">
-                        {new Date(time.date).toLocaleDateString('pt-BR', { 
-                          weekday: 'long',
-                          day: '2-digit', 
-                          month: '2-digit' 
-                        })}
+                        {formatDateWithWeekday(time.date)}
                       </Text>
                     </View>
                     <View className="flex-row items-center">

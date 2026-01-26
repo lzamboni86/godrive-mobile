@@ -157,10 +157,14 @@ export default function ScheduleStep1Screen() {
     
     // Dias do mês
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      const dateString = date.toISOString().split('T')[0];
+      // Criar string de data manualmente para evitar timezone issues
+      const year = currentMonth.getFullYear();
+      const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(day).padStart(2, '0');
+      const dateString = `${year}-${month}-${dayStr}`;
+      
       const isSelected = selectedDates.includes(dateString);
-      const isSelectable = isDateSelectable(date);
+      const isSelectable = isDateSelectable(new Date(year, currentMonth.getMonth(), day));
       
       currentWeekDays.push(
         <TouchableOpacity
