@@ -7,7 +7,6 @@ import * as WebBrowser from 'expo-web-browser';
 import { studentService, Instructor } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
 import { walletService } from '@/services/wallet';
-import { mercadoPagoService } from '@/services/mercado-pago';
 import { WalletBalance } from '@/types';
 
 interface ScheduleData {
@@ -71,8 +70,13 @@ export default function ScheduleStep3Screen() {
   };
 
   const handleSubmit = async () => {
-    if (!user?.id || !instructor) {
-      Alert.alert('Erro', 'Dados do usuário ou instrutor não encontrados.');
+    if (!user) {
+      Alert.alert('Erro', 'Você precisa estar logado para continuar.');
+      return;
+    }
+
+    if (!instructor) {
+      Alert.alert('Erro', 'Instrutor não encontrado.');
       return;
     }
 
@@ -89,19 +93,11 @@ export default function ScheduleStep3Screen() {
       if (hasAvailableBalance) {
         // Usar créditos disponíveis
         console.log('💳 [STEP-3] Usando créditos disponíveis...');
-        
-        // Criar transação com status LOCKED
-        const transaction = await walletService.useCredits({
-          amount: totalAmount,
-          description: `Reserva com ${instructor.name} - ${selectedTimes.length} aula(s)`,
-        });
-
-        console.log('💳 [STEP-3] Transação criada:', transaction.id);
 
         // Criar solicitação de agendamento
         const scheduleData = {
           studentId: user.id,
-          instructorId: instructor.id,
+          instructorId: instructor.userId ?? instructor.id,
           lessons: selectedTimes.map(time => ({
             date: time.date,
             time: time.time,
@@ -109,8 +105,8 @@ export default function ScheduleStep3Screen() {
             price: instructor.hourlyRate || 0
           })),
           totalAmount,
-          status: 'PENDING_INSTRUCTOR',
-          walletTransactionId: transaction.id
+          status: 'WAITING_APPROVAL',
+          paymentMethod: 'WALLET' as const,
         };
 
         console.log('📦 [STEP-3] Dados enviados:', JSON.stringify(scheduleData, null, 2));
@@ -128,29 +124,10 @@ export default function ScheduleStep3Screen() {
         // Usar Mercado Pago
         console.log('💳 [STEP-3] Usando Mercado Pago...');
         
-        // Criar preferência no Mercado Pago
-        const preference = await mercadoPagoService.createPreference({
-          amount: totalAmount,
-          description: `Aulas com ${instructor.name} - ${selectedTimes.length} aula(s)`,
-          externalReference: `schedule_${user.id}_${instructor.id}_${Date.now()}`,
-          payerEmail: user.email,
-          payerName: user.name,
-          items: [{
-            id: `lesson_${instructor.id}`,
-            title: `Aulas de Auto Escola - ${instructor.name}`,
-            description: `${selectedTimes.length} aula(s) de 50 minutos`,
-            quantity: selectedTimes.length,
-            unitPrice: instructor.hourlyRate || 0,
-            currencyId: 'BRL'
-          }]
-        });
-
-        console.log('💳 [STEP-3] Preferência criada:', preference.id);
-
-        // Criar solicitação de agendamento
+        // Criar solicitação de agendamento primeiro (sem preferenceId ainda)
         const scheduleData = {
           studentId: user.id,
-          instructorId: instructor.id,
+          instructorId: instructor.userId ?? instructor.id,
           lessons: selectedTimes.map(time => ({
             date: time.date,
             time: time.time,
@@ -158,23 +135,42 @@ export default function ScheduleStep3Screen() {
             price: instructor.hourlyRate || 0
           })),
           totalAmount,
-          status: 'PENDING_PAYMENT',
-          preferenceId: preference.id
+          status: 'PENDING_PAYMENT'
         };
 
-        console.log('📦 [STEP-3] Dados enviados:', JSON.stringify(scheduleData, null, 2));
+        console.log('📦 [STEP-3] Criando agendamento sem pagamento ainda...');
         const response = await studentService.createScheduleRequest(scheduleData);
         
-        console.log('📦 [STEP-3] Resposta do backend:', JSON.stringify(response, null, 2));
+        console.log('📦 [STEP-3] Agendamento criado:', JSON.stringify(response, null, 2));
+        
+        // Agora criar preferência com o ID do agendamento
+        // (a preferência já é criada no backend e retornada aqui)
+        if (!response?.initPoint && !response?.sandboxInitPoint) {
+          throw new Error('Preferência de pagamento não retornada pelo backend');
+        }
+
+        const preference = {
+          id: response.preferenceId,
+          initPoint: response.initPoint,
+          sandboxInitPoint: response.sandboxInitPoint,
+        };
+
+        console.log('💳 [STEP-3] Preferência recebida do backend:', preference.id);
         
         // Abrir checkout do Mercado Pago
         const checkoutUrl = preference.sandboxInitPoint || preference.initPoint;
+        if (!checkoutUrl) {
+          throw new Error('URL do checkout não retornada pelo backend');
+        }
         await WebBrowser.openBrowserAsync(checkoutUrl);
         
         Alert.alert(
           'Pagamento Iniciado',
           'Complete o pagamento no Mercado Pago. Após a aprovação, sua reserva será confirmada.',
-          [{ text: 'OK' }]
+          [{ 
+            text: 'OK', 
+            onPress: () => router.push('/(student)/schedule/pending' as any)
+          }]
         );
       }
 

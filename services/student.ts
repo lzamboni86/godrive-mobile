@@ -2,6 +2,7 @@ import api from './api';
 
 export interface Instructor {
   id: string;
+  userId?: string;
   name: string;
   email: string;
   phone: string;
@@ -77,6 +78,7 @@ export interface ScheduleRequest {
   }[];
   totalAmount: number;
   status: string;
+  paymentMethod?: 'MERCADO_PAGO' | 'WALLET';
 }
 
 export interface ScheduleResponse {
@@ -148,6 +150,10 @@ export const studentService = {
   // Agendamento
   async createScheduleRequest(data: ScheduleRequest): Promise<ScheduleResponse> {
     return api.post<ScheduleResponse>('/student/schedule', data);
+  },
+
+  async updateSchedulePreference(scheduleId: string, preferenceId: string): Promise<{ message: string }> {
+    return api.put<{ message: string }>(`/student/schedule/${scheduleId}/preference`, { preferenceId });
   },
 
   async requestLessonAdjustment(lessonId: string, data: LessonAdjustmentRequest): Promise<void> {
