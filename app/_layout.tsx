@@ -98,6 +98,9 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(student)" />
         <Stack.Screen name="(admin)" />
+        <Stack.Screen name="payment-success" />
+        <Stack.Screen name="payment-failure" />
+        <Stack.Screen name="payment-pending" />
         <Stack.Screen name="+not-found" />
       </Stack>
     </>
