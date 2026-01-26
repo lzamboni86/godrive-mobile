@@ -168,7 +168,12 @@ export default function StudentPaymentsScreen() {
                           <View className="flex-1">
                             <Text className="text-neutral-900 font-semibold">{payment.description}</Text>
                             <Text className="text-neutral-600 text-sm">
-                              {payment.paymentDate ? `Pago em ${formatPaymentDate(payment.paymentDate)}` : 'Aguardando pagamento'}
+                              {payment.status === 'PAID' 
+                                ? `Pago em ${formatPaymentDate(payment.paymentDate || payment.createdAt)}`
+                                : payment.paymentDate 
+                                  ? `Pago em ${formatPaymentDate(payment.paymentDate)}`
+                                  : 'Aguardando pagamento'
+                              }
                             </Text>
                           </View>
                           <View className={`bg-${color}-100 px-2 py-1 rounded-full`}>

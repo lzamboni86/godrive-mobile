@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, Activi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Wallet, CreditCard, Clock, TrendingUp, AlertCircle, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '@/contexts/AuthContext';
 import { walletService } from '@/services/wallet';
 import { WalletBalance, WalletTransaction, WalletTransactionStatus } from '@/types';
@@ -23,6 +24,14 @@ export default function StudentWalletScreen() {
   useEffect(() => {
     loadWalletData();
   }, []);
+
+  // Refresh automático ao abrir a aba Carteira
+  useFocusEffect(
+    React.useCallback(() => {
+      loadWalletData();
+      return undefined;
+    }, [user?.id])
+  );
 
   const loadWalletData = async () => {
     try {
