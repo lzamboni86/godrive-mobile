@@ -60,6 +60,15 @@ export default function StudentTabLayout() {
       />
 
       <Tabs.Screen
+        name="schedule/index"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+
+      <Tabs.Screen
         name="wallet"
         options={{
           title: 'Carteira',
