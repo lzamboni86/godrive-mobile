@@ -39,6 +39,9 @@ export const mercadoPagoService = {
       return preference;
     } catch (error: any) {
       console.error('💳 [MP] ❌ Erro ao criar preferência:', error);
+      console.error('💳 [MP] ❌ response.data:', error?.response?.data);
+      console.error('💳 [MP] ❌ status:', error?.response?.status);
+      console.error('💳 [MP] ❌ headers:', error?.response?.headers);
       throw error;
     }
   },
