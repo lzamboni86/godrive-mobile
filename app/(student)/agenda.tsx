@@ -86,6 +86,7 @@ export default function StudentAgendaScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED': return 'emerald';
+      case 'ADJUSTMENT_PENDING': return 'amber';
       case 'SCHEDULED': return 'blue';
       case 'COMPLETED': return 'neutral';
       case 'CANCELLED': return 'red';
@@ -96,11 +97,31 @@ export default function StudentAgendaScreen() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'CONFIRMED': return 'Confirmada';
+      case 'ADJUSTMENT_PENDING': return 'Ajuste solicitado';
       case 'SCHEDULED': return 'Agendada';
       case 'COMPLETED': return 'Concluída';
       case 'CANCELLED': return 'Cancelada';
       default: return status;
     }
+  };
+
+  const getLessonDateTime = (lesson: Lesson) => {
+    const date = new Date(lesson.date);
+    const time = new Date(lesson.time);
+    date.setHours(time.getHours(), time.getMinutes(), 0, 0);
+    return date;
+  };
+
+  const canRequestAdjustment = (lesson: Lesson) => {
+    if (lesson.status !== 'CONFIRMED') return false;
+    const diffMs = getLessonDateTime(lesson).getTime() - Date.now();
+    return diffMs > 24 * 60 * 60 * 1000;
+  };
+
+  const isWithin24Hours = (lesson: Lesson) => {
+    if (lesson.status !== 'CONFIRMED') return false;
+    const diffMs = getLessonDateTime(lesson).getTime() - Date.now();
+    return diffMs <= 24 * 60 * 60 * 1000;
   };
 
   const openChat = (lessonId: string) => {
@@ -169,6 +190,8 @@ export default function StudentAgendaScreen() {
                   <View className="space-y-3">
                     {upcomingLessons.map((lesson) => {
                       const color = getStatusColor(lesson.status);
+                      const canAdjust = canRequestAdjustment(lesson);
+                      const within24h = isWithin24Hours(lesson);
                       return (
                         <TouchableOpacity
                           key={lesson.id}
@@ -210,6 +233,38 @@ export default function StudentAgendaScreen() {
                             <Clock size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
                             <Text className="ml-2">{formatTime(lesson.time)} - {formatDuration(lesson.duration)} - {lesson.location || 'Local a definir'}</Text>
                           </View>
+
+                          {lesson.status === 'CONFIRMED' && (
+                            <View className="mt-3">
+                              <TouchableOpacity
+                                className={`rounded-xl py-2 px-3 ${canAdjust ? 'bg-emerald-500' : 'bg-neutral-200'}`}
+                                disabled={!canAdjust}
+                                onPress={(e) => {
+                                  e.stopPropagation();
+                                  if (!canAdjust) return;
+                                  router.push({
+                                    pathname: '/(student)/schedule/adjust/[lessonId]' as any,
+                                    params: {
+                                      lessonId: lesson.id,
+                                      date: lesson.date,
+                                      time: lesson.time,
+                                      instructorName: lesson.instructor?.name ?? 'Instrutor',
+                                    } as any,
+                                  });
+                                }}
+                              >
+                                <Text className={`text-center font-semibold ${canAdjust ? 'text-white' : 'text-neutral-500'}`}>
+                                  Alterar agendamento
+                                </Text>
+                              </TouchableOpacity>
+
+                              {within24h && (
+                                <Text className="text-amber-700 text-xs font-medium mt-2">
+                                  Menos de 24 horas para aula
+                                </Text>
+                              )}
+                            </View>
+                          )}
                           {lesson.status === 'CONFIRMED' && (
                             <View className="mt-2 pt-2 border-t border-neutral-200">
                               <Text className="text-xs text-emerald-600 font-medium">

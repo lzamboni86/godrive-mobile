@@ -5,7 +5,7 @@ import { Search, Filter, ArrowLeft, MapPin, Star, Calendar, Clock } from 'lucide
 import { router } from 'expo-router';
 import { studentService, Instructor, InstructorSearchFilters } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
-import { getIbgeCitiesByUf, getIbgeStates, getNeighborhoodsByCity, IbgeCity, IbgeState } from '@/services/ibge';
+import { getIbgeCitiesByUf, getIbgeStates, getNeighborhoodsByCityDynamic, IbgeCity, IbgeState } from '@/services/ibge';
 
 export default function ScheduleSearchScreen() {
   const { user } = useAuth();
@@ -33,6 +33,7 @@ export default function ScheduleSearchScreen() {
   const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
   const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [isLoadingNeighborhoods, setIsLoadingNeighborhoods] = useState(false);
 
   const loadStates = async () => {
     try {
@@ -58,20 +59,33 @@ export default function ScheduleSearchScreen() {
     }
   };
 
+  const loadNeighborhoods = async (cityName: string, stateUf: string) => {
+    if (!cityName || !stateUf) {
+      setNeighborhoods([]);
+      return;
+    }
+
+    try {
+      setIsLoadingNeighborhoods(true);
+      const data = await getNeighborhoodsByCityDynamic(cityName, stateUf);
+      setNeighborhoods(data);
+    } catch (e) {
+      console.error('Erro ao carregar bairros:', e);
+      setNeighborhoods([]);
+    } finally {
+      setIsLoadingNeighborhoods(false);
+    }
+  };
+
   // Atualizar bairros quando a cidade muda
   useEffect(() => {
-    if (filterCity) {
-      const cityNeighborhoods = getNeighborhoodsByCity(filterCity);
-      setNeighborhoods(cityNeighborhoods);
-      // Limpar bairro selecionado se não existir na nova lista
-      if (filterNeighborhoodTeach && !cityNeighborhoods.includes(filterNeighborhoodTeach)) {
-        setFilterNeighborhoodTeach('');
-      }
+    if (filterCity && filterUf) {
+      loadNeighborhoods(filterCity, filterUf);
     } else {
       setNeighborhoods([]);
       setFilterNeighborhoodTeach('');
     }
-  }, [filterCity]);
+  }, [filterCity, filterUf]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -273,7 +287,7 @@ export default function ScheduleSearchScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="bg-neutral-100 rounded-xl p-3"
+                  className={`bg-neutral-100 rounded-xl p-3 ${!filterCity ? 'opacity-50' : ''}`}
                   disabled={!filterCity}
                   onPress={() =>
                     openPicker(
@@ -293,7 +307,11 @@ export default function ScheduleSearchScreen() {
                   <Text className="text-neutral-900 font-medium">
                     {!filterCity
                       ? 'Selecione a cidade'
-                      : filterNeighborhoodTeach || 'Qualquer'}
+                      : isLoadingNeighborhoods
+                        ? 'Carregando bairros...'
+                        : neighborhoods.length === 0
+                          ? 'Nenhum bairro encontrado'
+                          : filterNeighborhoodTeach || 'Qualquer'}
                   </Text>
                 </TouchableOpacity>
               </View>

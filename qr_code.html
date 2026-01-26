@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GoDrive QR Code</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .qr { margin: 20px auto; }
+        .url { font-size: 24px; color: #1E3A8A; margin: 20px; }
+    </style>
+</head>
+<body>
+    <h1>GoDrive - QR Code para iPad</h1>
+    <div class="url">URL: http://192.168.15.5:8082</div>
+    <p>Escaneie este QR code com o iPad:</p>
+    <!-- QR code would be generated here -->
+    <div class="qr">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=http://192.168.15.5:8082" alt="QR Code">
+    </div>
+    <p>Se não funcionar, verifique se iPad e PC estão na mesma rede Wi-Fi</p>
+</body>
+</html>

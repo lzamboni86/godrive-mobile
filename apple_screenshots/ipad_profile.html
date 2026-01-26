@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoDrive - Perfil (iPad 13")</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            width: 2048px;
+            height: 2732px;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #1E3A8A;
+            color: white;
+            padding: 40px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            font-weight: 600;
+        }
+        
+        .header .subtitle {
+            font-size: 28px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        
+        .back-button {
+            font-size: 40px;
+            padding: 10px;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 60px;
+            overflow-y: auto;
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        
+        .avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E3A8A, #10B981);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 8px 30px rgba(30, 58, 138, 0.3);
+        }
+        
+        .camera-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .profile-name {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1F2937;
+            margin-bottom: 15px;
+        }
+        
+        .profile-role {
+            font-size: 32px;
+            color: #10B981;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .profile-status {
+            font-size: 28px;
+            color: #6B7280;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-size: 36px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .section-icon {
+            font-size: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 40px;
+        }
+        
+        .form-label {
+            font-size: 28px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 25px;
+            font-size: 32px;
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            background: #F9FAFB;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #1E3A8A;
+            background: white;
+        }
+        
+        .price-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .price-input-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .price-prefix {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1E3A8A;
+        }
+        
+        .price-input {
+            flex: 1;
+            padding: 25px;
+            font-size: 36px;
+            border: 2px solid #E5E7EB;
+            border-radius: 16px;
+            background: #F9FAFB;
+            text-align: center;
+        }
+        
+        .price-info {
+            background: #EFF6FF;
+            border: 2px solid #DBEAFE;
+            border-radius: 16px;
+            padding: 30px;
+        }
+        
+        .price-info h3 {
+            font-size: 32px;
+            color: #1E40AF;
+            margin-bottom: 20px;
+        }
+        
+        .price-info ul {
+            list-style: none;
+            font-size: 28px;
+            color: #1E40AF;
+            line-height: 1.6;
+        }
+        
+        .price-info li:before {
+            content: "• ";
+            margin-right: 10px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #F3F4F6;
+            cursor: pointer;
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-item-icon {
+            font-size: 40px;
+            margin-right: 30px;
+            color: #6B7280;
+        }
+        
+        .menu-item-content {
+            flex: 1;
+        }
+        
+        .menu-item-title {
+            font-size: 32px;
+            font-weight: 500;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+        
+        .menu-item-description {
+            font-size: 26px;
+            color: #6B7280;
+        }
+        
+        .menu-item-arrow {
+            font-size: 32px;
+            color: #9CA3AF;
+        }
+        
+        .danger-item .menu-item-icon {
+            color: #DC2626;
+        }
+        
+        .danger-item .menu-item-title {
+            color: #DC2626;
+        }
+        
+        .save-button {
+            background: #1E3A8A;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 30px;
+            font-size: 36px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+        }
+        
+        .save-button:hover {
+            background: #1E40AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="back-button">←</div>
+            <div>
+                <h1>Perfil</h1>
+                <div class="subtitle">Configurações da conta</div>
+            </div>
+            <div></div>
+        </div>
+        
+        <div class="content">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <div class="avatar">JD</div>
+                    <div class="camera-icon">📷</div>
+                </div>
+                <div class="profile-name">João Silva</div>
+                <div class="profile-role">Instrutor Verificado</div>
+                <div class="profile-status">Instrutor desde Dez/2025</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    <div class="section-icon">✏️</div>
+                    Informações Pessoais
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">Nome Completo</div>
+                    <input type="text" class="form-input" value="João Silva" />
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">E-mail</div>
+                    <input type="email" class="form-input" value="joao.silva@example.com" />
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">Telefone</div>
+                    <input type="tel" class="form-input" value="(11) 98765-4321" />
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    <div class="section-icon">💰</div>
+                    Configurações de Aula
+                </div>
+                
+                <div class="price-section">
+                    <div>
+                        <div class="form-label">Valor por Aula (50 minutos)</div>
+                        <div class="price-input-group">
+                            <div class="price-prefix">R$</div>
+                            <input type="number" class="price-input" value="80" />
+                        </div>
+                    </div>
+                    
+                    <div class="price-info">
+                        <h3>Sobre o Valor da Aula</h3>
+                        <ul>
+                            <li>O valor definido aqui será usado para novas aulas</li>
+                            <li>Você pode ajustar o valor a qualquer momento</li>
+                            <li>Alunos verão seu preço ao agendar aulas</li>
+                            <li>O valor é por aula (50 minutos de duração)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    <div class="section-icon">⚙️</div>
+                    Configurações da Conta
+                </div>
+                
+                <div class="menu-item">
+                    <div class="menu-item-icon">✏️</div>
+                    <div class="menu-item-content">
+                        <div class="menu-item-title">Editar Perfil</div>
+                        <div class="menu-item-description">Nome, e-mail, telefone e foto</div>
+                    </div>
+                    <div class="menu-item-arrow">→</div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="menu-item-icon">🔒</div>
+                    <div class="menu-item-content">
+                        <div class="menu-item-title">Privacidade e Segurança</div>
+                        <div class="menu-item-description">LGPD, exportação de dados e exclusão de conta</div>
+                    </div>
+                    <div class="menu-item-arrow">→</div>
+                </div>
+                
+                <div class="menu-item danger-item">
+                    <div class="menu-item-icon">🗑️</div>
+                    <div class="menu-item-content">
+                        <div class="menu-item-title">Excluir Conta</div>
+                        <div class="menu-item-description">Excluir permanentemente todos os dados</div>
+                    </div>
+                    <div class="menu-item-arrow">→</div>
+                </div>
+            </div>
+            
+            <button class="save-button">Salvar Alterações</button>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Abrir no Expo Go</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .link { font-size: 32px; color: #1E3A8A; margin: 30px; }
+        .button { background: #1E3A8A; color: white; padding: 20px 40px; font-size: 24px; border: none; border-radius: 10px; margin: 20px; }
+    </style>
+</head>
+<body>
+    <h1>GoDrive - Abrir no Expo Go</h1>
+    
+    <div class="link">
+        <p>URL para Expo Go:</p>
+        <p><strong>exp://192.168.15.5:8082</strong></p>
+    </div>
+    
+    <button class="button" onclick="window.location.href='exp://192.168.15.5:8082'">
+        Abrir no Expo Go
+    </button>
+    
+    <div style="margin-top: 30px;">
+        <h3>Instruções:</h3>
+        <p>1. Copie esta URL: <strong>exp://192.168.15.5:8082</strong></p>
+        <p>2. Abra o Expo Go no iPad</p>
+        <p>3. Procure por "Enter URL" ou "Add project"</p>
+        <p>4. Cole a URL</p>
+    </div>
+</body>
+</html>

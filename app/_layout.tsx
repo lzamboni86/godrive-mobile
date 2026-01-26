@@ -2,10 +2,14 @@ import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, LogBox } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import api from '@/services/api';
+import { registerForPushNotificationsAsync } from '@/services/push';
 
 import '../global.css';
+
+LogBox.ignoreLogs(['expo-notifications', 'Android Push Notifications']);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,6 +17,23 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading, isInstructor, isAdmin } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  const { token } = useAuth();
+
+  useEffect(() => {
+    const run = async () => {
+      if (!isAuthenticated || !isInstructor || !token) return;
+      const pushToken = await registerForPushNotificationsAsync();
+      if (!pushToken) return;
+      try {
+        await api.post('/users/me/push-token', { token: pushToken });
+      } catch {
+        // ignore
+      }
+    };
+
+    run();
+  }, [isAuthenticated, isInstructor, token]);
 
   useEffect(() => {
     console.log('🔐 Auth State:', { isAuthenticated, isLoading, isInstructor, isAdmin, segments: segments[0] });

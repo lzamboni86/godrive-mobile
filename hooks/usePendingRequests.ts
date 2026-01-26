@@ -1,50 +1,33 @@
 import { useState, useEffect } from 'react';
+import { AppState } from 'react-native';
+import Constants from 'expo-constants';
 import api from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { connectRealtime } from '@/services/realtime';
+
+// Verificar se está rodando no Expo Go
+const isExpoGo = (Constants as any).executionEnvironment === 'storeClient' || Constants.appOwnership === 'expo';
 
 export function usePendingRequests() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
 
   const fetchPendingCount = async () => {
+    if (!user?.id) return;
+    
     try {
-      console.log('🔔 Buscando contagem para User ID:', user?.id);
-      
       // Buscar apenas solicitações pendentes
       const response = await api.get(`/instructor/${user?.id}/requests`);
-      console.log('🔔 Resposta requests:', response);
       
       const requests = Array.isArray(response) ? response : [];
-      console.log('🔔 Total requests:', requests.length);
       
-      // Contar apenas solicitações aguardando aprovação (excluir recusadas)
+      // Contar apenas solicitações aguardando aprovação
       const pendingRequests = requests.filter(req => 
         req.status === 'REQUESTED' || req.status === 'WAITING_APPROVAL'
       );
       
-      // Verificar se há aulas recusadas no total
-      const rejectedRequests = requests.filter(req => 
-        req.status === 'REJECTED' || req.status === 'CANCELLED'
-      );
-      
-      console.log('🔔 Pending requests:', pendingRequests.map(r => ({ id: r.id, status: r.status })));
-      console.log('🔔 Rejected requests:', rejectedRequests.map(r => ({ id: r.id, status: r.status })));
-      console.log('🔔 Total requests breakdown:', {
-        REQUESTED: requests.filter(r => r.status === 'REQUESTED').length,
-        WAITING_APPROVAL: requests.filter(r => r.status === 'WAITING_APPROVAL').length,
-        REJECTED: requests.filter(r => r.status === 'REJECTED').length,
-        CANCELLED: requests.filter(r => r.status === 'CANCELLED').length,
-        CONFIRMED: requests.filter(r => r.status === 'CONFIRMED').length
-      });
-      
       const count = pendingRequests.length;
-      console.log('🔔 Final count:', count);
-      
-      // Forçar atualização se count mudou
       setPendingCount(count);
-      
-      // Debug extra
-      console.log('🔔 Badge deve mostrar:', count);
       
     } catch (error) {
       console.error('Erro ao buscar contagem de solicitações:', error);
@@ -54,14 +37,59 @@ export function usePendingRequests() {
 
   useEffect(() => {
     fetchPendingCount();
-    
-    // Atualizar frequentemente para refletir aprovações mais rápido
-    const interval = setInterval(fetchPendingCount, 5000); // 5 segundos
-    
-    return () => {
-      clearInterval(interval);
-    };
+
+    return () => undefined;
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !token) return;
+
+    const socket = connectRealtime(token);
+    const refresh = () => fetchPendingCount();
+
+    socket.on('lesson_request_created', refresh);
+    socket.on('lesson_request_updated', refresh);
+
+    // Só adicionar listeners de notificação se NÃO estiver no Expo Go
+    let receivedSub: any = null;
+    let responseSub: any = null;
+
+    let cancelled = false;
+    const setupNotifications = async () => {
+      if (isExpoGo) return;
+      try {
+        const Notifications = await import('expo-notifications');
+        if (cancelled) return;
+
+        receivedSub = Notifications.addNotificationReceivedListener(() => {
+          refresh();
+        });
+
+        responseSub = Notifications.addNotificationResponseReceivedListener(() => {
+          refresh();
+        });
+      } catch (e) {
+        console.warn('Notificações não disponíveis:', e);
+      }
+    };
+
+    setupNotifications();
+
+    const appStateSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        refresh();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      socket.off('lesson_request_created', refresh);
+      socket.off('lesson_request_updated', refresh);
+      if (receivedSub) receivedSub.remove();
+      if (responseSub) responseSub.remove();
+      appStateSub.remove();
+    };
+  }, [user?.id, token]);
 
   return pendingCount;
 }

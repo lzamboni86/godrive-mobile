@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft, User, Mail, Phone, FileText, Car, Lock, Check, Eye, EyeOff, MapPin } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
-import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState } from '@/services/ibge';
+import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState, getNeighborhoodsByCityDynamic } from '@/services/ibge';
+import { getFipeMarcas, getFipeModelos, FipeMarca, FipeModelo } from '@/services/fipe';
 export default function InstructorSignupScreen() {
   
   const [name, setName] = useState('');
@@ -26,6 +27,7 @@ export default function InstructorSignupScreen() {
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
+  const [pixKey, setPixKey] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -39,9 +41,15 @@ export default function InstructorSignupScreen() {
   const [ibgeCities, setIbgeCities] = useState<IbgeCity[]>([]);
   const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [isLoadingNeighborhoods, setIsLoadingNeighborhoods] = useState(false);
+  const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
 
-  const VEHICLE_MAKES = ['GM', 'Renault', 'Ford'];
-  const NEIGHBORHOODS = ['Água Verde', 'Portão', 'Centro'];
+  // Estados para FIPE
+  const [vehicleMarcas, setVehicleMarcas] = useState<FipeMarca[]>([]);
+  const [vehicleModelos, setVehicleModelos] = useState<FipeModelo[]>([]);
+  const [isLoadingMarcas, setIsLoadingMarcas] = useState(false);
+  const [isLoadingModelos, setIsLoadingModelos] = useState(false);
+  const [selectedMarcaCodigo, setSelectedMarcaCodigo] = useState<string>('');
 
   const stateLabel = useMemo(() => {
     if (!state) return '';
@@ -72,9 +80,86 @@ export default function InstructorSignupScreen() {
     }
   };
 
+  const loadNeighborhoods = async (cityName: string, stateUf: string) => {
+    if (!cityName || !stateUf) {
+      setNeighborhoods([]);
+      return;
+    }
+
+    try {
+      setIsLoadingNeighborhoods(true);
+      const data = await getNeighborhoodsByCityDynamic(cityName, stateUf);
+      setNeighborhoods(data);
+    } catch (e) {
+      console.error('Erro ao carregar bairros:', e);
+      setNeighborhoods([]);
+    } finally {
+      setIsLoadingNeighborhoods(false);
+    }
+  };
+
+  const loadVehicleMarcas = async () => {
+    try {
+      setIsLoadingMarcas(true);
+      const data = await getFipeMarcas();
+      setVehicleMarcas(data);
+    } catch (e) {
+      console.error('Erro ao carregar marcas:', e);
+      Alert.alert('Erro', 'Não foi possível carregar as marcas de veículos. Tente novamente.');
+    } finally {
+      setIsLoadingMarcas(false);
+    }
+  };
+
+  const loadVehicleModelos = async (marcaCodigo: string) => {
+    if (!marcaCodigo) {
+      setVehicleModelos([]);
+      return;
+    }
+
+    try {
+      setIsLoadingModelos(true);
+      console.log(`🚗 Carregando modelos para marca: ${marcaCodigo}`);
+      const data = await getFipeModelos(marcaCodigo);
+      console.log(`✅ Modelos carregados:`, data);
+      setVehicleModelos(data);
+    } catch (e) {
+      console.error('❌ Erro ao carregar modelos:', e);
+      setVehicleModelos([]);
+      // Mostrar mensagem amigável para o usuário
+      Alert.alert(
+        'Aviso',
+        'Não foi possível carregar os modelos desta marca. Tente selecionar outra marca.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoadingModelos(false);
+    }
+  };
+
   useEffect(() => {
     loadStates();
+    loadVehicleMarcas(); // Carregar marcas ao montar a tela
   }, []);
+
+  useEffect(() => {
+    if (city && state) {
+      loadNeighborhoods(city, state);
+    } else {
+      setNeighborhoods([]);
+      setNeighborhoodTeach('');
+    }
+  }, [city, state]);
+
+  useEffect(() => {
+    // Carregar modelos quando marca for selecionada
+    if (selectedMarcaCodigo) {
+      loadVehicleModelos(selectedMarcaCodigo);
+    } else {
+      setVehicleModelos([]);
+      setVehicleModel(''); // Limpar modelo quando marca mudar
+    }
+  }, [selectedMarcaCodigo]);
 
   const openPicker = (title: string, options: { label: string; value: string }[], onSelect: (v: string) => void) => {
     setPicker({ title, options, onSelect });
@@ -99,13 +184,14 @@ export default function InstructorSignupScreen() {
       vehicleModel,
       vehiclePlate,
       hourlyRate,
+      pixKey,
       password: '***'
     });
     
     if (!name.trim() || !email.trim() || !phone.trim() || !cnh.trim() ||
         !gender.trim() || !state.trim() || !city.trim() || !neighborhoodReside.trim() || !neighborhoodTeach.trim() ||
         !vehicleMake.trim() || !vehicleYear.trim() || !transmission.trim() || !engineType.trim() || !vehicleModel.trim() ||
-        !vehiclePlate.trim() || !hourlyRate.trim() || !password.trim() || !confirmPassword.trim()) {
+        !vehiclePlate.trim() || !hourlyRate.trim() || !pixKey.trim() || !password.trim() || !confirmPassword.trim()) {
       console.log('🔐 Instructor Signup - Validação falhou: campos vazios');
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
@@ -155,6 +241,7 @@ export default function InstructorSignupScreen() {
         vehicleModel: vehicleModel.trim(),
         vehiclePlate: vehiclePlate.trim(),
         hourlyRate: rate,
+        pixKey: pixKey.trim(),
         password,
       });
 
@@ -219,19 +306,23 @@ export default function InstructorSignupScreen() {
                       </TouchableOpacity>
                     </View>
 
-                    <View className="max-h-64">
-                      <ScrollView showsVerticalScrollIndicator={false}>
+                    <View className="max-h-96">
+                      <ScrollView 
+                        showsVerticalScrollIndicator={true}
+                        indicatorStyle="black"
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                      >
                         {(picker?.options || []).map((opt) => (
                           <TouchableOpacity
                             key={`${picker?.title}-${opt.value}`}
-                            className="py-3 border-b border-neutral-100"
+                            className="py-4 border-b border-neutral-100"
                             onPress={() => {
                               picker?.onSelect(opt.value);
                               setPickerOpen(false);
                               setPicker(null);
                             }}
                           >
-                            <Text className="text-neutral-900">{opt.label}</Text>
+                            <Text className="text-neutral-900 text-base">{opt.label}</Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
@@ -292,7 +383,7 @@ export default function InstructorSignupScreen() {
 
               {/* CNH Input */}
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Registro da CNH</Text>
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Registro da CNH <Text className="text-red-500">*</Text></Text>
                 <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
                   <Car size={20} color="#6B7280" />
                   <TextInput
@@ -303,6 +394,9 @@ export default function InstructorSignupScreen() {
                     onChangeText={setCnh}
                   />
                 </View>
+                <Text className="text-neutral-500 text-xs mt-1">
+                  Campo obrigatório para cadastro
+                </Text>
               </View>
 
               {/* Gender */}
@@ -392,17 +486,28 @@ export default function InstructorSignupScreen() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-700 mb-2">Bairro de Residência</Text>
                 <TouchableOpacity
-                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  className={`flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4 ${
+                    city ? '' : 'opacity-50'
+                  }`}
+                  disabled={!city}
                   onPress={() =>
                     openPicker(
                       'Bairro de Residência',
-                      NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                      neighborhoods.map((b: string) => ({ label: b, value: b })),
                       (v) => setNeighborhoodReside(v)
                     )
                   }
                 >
                   <MapPin size={20} color="#6B7280" />
-                  <Text className="flex-1 px-3 text-base text-neutral-900">{neighborhoodReside || 'Selecione'}</Text>
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {!city
+                      ? 'Selecione a cidade'
+                      : isLoadingNeighborhoods
+                        ? 'Carregando bairros...'
+                        : neighborhoods.length === 0
+                          ? 'Nenhum bairro encontrado'
+                          : neighborhoodReside || 'Selecione'}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -410,17 +515,28 @@ export default function InstructorSignupScreen() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-700 mb-2">Bairro de Atendimento</Text>
                 <TouchableOpacity
-                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  className={`flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4 ${
+                    city ? '' : 'opacity-50'
+                  }`}
+                  disabled={!city}
                   onPress={() =>
                     openPicker(
                       'Bairro de Atendimento',
-                      NEIGHBORHOODS.map((b) => ({ label: b, value: b })),
+                      neighborhoods.map((b: string) => ({ label: b, value: b })),
                       (v) => setNeighborhoodTeach(v)
                     )
                   }
                 >
                   <MapPin size={20} color="#6B7280" />
-                  <Text className="flex-1 px-3 text-base text-neutral-900">{neighborhoodTeach || 'Selecione'}</Text>
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {!city
+                      ? 'Selecione a cidade'
+                      : isLoadingNeighborhoods
+                        ? 'Carregando bairros...'
+                        : neighborhoods.length === 0
+                          ? 'Nenhum bairro encontrado'
+                          : neighborhoodTeach || 'Selecione'}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -428,18 +544,125 @@ export default function InstructorSignupScreen() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-700 mb-2">Marca do Veículo</Text>
                 <TouchableOpacity
-                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
-                  onPress={() =>
+                  className={`flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4 ${
+                    isLoadingMarcas ? 'opacity-50' : ''
+                  }`}
+                  disabled={isLoadingMarcas}
+                  onPress={() => {
+                    if (vehicleMarcas.length === 0 && !isLoadingMarcas) {
+                      // Tentar recarregar se falhou
+                      loadVehicleMarcas();
+                      return;
+                    }
                     openPicker(
                       'Marca do Veículo',
-                      VEHICLE_MAKES.map((m) => ({ label: m, value: m })),
-                      (v) => setVehicleMake(v)
-                    )
-                  }
+                      vehicleMarcas.map((marca: FipeMarca) => ({ label: marca.nome, value: marca.codigo })),
+                      (codigo: string) => {
+                        const marcaSelecionada = vehicleMarcas.find(m => m.codigo === codigo);
+                        setVehicleMake(marcaSelecionada?.nome || '');
+                        setSelectedMarcaCodigo(codigo);
+                      }
+                    );
+                  }}
+                  onLongPress={() => {
+                    // Recarregar marcas com long press
+                    if (!isLoadingMarcas) {
+                      loadVehicleMarcas();
+                    }
+                  }}
                 >
                   <Car size={20} color="#6B7280" />
-                  <Text className="flex-1 px-3 text-base text-neutral-900">{vehicleMake || 'Selecione'}</Text>
+                  {isLoadingMarcas ? (
+                    <>
+                      <Text className="flex-1 px-3 text-base text-neutral-500">Carregando marcas...</Text>
+                      <ActivityIndicator size="small" color="#6B7280" />
+                    </>
+                  ) : (
+                    <>
+                      <Text className="flex-1 px-3 text-base text-neutral-900">
+                        {vehicleMarcas.length === 0 ? 'Tentar novamente' : (vehicleMake || 'Selecione')}
+                      </Text>
+                      {vehicleMarcas.length === 0 && (
+                        <Text className="text-red-500 text-xs">Falha ao carregar</Text>
+                      )}
+                    </>
+                  )}
                 </TouchableOpacity>
+                <Text className="text-neutral-500 text-xs mt-1">
+                  Dados da Tabela FIPE • Pressione e segure para recarregar
+                </Text>
+              </View>
+
+              {/* Vehicle Model */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Modelo do Veículo</Text>
+                <TouchableOpacity
+                  className={`flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4 ${
+                    !selectedMarcaCodigo || isLoadingModelos ? 'opacity-50' : ''
+                  }`}
+                  disabled={!selectedMarcaCodigo || isLoadingModelos}
+                  onPress={() => {
+                    if (vehicleModelos.length === 0 && !isLoadingModelos) {
+                      // Tentar recarregar se falhou
+                      loadVehicleModelos(selectedMarcaCodigo);
+                      return;
+                    }
+                    openPicker(
+                      'Modelo do Veículo',
+                      vehicleModelos.map((modelo: FipeModelo) => ({ label: modelo.nome, value: modelo.codigo })),
+                      (codigo: string) => {
+                        const modeloSelecionado = vehicleModelos.find(m => m.codigo === codigo);
+                        setVehicleModel(modeloSelecionado?.nome || '');
+                      }
+                    );
+                  }}
+                  onLongPress={() => {
+                    // Recarregar modelos com long press
+                    if (!isLoadingModelos && selectedMarcaCodigo) {
+                      loadVehicleModelos(selectedMarcaCodigo);
+                    }
+                  }}
+                >
+                  <Car size={20} color="#6B7280" />
+                  {isLoadingModelos ? (
+                    <>
+                      <Text className="flex-1 px-3 text-base text-neutral-500">Carregando modelos...</Text>
+                      <ActivityIndicator size="small" color="#6B7280" />
+                    </>
+                  ) : (
+                    <>
+                      <Text className="flex-1 px-3 text-base text-neutral-900">
+                        {!selectedMarcaCodigo
+                          ? 'Selecione uma marca'
+                          : vehicleModelos.length === 0
+                            ? 'Tentar novamente'
+                            : (vehicleModel || 'Selecione')}
+                      </Text>
+                      {selectedMarcaCodigo && vehicleModelos.length === 0 && (
+                        <Text className="text-red-500 text-xs">Falha ao carregar</Text>
+                      )}
+                    </>
+                  )}
+                </TouchableOpacity>
+                <Text className="text-neutral-500 text-xs mt-1">
+                  Modelos disponíveis para a marca selecionada
+                </Text>
+              </View>
+
+              {/* Vehicle Plate Input */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Placa do Veículo</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <Car size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="ABC-1234"
+                    placeholderTextColor="#9CA3AF"
+                    value={vehiclePlate}
+                    onChangeText={setVehiclePlate}
+                    autoCapitalize="characters"
+                  />
+                </View>
               </View>
 
               {/* Vehicle Year */}
@@ -504,35 +727,24 @@ export default function InstructorSignupScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Vehicle Model Input */}
+              {/* PIX Input */}
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Modelo do Veículo</Text>
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Chave PIX para Pagamento</Text>
                 <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
-                  <Car size={20} color="#6B7280" />
+                  <Text className="text-neutral-500 mr-2">@</Text>
                   <TextInput
                     className="flex-1 py-4 px-3 text-base text-neutral-900"
-                    placeholder="Ex: Fiat Palio 2022"
+                    placeholder="seu-pix@banco.com.br"
                     placeholderTextColor="#9CA3AF"
-                    value={vehicleModel}
-                    onChangeText={setVehicleModel}
+                    value={pixKey}
+                    onChangeText={setPixKey}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                   />
                 </View>
-              </View>
-
-              {/* Vehicle Plate Input */}
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Placa do Veículo</Text>
-                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
-                  <Car size={20} color="#6B7280" />
-                  <TextInput
-                    className="flex-1 py-4 px-3 text-base text-neutral-900"
-                    placeholder="ABC-1234"
-                    placeholderTextColor="#9CA3AF"
-                    value={vehiclePlate}
-                    onChangeText={setVehiclePlate}
-                    autoCapitalize="characters"
-                  />
-                </View>
+                <Text className="text-neutral-500 text-xs mt-1">
+                  Sua chave PIX para receber pagamentos das aulas
+                </Text>
               </View>
 
               {/* Hourly Rate Input */}

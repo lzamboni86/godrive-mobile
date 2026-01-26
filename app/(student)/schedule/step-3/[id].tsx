@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Clock, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Clock, Calendar, DollarSign, CheckCircle, AlertCircle, Wallet } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
 import { studentService, Instructor } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
+import { walletService } from '@/services/wallet';
+import { mercadoPagoService } from '@/services/mercado-pago';
+import { WalletBalance } from '@/types';
 
 interface ScheduleData {
   instructorId: string;
@@ -22,12 +24,19 @@ export default function ScheduleStep3Screen() {
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<WalletBalance>({
+    totalBalance: 0,
+    availableBalance: 0,
+    lockedBalance: 0,
+    usedBalance: 0
+  });
   const [selectedDates] = useState<string[]>(JSON.parse(dates || '[]'));
   const [selectedTimes] = useState<{ date: string; time: string }[]>(JSON.parse(times || '[]'));
 
   useEffect(() => {
     if (id) {
       loadInstructor();
+      loadWalletBalance();
     }
   }, [id]);
 
@@ -45,6 +54,15 @@ export default function ScheduleStep3Screen() {
     }
   };
 
+  const loadWalletBalance = async () => {
+    try {
+      const balance = await walletService.getBalance();
+      setWalletBalance(balance);
+    } catch (error: any) {
+      console.error('Erro ao carregar saldo:', error);
+    }
+  };
+
   const calculateTotal = () => {
     if (!instructor?.hourlyRate) {
       throw new Error('Preço do instrutor não encontrado');
@@ -58,136 +76,122 @@ export default function ScheduleStep3Screen() {
       return;
     }
 
+    const totalAmount = calculateTotal();
+    const hasAvailableBalance = walletBalance.availableBalance >= totalAmount;
+
     try {
       setIsSubmitting(true);
       console.log('🚀 [STEP-3] Iniciando criação de solicitação...');
-      console.log('👤 [STEP-3] User ID:', user.id);
-      console.log('👨‍🏫 [STEP-3] Instructor ID:', instructor.id);
-      console.log('📅 [STEP-3] Selected Times:', JSON.stringify(selectedTimes, null, 2));
+      console.log('💰 [STEP-3] Total:', totalAmount);
+      console.log('💳 [STEP-3] Saldo disponível:', walletBalance.availableBalance);
+      console.log('✅ [STEP-3] Tem saldo suficiente:', hasAvailableBalance);
 
-      // Criar solicitação de agendamento
-      const scheduleData = {
-        studentId: user.id,
-        instructorId: instructor.id,
-        lessons: selectedTimes.map(time => ({
-          date: time.date,
-          time: time.time,
-          duration: 50,
-          price: instructor.hourlyRate || 0
-        })),
-        totalAmount: calculateTotal(),
-        status: 'PENDING_PAYMENT'
-      };
+      if (hasAvailableBalance) {
+        // Usar créditos disponíveis
+        console.log('💳 [STEP-3] Usando créditos disponíveis...');
+        
+        // Criar transação com status LOCKED
+        const transaction = await walletService.useCredits({
+          amount: totalAmount,
+          description: `Reserva com ${instructor.name} - ${selectedTimes.length} aula(s)`,
+        });
 
-      console.log('📦 [STEP-3] Dados enviados:', JSON.stringify(scheduleData, null, 2));
+        console.log('💳 [STEP-3] Transação criada:', transaction.id);
 
-      // Enviar para backend
-      const response = await studentService.createScheduleRequest(scheduleData);
-      
-      console.log('📦 [STEP-3] Resposta do backend:', JSON.stringify(response, null, 2));
-      console.log('💳 [STEP-3] Preference ID:', response.preferenceId);
-      console.log('🔗 [STEP-3] Init Point:', response.initPoint);
-      console.log('🧪 [STEP-3] Sandbox Init Point:', response.sandboxInitPoint);
-      console.log('🏷️ [STEP-3] Is Sandbox:', (response as any).isSandbox);
-      
-      // Se tiver preference_id do Mercado Pago, iniciar pagamento
-      const isSandbox = !!(response as any).isSandbox;
-      const checkoutUrl =
-        isSandbox && response.sandboxInitPoint
-          ? response.sandboxInitPoint
-          : response.initPoint;
+        // Criar solicitação de agendamento
+        const scheduleData = {
+          studentId: user.id,
+          instructorId: instructor.id,
+          lessons: selectedTimes.map(time => ({
+            date: time.date,
+            time: time.time,
+            duration: 50,
+            price: instructor.hourlyRate || 0
+          })),
+          totalAmount,
+          status: 'PENDING_INSTRUCTOR',
+          walletTransactionId: transaction.id
+        };
 
-      console.log('🎯 [STEP-3] Checkout URL final:', checkoutUrl);
-      console.log('🧪 [STEP-3] Modo:', isSandbox ? 'SANDBOX' : 'PRODUÇÃO');
+        console.log('📦 [STEP-3] Dados enviados:', JSON.stringify(scheduleData, null, 2));
+        const response = await studentService.createScheduleRequest(scheduleData);
+        
+        console.log('✅ [STEP-3] Solicitação criada com créditos:', response);
+        
+        Alert.alert(
+          'Reserva Criada!',
+          'Sua reserva foi criada usando seus créditos. Aguarde a confirmação do instrutor.',
+          [{ text: 'OK', onPress: () => router.push('/(student)/schedule/success' as any) }]
+        );
 
-      if (!checkoutUrl) {
-        console.error('❌ [STEP-3] Checkout URL não encontrado na resposta');
-        Alert.alert('Erro', 'Não foi possível iniciar o pagamento. Tente novamente.');
-        return;
+      } else {
+        // Usar Mercado Pago
+        console.log('💳 [STEP-3] Usando Mercado Pago...');
+        
+        // Criar preferência no Mercado Pago
+        const preference = await mercadoPagoService.createPreference({
+          amount: totalAmount,
+          description: `Aulas com ${instructor.name} - ${selectedTimes.length} aula(s)`,
+          externalReference: `schedule_${user.id}_${instructor.id}_${Date.now()}`,
+          payerEmail: user.email,
+          payerName: user.name,
+          items: [{
+            id: `lesson_${instructor.id}`,
+            title: `Aulas de Auto Escola - ${instructor.name}`,
+            description: `${selectedTimes.length} aula(s) de 50 minutos`,
+            quantity: selectedTimes.length,
+            unitPrice: instructor.hourlyRate || 0,
+            currencyId: 'BRL'
+          }]
+        });
+
+        console.log('💳 [STEP-3] Preferência criada:', preference.id);
+
+        // Criar solicitação de agendamento
+        const scheduleData = {
+          studentId: user.id,
+          instructorId: instructor.id,
+          lessons: selectedTimes.map(time => ({
+            date: time.date,
+            time: time.time,
+            duration: 50,
+            price: instructor.hourlyRate || 0
+          })),
+          totalAmount,
+          status: 'PENDING_PAYMENT',
+          preferenceId: preference.id
+        };
+
+        console.log('📦 [STEP-3] Dados enviados:', JSON.stringify(scheduleData, null, 2));
+        const response = await studentService.createScheduleRequest(scheduleData);
+        
+        console.log('📦 [STEP-3] Resposta do backend:', JSON.stringify(response, null, 2));
+        
+        // Abrir checkout do Mercado Pago
+        const checkoutUrl = preference.sandboxInitPoint || preference.initPoint;
+        await WebBrowser.openBrowserAsync(checkoutUrl);
+        
+        Alert.alert(
+          'Pagamento Iniciado',
+          'Complete o pagamento no Mercado Pago. Após a aprovação, sua reserva será confirmada.',
+          [{ text: 'OK' }]
+        );
       }
 
-      console.log('🌐 [STEP-3] Abrindo checkout...');
-      openMercadoPagoCheckout(checkoutUrl);
-
     } catch (error: any) {
-      console.error('❌ [STEP-3] Erro ao criar solicitação:', error);
-      console.error('❌ [STEP-3] Error details:', error.response?.data);
-      console.error('❌ [STEP-3] Error message:', error.message);
-      Alert.alert('Erro', error.message || 'Não foi possível enviar sua solicitação. Tente novamente.');
+      console.error('❌ [STEP-3] Erro na solicitação:', error);
+      Alert.alert(
+        'Erro',
+        error?.response?.data?.message || 'Não foi possível criar sua reserva. Tente novamente.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const openMercadoPagoCheckout = async (checkoutUrl: string) => {
-    try {
-      console.log('🔗 [MP] Abrindo checkout Mercado Pago');
-      console.log('🌐 [MP] URL completa:', checkoutUrl);
-      
-      // Verificar se a URL é válida
-      if (!checkoutUrl || !checkoutUrl.startsWith('https://')) {
-        console.error('❌ [MP] URL inválida:', checkoutUrl);
-        Alert.alert('Erro', 'URL de pagamento inválida.');
-        return;
-      }
-      
-      const redirectUrl = Linking.createURL('schedule');
-
-      // Abrir checkout no browser (auth session) para voltar automaticamente ao app via deep link
-      console.log('🌐 [MP] Iniciando WebBrowser (AuthSession)...');
-      const result = await WebBrowser.openAuthSessionAsync(checkoutUrl, redirectUrl, {
-        presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
-        controlsColor: '#10B981',
-      });
-      
-      console.log('💳 [MP] Resultado do pagamento:', result);
-      
-      // Se o pagamento foi concluído, mostrar tela de sucesso
-      if (result.type === 'cancel') {
-        Alert.alert('Cancelado', 'O pagamento foi cancelado. Você pode tentar novamente.');
-      } else if (result.type === 'dismiss') {
-        Alert.alert('Cancelado', 'O pagamento foi cancelado. Você pode tentar novamente.');
-      } else if (result.type === 'success') {
-        const returnedUrl = (result as any).url as string | undefined;
-        if (returnedUrl?.includes('/schedule/failure')) {
-          router.replace('/(student)/schedule/failure' as any);
-        } else if (returnedUrl?.includes('/schedule/pending')) {
-          router.replace('/(student)/schedule/pending' as any);
-        } else {
-          router.replace('/(student)/schedule/success');
-        }
-      } else {
-        // Em produção, verificar se o pagamento foi realmente aprovado
-        // Por enquanto, assume sucesso mas em prod deveria verificar status
-        Alert.alert(
-          'Pagamento Processado!',
-          'Seu pagamento está sendo processado. Você receberá uma confirmação em breve.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/(student)/agenda')
-            }
-          ]
-        );
-      }
-      
-    } catch (error) {
-      console.error('❌ [MP] Erro ao abrir checkout:', error);
-      Alert.alert('Erro', 'Não foi possível iniciar o pagamento.');
-    }
-  };
-
-  const showSuccessScreen = () => {
-    Alert.alert(
-      'Sucesso!',
-      'Solicitação enviada! Aguardando aprovação do instrutor.',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.replace('/(student)/agenda')
-        }
-      ]
-    );
+  const hasAvailableBalance = () => {
+    return walletBalance.availableBalance >= calculateTotal();
   };
 
   if (isLoading) {
@@ -212,6 +216,7 @@ export default function ScheduleStep3Screen() {
   }
 
   const totalAmount = calculateTotal();
+  const canUseCredits = walletBalance.availableBalance >= totalAmount;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -305,20 +310,37 @@ export default function ScheduleStep3Screen() {
           {/* Método de Pagamento */}
           <View className="mb-6">
             <Text className="text-neutral-900 font-semibold mb-3">Método de Pagamento</Text>
-            <View className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <View className={`${canUseCredits ? 'bg-emerald-50 border-emerald-200' : 'bg-blue-50 border-blue-200'} border rounded-xl p-4`}>
               <View className="flex-row items-center">
-                <DollarSign size={20} color="#3B82F6" />
-                <Text className="text-blue-900 font-medium ml-2">Mercado Pago</Text>
-                <View className="bg-red-500 px-2 py-1 rounded-full ml-2">
-                  <Text className="text-white text-xs font-bold">PRODUÇÃO</Text>
-                </View>
+                {canUseCredits ? (
+                  <>
+                    <Wallet size={20} color="#10B981" />
+                    <Text className="text-emerald-900 font-medium ml-2">Usar Créditos</Text>
+                  </>
+                ) : (
+                  <>
+                    <DollarSign size={20} color="#3B82F6" />
+                    <Text className="text-blue-900 font-medium ml-2">Mercado Pago</Text>
+                    <View className="bg-red-500 px-2 py-1 rounded-full ml-2">
+                      <Text className="text-white text-xs font-bold">PRODUÇÃO</Text>
+                    </View>
+                  </>
+                )}
               </View>
-              <Text className="text-blue-700 text-sm mt-1">
-                Pague de forma segura com cartão, pix ou boleto
-              </Text>
-              <Text className="text-blue-600 text-xs mt-2">
-                ⚠️ Pagamento real - será cobrado
-              </Text>
+              {canUseCredits ? (
+                <Text className="text-emerald-700 text-sm mt-1">
+                  Seu saldo disponível cobre esta reserva. O valor ficará bloqueado até o instrutor confirmar.
+                </Text>
+              ) : (
+                <>
+                  <Text className="text-blue-700 text-sm mt-1">
+                    Pague de forma segura com cartão, pix ou boleto
+                  </Text>
+                  <Text className="text-blue-600 text-xs mt-2">
+                    ⚠️ Pagamento real - será cobrado
+                  </Text>
+                </>
+              )}
             </View>
           </View>
 
@@ -354,9 +376,13 @@ export default function ScheduleStep3Screen() {
               </View>
             ) : (
               <View className="flex-row items-center justify-center">
-                <DollarSign size={20} color="#FFFFFF" />
+                {canUseCredits ? (
+                  <Wallet size={20} color="#FFFFFF" />
+                ) : (
+                  <DollarSign size={20} color="#FFFFFF" />
+                )}
                 <Text className="text-white font-semibold text-lg ml-2">
-                  PAGAR AGORA - R$ {totalAmount}
+                  {canUseCredits ? `USAR CRÉDITOS - R$ ${totalAmount}` : `PAGAR AGORA - R$ ${totalAmount}`}
                 </Text>
               </View>
             )}

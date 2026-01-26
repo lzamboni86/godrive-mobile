@@ -22,9 +22,15 @@ export default function InstructorSupportScreen() {
       return;
     }
 
+    console.log('📧 [SAC] Iniciando envio do formulário de contato...');
+    console.log('📧 [SAC] Dados do formulário:', JSON.stringify(formData, null, 2));
+
     try {
       setIsSubmitting(true);
-      await instructorService.sendContactForm(formData);
+      console.log('📧 [SAC] Chamando instructorService.sendContactForm...');
+      
+      const result = await instructorService.sendContactForm(formData);
+      console.log('📧 [SAC] Resposta do servidor:', result);
       
       // Limpar formulário após envio bem-sucedido
       setFormData({
@@ -33,20 +39,27 @@ export default function InstructorSupportScreen() {
         contactPreference: 'email'
       });
       
+      console.log('📧 [SAC] ✅ Formulário enviado com sucesso!');
+      
       Alert.alert(
         'Sucesso!',
         'Sua mensagem foi enviada. Entraremos em contato em breve.',
         [{ text: 'OK' }]
       );
     } catch (error: any) {
+      console.error('📧 [SAC] ❌ Erro ao enviar formulário:', error);
+      console.error('📧 [SAC] ❌ Error response:', error?.response?.data);
+      console.error('📧 [SAC] ❌ Error status:', error?.response?.status);
+      console.error('📧 [SAC] ❌ Error message:', error?.message);
+      
       Alert.alert(
         'Erro',
-        'Não foi possível enviar sua mensagem. Tente novamente.',
+        error?.response?.data?.message || 'Não foi possível enviar sua mensagem. Tente novamente.',
         [{ text: 'OK' }]
       );
-      console.error('Erro ao enviar formulário:', error);
     } finally {
       setIsSubmitting(false);
+      console.log('📧 [SAC] Processo finalizado.');
     }
   };
 
@@ -229,7 +242,7 @@ export default function InstructorSupportScreen() {
                       { 
                         text: 'Abrir', 
                         onPress: async () => {
-                          const url = 'https://www.godrivegroup.com.br/perguntas-frequentes';
+                          const url = 'https://www.godrivegroup.com.br/manual-instrutor';
                           try {
                             const supported = await Linking.canOpenURL(url);
                             if (supported) {
@@ -264,7 +277,7 @@ export default function InstructorSupportScreen() {
                       { 
                         text: 'Abrir', 
                         onPress: async () => {
-                          const url = 'https://www.godrivegroup.com.br/manual-instrutor';
+                          const url = 'https://www.godrivegroup.com.br/perguntas-frequentes';
                           try {
                             const supported = await Linking.canOpenURL(url);
                             if (supported) {

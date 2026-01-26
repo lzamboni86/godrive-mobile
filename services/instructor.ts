@@ -7,6 +7,7 @@ export interface InstructorProfile {
   avatar?: string;
   hourlyRate?: number;
   pixKey?: string;
+  bio?: string;
 }
 
 export interface ContactForm {
@@ -50,7 +51,19 @@ export const instructorService = {
   },
 
   // SAC
-  async sendContactForm(data: ContactForm): Promise<void> {
-    return api.post('/instructor/contact', data);
+  async sendContactForm(data: ContactForm): Promise<any> {
+    console.log('📧 [API] Enviando formulário de contato para /instructor/contact');
+    console.log('📧 [API] Payload:', JSON.stringify(data, null, 2));
+    
+    try {
+      const response = await api.post('/instructor/contact', data);
+      console.log('📧 [API] ✅ Resposta recebida:', response);
+      return response;
+    } catch (error: any) {
+      console.error('📧 [API] ❌ Erro na requisição:', error);
+      console.error('📧 [API] ❌ Status:', error?.response?.status);
+      console.error('📧 [API] ❌ Data:', error?.response?.data);
+      throw error;
+    }
   },
 };

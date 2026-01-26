@@ -11,16 +11,16 @@ export default function InstructorSettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View className="flex-1">
-        {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-lg font-semibold text-neutral-900">Configuração</Text>
-          <View className="w-6" />
-        </View>
+      {/* Header */}
+      <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
+        <TouchableOpacity onPress={() => router.back()}>
+          <ArrowLeft size={24} color="#374151" />
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold text-neutral-900">Configuração</Text>
+        <View className="w-6" />
+      </View>
 
+      <View className="flex-1">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* Perfil */}
           <View className="p-4">

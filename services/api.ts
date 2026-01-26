@@ -3,10 +3,10 @@ import Constants from 'expo-constants';
 import { ApiError } from '@/types';
 
 // URL da API - prioridade: variável de ambiente > app.config > manifest > fallback
-const API_BASE_URL =
+export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ||
   (Constants.expoConfig?.extra as any)?.apiUrl ||
-  (Constants.manifest?.extra as any)?.apiUrl ||
+  ((Constants.manifest as any)?.extra as any)?.apiUrl ||
   process.env.EXPO_PUBLIC_API_BASE_URL ||
   (__DEV__ ? 'http://192.168.15.14:3000' : 'https://godrive-7j7x.onrender.com'); // Produção: Render, Dev: IP local
 
@@ -36,7 +36,7 @@ class ApiService {
   constructor() {
     console.log('🔧 [API] Base URL:', API_BASE_URL);
     console.log('🔧 [API] Constants.expoConfig?.extra:', Constants.expoConfig?.extra);
-    console.log('🔧 [API] Constants.manifest?.extra:', Constants.manifest?.extra);
+    console.log('🔧 [API] Constants.manifest?.extra:', (Constants.manifest as any)?.extra);
     
     this.instance = axios.create({
       baseURL: API_BASE_URL,

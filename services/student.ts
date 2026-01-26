@@ -34,13 +34,18 @@ export interface Lesson {
   date: string;
   time: string;
   duration: number;
-  status: 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'EVALUATED' | 'CANCELLED';
+  status: 'SCHEDULED' | 'CONFIRMED' | 'ADJUSTMENT_PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'EVALUATED' | 'CANCELLED';
   price: number;
   location?: string;
   instructor?: {
     name: string;
     email: string;
   };
+}
+
+export interface LessonAdjustmentRequest {
+  proposedDate: string;
+  proposedTime: string;
 }
 
 export interface Payment {
@@ -143,6 +148,10 @@ export const studentService = {
   // Agendamento
   async createScheduleRequest(data: ScheduleRequest): Promise<ScheduleResponse> {
     return api.post<ScheduleResponse>('/student/schedule', data);
+  },
+
+  async requestLessonAdjustment(lessonId: string, data: LessonAdjustmentRequest): Promise<void> {
+    return api.post(`/student/lessons/${lessonId}/adjustment`, data);
   },
 
   // Perfil

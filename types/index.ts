@@ -16,6 +16,12 @@ export enum PaymentStatus {
   REFUNDED = 'REFUNDED',
 }
 
+export enum WalletTransactionStatus {
+  AVAILABLE = 'AVAILABLE',
+  LOCKED = 'LOCKED',
+  USED = 'USED',
+}
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   INSTRUCTOR = 'INSTRUCTOR',
@@ -100,6 +106,56 @@ export interface Payment {
   transactionId?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  userId: string;
+  user: User;
+  amount: number;
+  status: WalletTransactionStatus;
+  bookingId?: string;
+  paymentMethod: 'MERCADO_PAGO' | 'STRIPE' | 'OTHER';
+  transactionId?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletBalance {
+  totalBalance: number;
+  availableBalance: number;
+  lockedBalance: number;
+  usedBalance: number;
+}
+
+export interface MercadoPagoPreference {
+  id: string;
+  initPoint: string;
+  sandboxInitPoint: string;
+  items: Array<{
+    id: string;
+    title: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    currencyId: string;
+  }>;
+  payer: {
+    email: string;
+    name?: string;
+    identification?: {
+      type: string;
+      number: string;
+    };
+  };
+  backUrls: {
+    success: string;
+    failure: string;
+    pending: string;
+  };
+  autoReturn: string;
+  externalReference?: string;
 }
 
 export interface DashboardData {

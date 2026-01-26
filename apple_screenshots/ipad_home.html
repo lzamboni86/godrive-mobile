@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoDrive - Home (iPad 13")</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            width: 2048px;
+            height: 2732px;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #1E3A8A;
+            color: white;
+            padding: 40px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            font-weight: 600;
+        }
+        
+        .header .subtitle {
+            font-size: 28px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        
+        .header .user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #10B981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-size: 32px;
+            font-weight: 600;
+        }
+        
+        .user-role {
+            font-size: 24px;
+            opacity: 0.8;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .card-title {
+            font-size: 36px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+        
+        .card-description {
+            font-size: 28px;
+            color: #6B7280;
+            line-height: 1.5;
+        }
+        
+        .card-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #1E3A8A;
+        }
+        
+        .stat-label {
+            font-size: 24px;
+            color: #6B7280;
+        }
+        
+        .requests-card .card-icon {
+            background: #FEF3C7;
+            color: #F59E0B;
+        }
+        
+        .schedule-card .card-icon {
+            background: #DBEAFE;
+            color: #3B82F6;
+        }
+        
+        .payments-card .card-icon {
+            background: #D1FAE5;
+            color: #10B981;
+        }
+        
+        .messages-card .card-icon {
+            background: #FEE2E2;
+            color: #EF4444;
+        }
+        
+        .bottom-nav {
+            background: white;
+            border-top: 2px solid #E5E7EB;
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: #9CA3AF;
+        }
+        
+        .nav-item.active {
+            color: #1E3A8A;
+        }
+        
+        .nav-icon {
+            font-size: 36px;
+        }
+        
+        .nav-label {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🚗 GoDrive</h1>
+                <div class="subtitle">Painel do Instrutor</div>
+            </div>
+            <div class="user">
+                <div class="avatar">JD</div>
+                <div class="user-info">
+                    <div class="user-name">João Silva</div>
+                    <div class="user-role">Instrutor</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="card requests-card">
+                <div class="card-icon">📋</div>
+                <div class="card-title">Solicitações</div>
+                <div class="card-description">Novas solicitações de aulas aguardando sua aprovação</div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Pendentes</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Esta semana</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card schedule-card">
+                <div class="card-icon">📅</div>
+                <div class="card-title">Agenda</div>
+                <div class="card-description">Suas aulas agendadas para hoje e próximos dias</div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Hoje</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Esta semana</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card payments-card">
+                <div class="card-icon">💰</div>
+                <div class="card-title">Pagamentos</div>
+                <div class="card-description">Receitas e pagamentos recebidos das aulas</div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">R$ 480</div>
+                        <div class="stat-label">Este mês</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">R$ 80</div>
+                        <div class="stat-label">Por aula</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card messages-card">
+                <div class="card-icon">💬</div>
+                <div class="card-title">Mensagens</div>
+                <div class="card-description">Comunicação com alunos sobre as aulas</div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Não lidas</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">23</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Início</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">Solicitações</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Agenda</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">💬</div>
+                <div class="nav-label">Chat</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👤</div>
+                <div class="nav-label">Perfil</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

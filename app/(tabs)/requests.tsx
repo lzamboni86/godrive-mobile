@@ -19,7 +19,9 @@ interface LessonRequest {
   };
   lessonDate: string;
   lessonTime: string;
-  status: 'WAITING_APPROVAL' | 'APPROVED' | 'REJECTED';
+  proposedLessonDate?: string | null;
+  proposedLessonTime?: string | null;
+  status: 'REQUESTED' | 'WAITING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ADJUSTMENT_PENDING';
   payment: {
     amount: number;
     status: string;
@@ -52,6 +54,19 @@ export default function RequestsScreen() {
     return timeString;
   }
 };
+
+  const formatDateTime = (dateString: string, timeString: string) => {
+    const date = new Date(dateString);
+    const time = new Date(timeString);
+    date.setHours(time.getHours(), time.getMinutes(), 0, 0);
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   const loadRequests = async () => {
     try {
@@ -120,6 +135,58 @@ export default function RequestsScreen() {
     );
   };
 
+  const handleApproveAdjustment = async (requestId: string) => {
+    Alert.alert(
+      'Aprovar Alteração',
+      'Deseja aprovar a alteração de data/horário para esta aula? A data oficial será atualizada.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Aprovar',
+          style: 'default',
+          onPress: async () => {
+            setProcessingId(requestId);
+            try {
+              await api.patch(`/instructor/requests/${requestId}/approve-adjustment`);
+              setTimeout(() => loadRequests(), 500);
+              Alert.alert('Sucesso', 'Alteração aprovada com sucesso!');
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível aprovar a alteração.');
+            } finally {
+              setProcessingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRejectAdjustment = async (requestId: string) => {
+    Alert.alert(
+      'Recusar Alteração',
+      'Deseja recusar a alteração? A aula manterá a data original e o aluno será notificado.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Recusar',
+          style: 'destructive',
+          onPress: async () => {
+            setProcessingId(requestId);
+            try {
+              await api.patch(`/instructor/requests/${requestId}/reject-adjustment`);
+              setTimeout(() => loadRequests(), 500);
+              Alert.alert('Sucesso', 'Alteração recusada.');
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível recusar a alteração.');
+            } finally {
+              setProcessingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleReject = async (requestId: string) => {
     Alert.alert(
       'Recusar Aula',
@@ -167,16 +234,16 @@ export default function RequestsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View className="flex-1">
-        {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-lg font-semibold text-neutral-900">Solicitações de Aula</Text>
-          <View className="w-6" />
-        </View>
+      {/* Header */}
+      <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
+        <TouchableOpacity onPress={() => router.back()}>
+          <ArrowLeft size={24} color="#374151" />
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold text-neutral-900">Solicitações de Aula</Text>
+        <View className="w-6" />
+      </View>
 
+      <View className="flex-1">
         <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
           {requests.length === 0 ? (
             <View className="flex-1 items-center justify-center py-8">
@@ -205,21 +272,27 @@ export default function RequestsScreen() {
                       </View>
                     </View>
                     <View className={`px-3 py-1 rounded-full ${
-                      request.status === 'WAITING_APPROVAL' 
+                      request.status === 'WAITING_APPROVAL' || request.status === 'REQUESTED'
                         ? 'bg-amber-100' 
+                        : request.status === 'ADJUSTMENT_PENDING'
+                          ? 'bg-blue-100'
                         : request.status === 'APPROVED'
                           ? 'bg-emerald-100'
                           : 'bg-red-100'
                     }`}>
                       <Text className={`text-xs font-medium ${
-                        request.status === 'WAITING_APPROVAL' 
+                        request.status === 'WAITING_APPROVAL' || request.status === 'REQUESTED'
                           ? 'text-amber-700' 
+                        : request.status === 'ADJUSTMENT_PENDING'
+                          ? 'text-blue-700'
                         : request.status === 'APPROVED'
                           ? 'text-emerald-700'
                           : 'text-red-700'
                       }`}>
-                        {request.status === 'WAITING_APPROVAL' 
+                        {request.status === 'WAITING_APPROVAL' || request.status === 'REQUESTED'
                           ? 'Aguardando' 
+                          : request.status === 'ADJUSTMENT_PENDING'
+                            ? 'Alteração'
                           : request.status === 'APPROVED'
                             ? 'Aprovada'
                             : 'Recusada'
@@ -247,6 +320,18 @@ export default function RequestsScreen() {
                       </Text>
                     </View>
                   </View>
+
+                  {request.status === 'ADJUSTMENT_PENDING' && request.proposedLessonDate && request.proposedLessonTime && (
+                    <View className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3">
+                      <Text className="text-blue-900 font-semibold mb-2">Solicitação de Alteração</Text>
+                      <Text className="text-blue-700 text-sm">
+                        Data antiga: {formatDateTime(request.lessonDate, request.lessonTime)}
+                      </Text>
+                      <Text className="text-blue-700 text-sm mt-1">
+                        Nova proposta: {formatDateTime(request.proposedLessonDate, request.proposedLessonTime)}
+                      </Text>
+                    </View>
+                  )}
 
                   {/* Pagamento */}
                   <View className="flex-row items-center justify-between mb-3">
@@ -282,6 +367,39 @@ export default function RequestsScreen() {
                           <View className="flex-row items-center justify-center">
                             <XCircle size={16} color="#FFFFFF" />
                             <Text className="text-white font-medium ml-2">Recusar</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {request.status === 'ADJUSTMENT_PENDING' && (
+                    <View className="flex-row gap-3">
+                      <TouchableOpacity 
+                        className="flex-1 bg-emerald-500 rounded-xl p-3"
+                        onPress={() => handleApproveAdjustment(request.id)}
+                        disabled={processingId === request.id}
+                      >
+                        {processingId === request.id ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <View className="flex-row items-center justify-center">
+                            <CheckCircle size={16} color="#FFFFFF" />
+                            <Text className="text-white font-medium ml-2">Aprovar Alteração</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        className="flex-1 bg-red-500 rounded-xl p-3"
+                        onPress={() => handleRejectAdjustment(request.id)}
+                        disabled={processingId === request.id}
+                      >
+                        {processingId === request.id ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <View className="flex-row items-center justify-center">
+                            <XCircle size={16} color="#FFFFFF" />
+                            <Text className="text-white font-medium ml-2">Recusar Alteração</Text>
                           </View>
                         )}
                       </TouchableOpacity>

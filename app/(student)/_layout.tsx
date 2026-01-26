@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Search, User, MessageCircle, Settings } from 'lucide-react-native';
+import { Home, Search, User, MessageCircle, Settings, Wallet } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function StudentTabLayout() {
@@ -44,9 +44,26 @@ export default function StudentTabLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Buscar',
           tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
-          href: '/schedule'
+          href: '/schedule',
+          title: 'Buscar'
+        }}
+      />
+
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          href: null,
+          headerShown: false,
+          title: ''
+        }}
+      />
+
+      <Tabs.Screen
+        name="wallet"
+        options={{
+          title: 'Carteira',
+          tabBarIcon: ({ color, size }) => <Wallet size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -136,6 +153,14 @@ export default function StudentTabLayout() {
         }} 
       />
       <Tabs.Screen 
+        name="schedule/adjust/[lessonId]" 
+        options={{ 
+          href: null,
+          headerShown: false,
+          title: ''
+        }} 
+      />
+      <Tabs.Screen 
         name="schedule/success" 
         options={{ 
           href: null,
@@ -189,16 +214,7 @@ export default function StudentTabLayout() {
       />
 
       <Tabs.Screen 
-        name="schedule" 
-        options={{ 
-          href: null,
-          headerShown: false,
-          title: ''
-        }} 
-      />
-
-      <Tabs.Screen 
-        name="schedule/index" 
+        name="add-credits" 
         options={{ 
           href: null,
           headerShown: false,

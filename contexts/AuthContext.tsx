@@ -4,6 +4,7 @@ import authService, { LoginCredentials, AuthResponse } from '@/services/auth';
 
 interface AuthContextData {
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isInstructor: boolean;
@@ -21,6 +22,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const session = await authService.getStoredSession();
       if (session) {
         setUser(session.user);
+        setToken(session.accessToken);
       }
     } catch (error) {
       console.error('Error loading stored session:', error);
@@ -47,6 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log('🔐 Login response:', JSON.stringify(response.user, null, 2));
       console.log('🔐 User role:', response.user.role);
       setUser(response.user);
+      setToken(response.accessToken);
     } catch (error) {
       console.log('🔐 Login error:', error);
       throw error;
@@ -60,6 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       await authService.logout();
       setUser(null);
+      setToken(null);
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider
       value={{
         user,
+        token,
         isLoading,
         isAuthenticated,
         isInstructor,

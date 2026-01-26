@@ -13,65 +13,86 @@ export default function InstructorEditProfileScreen() {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || ''
+    phone: user?.phone || '',
+    bio: '',
+    pixKey: '',
+    hourlyRate: '80'
   });
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(user?.avatar || null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const handlePickImage = async () => {
-    console.log('📸 [EDIT-PROFILE] Iniciando seleção de imagem');
+  // Carregar dados do instrutor ao montar
+  React.useEffect(() => {
+    loadInstructorData();
+  }, [user?.id]);
+
+  const loadInstructorData = async () => {
+    if (!user?.id) return;
     
+    try {
+      const response = await instructorService.getProfile(user.id) as { instructor: { bio?: string; pixKey?: string; hourlyRate?: number } };
+      const instructor = response.instructor;
+      
+      if (instructor) {
+        setFormData(prev => ({
+          ...prev,
+          bio: instructor.bio || '',
+          pixKey: instructor.pixKey || '',
+          hourlyRate: instructor.hourlyRate?.toString() || '80'
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do instrutor:', error);
+    }
+  };
+
+  const handlePickImage = async () => {
     // Request permission for iOS
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log('📸 [EDIT-PROFILE] Status da permissão:', status);
     
     if (status !== 'granted') {
-      console.log('📸 [EDIT-PROFILE] Permissão negada, mostrando alerta');
       Alert.alert(
         'Permissão necessária',
         'Precisamos de acesso à sua galeria para alterar a foto de perfil. Você pode liberar isso nas configurações do aparelho.',
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Abrir Configurações', onPress: () => {
-              console.log('📸 [EDIT-PROFILE] Abrindo configurações');
-              Linking.openSettings();
-            }
-          }
+          { text: 'Abrir Configurações', onPress: () => Linking.openSettings() }
         ]
       );
       return;
     }
 
     try {
-      console.log('📸 [EDIT-PROFILE] Abrindo ImagePicker com opções:', {
-        mediaTypes: 'Images',
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
-      });
+      console.log('🖼️ [EDIT-PROFILE] Iniciando seleção de imagem...');
       
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
+        base64: false, // Garante que usamos URI em vez de base64
       });
 
-      console.log('📸 [EDIT-PROFILE] Resultado do ImagePicker:', {
-        canceled: result.canceled,
-        assetsCount: result.assets?.length || 0,
-      });
+      console.log('🖼️ [EDIT-PROFILE] Resultado do ImagePicker:', result);
 
-      if (!result.canceled && result.assets[0]) {
-        const imageUri = result.assets[0].uri;
-        console.log('📸 [EDIT-PROFILE] Imagem selecionada:', imageUri);
-        setProfileImage(imageUri);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedAsset = result.assets[0];
+        console.log('🖼️ [EDIT-PROFILE] Imagem selecionada:', selectedAsset.uri);
+        
+        // Validação adicional para iOS
+        if (selectedAsset.uri && (selectedAsset.uri.startsWith('file://') || selectedAsset.uri.startsWith('ph://') || selectedAsset.uri.startsWith('assets-library://'))) {
+          setProfileImage(selectedAsset.uri);
+          console.log('✅ [EDIT-PROFILE] Imagem definida com sucesso');
+        } else {
+          console.error('❌ [EDIT-PROFILE] URI inválida:', selectedAsset.uri);
+          Alert.alert('Erro', 'Formato de imagem não suportado. Tente outra imagem.');
+        }
       } else {
-        console.log('📸 [EDIT-PROFILE] Nenhuma imagem selecionada');
+        console.log('🖼️ [EDIT-PROFILE] Seleção cancelada pelo usuário');
       }
     } catch (error) {
-      console.error('📸 [EDIT-PROFILE] Erro ao selecionar imagem:', error);
+      console.error('❌ [EDIT-PROFILE] Erro ao selecionar imagem:', error);
       Alert.alert('Erro', 'Não foi possível selecionar a imagem. Tente novamente.');
     }
   };
@@ -110,8 +131,16 @@ export default function InstructorEditProfileScreen() {
         avatarUrl = profileImage;
       }
 
-      await instructorService.updateProfile(formData);
-      updateUser({ ...user, ...formData, ...(avatarUrl ? { avatar: avatarUrl } : {}) });
+      await instructorService.updateProfile({
+        ...formData,
+        hourlyRate: parseFloat(formData.hourlyRate)
+      });
+      updateUser({
+        ...(formData.name ? { name: formData.name } : {}),
+        ...(formData.email ? { email: formData.email } : {}),
+        ...(typeof formData.phone === 'string' ? { phone: formData.phone } : {}),
+        ...(avatarUrl ? { avatar: avatarUrl } : {}),
+      });
       
       Alert.alert(
         'Sucesso!',
@@ -145,7 +174,7 @@ export default function InstructorEditProfileScreen() {
         <View className="w-8" />
       </View>
 
-      <ScrollView className="flex-1 px-6 py-6">
+      <ScrollView className="flex-1 px-6 py-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Foto de Perfil */}
         <View className="items-center mb-8">
           <TouchableOpacity onPress={handlePickImage} className="relative">
@@ -209,13 +238,52 @@ export default function InstructorEditProfileScreen() {
               keyboardType="phone-pad"
             />
           </View>
+
+          {/* Bio */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Bio (Sobre Mim)</Text>
+            <TextInput
+              value={formData.bio}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, bio: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 min-h-[100px]"
+              placeholder="Fale um pouco sobre você, sua experiência como instrutor..."
+              placeholderTextColor="#9CA3AF"
+              multiline
+              textAlignVertical="top"
+            />
+          </View>
+
+          {/* Chave PIX */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Chave PIX</Text>
+            <TextInput
+              value={formData.pixKey}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, pixKey: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="email@exemplo.com, CPF ou telefone"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Valor da Aula */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Valor da Aula (R$)</Text>
+            <TextInput
+              value={formData.hourlyRate}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, hourlyRate: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="80.00"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+            />
+          </View>
         </View>
 
         {/* Botão Salvar */}
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={isLoading}
-          className={`mt-8 rounded-xl py-4 flex-row items-center justify-center ${
+          className={`mt-8 mb-8 rounded-xl py-4 flex-row items-center justify-center ${
             isLoading ? 'bg-gray-400' : 'bg-emerald-600'
           }`}
         >

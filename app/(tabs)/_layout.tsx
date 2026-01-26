@@ -48,8 +48,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="requests"
         options={{
-          title: 'Solic',
-          headerTitle: 'Solicitações de Aula',
+          title: 'Aprovar',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => <MessageSquare size={size} color={color} />,
           tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
           tabBarBadgeStyle: {
@@ -66,6 +66,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Config',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
@@ -73,6 +74,7 @@ export default function TabLayout() {
         name="support"
         options={{
           title: 'SAC',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
         }}
       />
@@ -80,6 +82,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Perfil',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
@@ -118,14 +121,6 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="edit-profile"
-        options={{
-          href: null,
-          headerShown: false,
-          title: ''
-        }}
-      />
-      <Tabs.Screen
-        name="delete-account"
         options={{
           href: null,
           headerShown: false,
