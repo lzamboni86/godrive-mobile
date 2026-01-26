@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { MessageCircle, Clock, CheckCircle } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Lesson {
   id: string;
@@ -107,8 +108,8 @@ export default function ChatListScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="px-6 py-4 border-b border-neutral-200">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+      <View className="px-6 pt-8 pb-4 border-b border-neutral-200">
         <Text className="text-2xl font-bold text-neutral-900">Conversas</Text>
         <Text className="text-sm text-neutral-500 mt-1">
           {user?.role === 'INSTRUCTOR' ? 'Suas conversas com alunos' : 'Suas conversas com instrutores'}
@@ -172,6 +173,6 @@ export default function ChatListScreen() {
           })}
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }

@@ -5,6 +5,7 @@ import { Send, Lock } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/Button';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Message {
   id: string;
@@ -135,36 +136,37 @@ export default function ChatScreen() {
   const otherParticipant = getOtherParticipant();
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-white"
-    >
-      {/* Header */}
-      <View className="bg-white border-b border-neutral-200 px-4 py-3">
-        <View className="flex-row items-center">
-          <Button
-            variant="ghost"
-            onPress={() => router.back()}
-            className="mr-3"
-          >
-            <Text className="text-neutral-600">←</Text>
-          </Button>
-          <View className="flex-1">
-            <Text className="font-semibold text-neutral-900">
-              {otherParticipant?.name}
-            </Text>
-            <Text className="text-sm text-neutral-500">
-              {otherParticipant?.email}
-            </Text>
-          </View>
-          {!canSend && (
-            <View className="flex-row items-center">
-              <Lock size={16} color="#EF4444" />
-              <Text className="text-xs text-red-500 ml-1">Encerrado</Text>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        {/* Header */}
+        <View className="bg-white border-b border-neutral-200 px-4 pt-8 pb-3">
+          <View className="flex-row items-center">
+            <Button
+              variant="ghost"
+              onPress={() => router.back()}
+              className="mr-3"
+            >
+              <Text className="text-neutral-600">←</Text>
+            </Button>
+            <View className="flex-1">
+              <Text className="font-semibold text-neutral-900">
+                {otherParticipant?.name}
+              </Text>
+              <Text className="text-sm text-neutral-500">
+                {otherParticipant?.email}
+              </Text>
             </View>
-          )}
+            {!canSend && (
+              <View className="flex-row items-center">
+                <Lock size={16} color="#EF4444" />
+                <Text className="text-xs text-red-500 ml-1">Encerrado</Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
 
       {/* Messages */}
       <ScrollView
@@ -246,6 +248,7 @@ export default function ChatScreen() {
           </View>
         </View>
       )}
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
