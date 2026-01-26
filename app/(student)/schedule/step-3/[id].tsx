@@ -145,7 +145,7 @@ export default function ScheduleStep3Screen() {
         
         // Agora criar preferência com o ID do agendamento
         // (a preferência já é criada no backend e retornada aqui)
-        if (!response?.initPoint && !response?.sandboxInitPoint) {
+        if (!response?.initPoint) {
           throw new Error('Preferência de pagamento não retornada pelo backend');
         }
 
@@ -158,11 +158,7 @@ export default function ScheduleStep3Screen() {
         console.log('💳 [STEP-3] Preferência recebida do backend:', preference.id);
         
         // Abrir checkout do Mercado Pago
-        const checkoutUrl = preference.sandboxInitPoint || preference.initPoint;
-        if (!checkoutUrl) {
-          throw new Error('URL do checkout não retornada pelo backend');
-        }
-        await WebBrowser.openBrowserAsync(checkoutUrl);
+        await WebBrowser.openBrowserAsync(preference.initPoint);
         
         Alert.alert(
           'Pagamento Iniciado',
