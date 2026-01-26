@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Clock, ChevronRight } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { studentService, Instructor } from '@/services/student';
-import { formatDateToBrazilian, formatDateToBrazilianFull } from '@/utils/dateUtils';
+import { formatDateToBrazilianFull } from '@/utils/dateUtils';
 
 interface ScheduleData {
   instructorId: string;
@@ -20,9 +20,31 @@ export default function ScheduleStep2Screen() {
   const { id, dates } = useLocalSearchParams<{ id: string; dates: string }>();
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDates] = useState<string[]>(JSON.parse(dates || '[]'));
+  const normalizeDateString = (value: string) => {
+    if (!value) return '';
+    const datePart = value.split('T')[0];
+    const parts = datePart.split('-');
+    if (parts.length !== 3) return '';
+    const [year, month, day] = parts;
+    if (!year || !month || !day) return '';
+    return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
+  const selectedDatesParam = JSON.parse(dates || '[]');
+  const [selectedDates] = useState<string[]>(
+    (Array.isArray(selectedDatesParam) ? selectedDatesParam : [])
+      .map((d) => normalizeDateString(String(d)))
+      .filter(Boolean)
+  );
   const [selectedTimes, setSelectedTimes] = useState<{ date: string; time: string }[]>([]);
   const [currentDateIndex, setCurrentDateIndex] = useState(0);
+
+  const formatDateNoTimezone = (dateString: string) => {
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+    const [, month, day] = parts;
+    return `${day}/${month}`;
+  };
 
   useEffect(() => {
     if (id) {
@@ -193,7 +215,7 @@ export default function ScheduleStep2Screen() {
                             ? 'text-emerald-600' 
                             : 'text-neutral-700'
                       }`}>
-                        {formatDateToBrazilian(date)}
+                        {formatDateNoTimezone(date)}
                       </Text>
                       {isCompleted && (
                         <Text className="text-emerald-600 text-xs mt-1">
@@ -210,7 +232,7 @@ export default function ScheduleStep2Screen() {
           {/* Grade de Horários */}
           <View className="mb-6">
             <Text className="text-neutral-900 font-semibold mb-3">
-              Horários Disponíveis - {formatDateToBrazilian(selectedDates[currentDateIndex])}
+              Horários Disponíveis - {formatDateNoTimezone(selectedDates[currentDateIndex])}
             </Text>
             {renderTimeGrid()}
           </View>

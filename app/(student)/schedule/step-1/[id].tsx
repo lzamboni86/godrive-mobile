@@ -18,8 +18,20 @@ export default function ScheduleStep1Screen() {
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const now = new Date();
+  const [currentYear, setCurrentYear] = useState(now.getFullYear());
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(now.getMonth());
   const [completedLessons, setCompletedLessons] = useState(0);
+
+  const normalizeDateString = (value: string) => {
+    if (!value) return '';
+    const datePart = value.split('T')[0];
+    const parts = datePart.split('-');
+    if (parts.length !== 3) return '';
+    const [year, month, day] = parts;
+    if (!year || !month || !day) return '';
+    return `${year.padStart(4, '0')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (id) {
@@ -63,66 +75,59 @@ export default function ScheduleStep1Screen() {
     }
   };
 
-  const getDaysInMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const getDaysInMonth = (year: number, monthIndex: number) => {
+    return new Date(year, monthIndex + 1, 0).getDate();
   };
 
-  const getFirstDayOfMonth = (date: Date) => {
+  const getFirstDayOfMonth = (year: number, monthIndex: number) => {
     // JavaScript getDay() retorna: 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sáb
     // Ajuste para calendário brasileiro começando na Segunda (1=Seg)
-    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    const firstDay = new Date(year, monthIndex, 1).getDay();
     return firstDay === 0 ? 6 : firstDay - 1; // Converte Dom(0) para 6, outros para -1
   };
 
   // Função para formatar data sem problemas de timezone
   const formatDateForDisplay = (dateString: string) => {
-    // dateString está no formato YYYY-MM-DD
-    const [year, month, day] = dateString.split('-').map(Number);
-    // Criar data usando UTC para evitar timezone issues
-    const date = new Date(Date.UTC(year, month - 1, day));
-    
-    return date.toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: '2-digit',
-      timeZone: 'UTC' // Forçar timezone UTC
-    });
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+    const [, month, day] = parts;
+    return `${day}/${month}`;
   };
 
-  const isDateSelectable = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selectedDate = new Date(date);
-    selectedDate.setHours(0, 0, 0, 0);
-    
-    // Não permitir datas passadas
-    if (selectedDate < today) return false;
-    
-    return true;
+  const getTodayString = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const isDateSelectable = (dateString: string) => {
+    // Comparação lexicográfica funciona para YYYY-MM-DD
+    return dateString >= getTodayString();
   };
 
   const handleDatePress = (day: number) => {
-    // Criar data usando UTC para evitar timezone issues
-    const selectedDate = new Date(Date.UTC(currentMonth.getFullYear(), currentMonth.getMonth(), day));
-    
-    if (!isDateSelectable(selectedDate)) return;
-    
-    // Formatar como YYYY-MM-DD sem timezone adjustments
-    const year = selectedDate.getUTCFullYear();
-    const month = String(selectedDate.getUTCMonth() + 1).padStart(2, '0');
-    const dayStr = String(selectedDate.getUTCDate()).padStart(2, '0');
-    const dateString = `${year}-${month}-${dayStr}`;
-    
+    // Normalização no clique: gerar imediatamente YYYY-MM-DD (sem hora / sem timezone)
+    const year = currentYear;
+    const month = String(currentMonthIndex + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const dateString = normalizeDateString(`${year}-${month}-${dayStr}`);
+
+    if (!isDateSelectable(dateString)) return;
+
     console.log(`📅 Selecionando data: ${dayStr}/${month}/${year} -> ${dateString}`);
-    
-    if (selectedDates.includes(dateString)) {
-      setSelectedDates(selectedDates.filter(d => d !== dateString));
-    } else {
-      if (selectedDates.length < 10) { // Limite de 10 datas
-        setSelectedDates([...selectedDates, dateString]);
-      } else {
-        Alert.alert('Limite', 'Você pode selecionar no máximo 10 datas.');
+
+    setSelectedDates((prev) => {
+      if (prev.includes(dateString)) {
+        return prev.filter((d) => d !== dateString);
       }
-    }
+      if (prev.length >= 10) {
+        Alert.alert('Limite', 'Você pode selecionar no máximo 10 datas.');
+        return prev;
+      }
+      return [...prev, dateString];
+    });
   };
 
   const handleContinue = () => {
@@ -134,19 +139,20 @@ export default function ScheduleStep1Screen() {
     }
     
     if (instructor) {
+      const normalizedDates = selectedDates.map(normalizeDateString).filter(Boolean);
       router.push({
         pathname: '/schedule/step-2/[id]' as any,
         params: { 
           id: instructor.id,
-          dates: JSON.stringify(selectedDates)
+          dates: JSON.stringify(normalizedDates)
         }
       });
     }
   };
 
   const renderCalendar = () => {
-    const daysInMonth = getDaysInMonth(currentMonth);
-    const firstDay = getFirstDayOfMonth(currentMonth);
+    const daysInMonth = getDaysInMonth(currentYear, currentMonthIndex);
+    const firstDay = getFirstDayOfMonth(currentYear, currentMonthIndex);
     let currentWeekDays: any[] = [];
     const calendarRows: any[] = [];
     
@@ -158,13 +164,13 @@ export default function ScheduleStep1Screen() {
     // Dias do mês
     for (let day = 1; day <= daysInMonth; day++) {
       // Criar string de data manualmente para evitar timezone issues
-      const year = currentMonth.getFullYear();
-      const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
+      const year = currentYear;
+      const month = String(currentMonthIndex + 1).padStart(2, '0');
       const dayStr = String(day).padStart(2, '0');
       const dateString = `${year}-${month}-${dayStr}`;
       
       const isSelected = selectedDates.includes(dateString);
-      const isSelectable = isDateSelectable(new Date(year, currentMonth.getMonth(), day));
+      const isSelectable = isDateSelectable(dateString);
       
       currentWeekDays.push(
         <TouchableOpacity
@@ -281,15 +287,29 @@ export default function ScheduleStep1Screen() {
           {/* Navegação do Mês */}
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity 
-              onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+              onPress={() => {
+                if (currentMonthIndex === 0) {
+                  setCurrentMonthIndex(11);
+                  setCurrentYear(currentYear - 1);
+                } else {
+                  setCurrentMonthIndex(currentMonthIndex - 1);
+                }
+              }}
             >
               <ChevronRight size={24} color="#374151" style={{ transform: [{ rotate: '180deg' }] }} />
             </TouchableOpacity>
             <Text className="text-lg font-semibold text-neutral-900">
-              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+              {monthNames[currentMonthIndex]} {currentYear}
             </Text>
             <TouchableOpacity 
-              onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+              onPress={() => {
+                if (currentMonthIndex === 11) {
+                  setCurrentMonthIndex(0);
+                  setCurrentYear(currentYear + 1);
+                } else {
+                  setCurrentMonthIndex(currentMonthIndex + 1);
+                }
+              }}
             >
               <ChevronRight size={24} color="#374151" />
             </TouchableOpacity>
