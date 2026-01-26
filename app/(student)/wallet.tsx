@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { walletService } from '@/services/wallet';
 import { WalletBalance, WalletTransaction, WalletTransactionStatus } from '@/types';
+import { formatDateToBrazilianFull } from '@/utils/dateUtils';
 
 export default function StudentWalletScreen() {
   const { user } = useAuth();
@@ -75,19 +76,20 @@ export default function StudentWalletScreen() {
   };
 
   const formatTransactionDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  // Usar utilitário de data seguro para evitar problemas de timezone
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#10B981" />
           <Text className="text-neutral-500 mt-4">Carregando carteira...</Text>
@@ -97,10 +99,10 @@ export default function StudentWalletScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <View className="flex-1">
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
+        <View className="flex-row items-center justify-between p-4 pt-8 border-b border-neutral-100">
           <TouchableOpacity onPress={() => router.back()}>
             <ArrowLeft size={24} color="#374151" />
           </TouchableOpacity>
@@ -155,15 +157,22 @@ export default function StudentWalletScreen() {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center">
                       <Clock size={20} color="#F59E0B" />
-                      <Text className="text-amber-900 font-medium ml-2">Saldo Bloqueado</Text>
+                      <Text className="text-amber-900 font-medium ml-2">Saldo Bloqueado (Reservas)</Text>
                     </View>
                     <Text className="text-amber-600 font-bold text-lg">
                       R$ {balance.lockedBalance.toFixed(2)}
                     </Text>
                   </View>
                   <Text className="text-amber-700 text-sm mt-1">
-                    Aguardando confirmação do instrutor
+                    Créditos reservados para aulas agendadas. Serão liberados após a conclusão das aulas.
                   </Text>
+                  {balance.lockedBalance >= 2.00 && (
+                    <View className="mt-2 pt-2 border-t border-amber-300">
+                      <Text className="text-amber-600 text-xs">
+                        💡 Exemplo: R$ 2,00 bloqueados para as aulas agendadas
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
 
@@ -204,6 +213,9 @@ export default function StudentWalletScreen() {
                   <Text className="text-neutral-500 text-base mt-3 text-center">
                     Nenhuma transação encontrada
                   </Text>
+                  <Text className="text-neutral-400 text-sm mt-2 text-center">
+                    Suas transações aparecerão aqui após adicionar créditos
+                  </Text>
                 </View>
               ) : (
                 <View className="space-y-3">
@@ -215,9 +227,16 @@ export default function StudentWalletScreen() {
                           <Text className="text-neutral-900 font-semibold">
                             {transaction.description || 'Recarga de créditos'}
                           </Text>
-                          <Text className="text-neutral-500 text-sm">
-                            {getPaymentMethodText(transaction.paymentMethod)}
-                          </Text>
+                          <View className="flex-row items-center mt-1">
+                            <Text className="text-neutral-500 text-sm">
+                              {getPaymentMethodText(transaction.paymentMethod)}
+                            </Text>
+                            {transaction.transactionId && (
+                              <Text className="text-neutral-400 text-xs ml-2">
+                                ID: {transaction.transactionId.slice(-8)}
+                              </Text>
+                            )}
+                          </View>
                         </View>
                         <View className={`px-3 py-1 rounded-full ${getStatusColor(transaction.status)}`}>
                           <Text className={`text-xs font-medium ${
@@ -233,7 +252,7 @@ export default function StudentWalletScreen() {
                       </View>
 
                       {/* Detalhes */}
-                      <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center justify-between mb-2">
                         <Text className="text-neutral-600 text-sm">
                           {formatTransactionDate(transaction.createdAt)}
                         </Text>
@@ -245,8 +264,28 @@ export default function StudentWalletScreen() {
                       {/* Informações adicionais se houver booking */}
                       {transaction.bookingId && (
                         <View className="mt-2 pt-2 border-t border-neutral-100">
-                          <Text className="text-neutral-500 text-xs">
-                            Reserva: {transaction.bookingId}
+                          <View className="flex-row items-center">
+                            <AlertCircle size={14} color="#6B7280" />
+                            <Text className="text-neutral-600 text-xs ml-1">
+                              Reserva: {transaction.bookingId}
+                            </Text>
+                          </View>
+                          <Text className="text-neutral-500 text-xs mt-1">
+                            {transaction.status === 'LOCKED' 
+                              ? 'Créditos bloqueados até a conclusão da aula'
+                              : transaction.status === 'USED'
+                                ? 'Aula concluída e créditos utilizados'
+                                : 'Créditos disponíveis para uso'
+                            }
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Status específico para Mercado Pago */}
+                      {transaction.paymentMethod === 'MERCADO_PAGO' && (
+                        <View className="mt-2 pt-2 border-t border-neutral-100">
+                          <Text className="text-blue-600 text-xs">
+                            💳 Pagamento processado via Mercado Pago
                           </Text>
                         </View>
                       )}
