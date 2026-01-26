@@ -11,7 +11,28 @@ import '../global.css';
 
 LogBox.ignoreLogs(['expo-notifications', 'Android Push Notifications']);
 
-SplashScreen.preventAutoHideAsync();
+console.log('🚀 [BOOT] Root layout module loaded');
+
+try {
+  // Evita que falhas do Keep Awake quebrem o carregamento do app.
+  // (ex.: web / ambiente sem suporte)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const keepAwake = require('expo-keep-awake') as {
+    activateKeepAwake?: () => void;
+  };
+  keepAwake.activateKeepAwake?.();
+  console.log('🚀 [BOOT] KeepAwake.activateKeepAwake: OK');
+} catch (error) {
+  console.log('🚀 [BOOT] KeepAwake.activateKeepAwake: ERROR (ignored)', error);
+}
+
+void SplashScreen.preventAutoHideAsync()
+  .then(() => {
+    console.log('🚀 [BOOT] SplashScreen.preventAutoHideAsync: OK');
+  })
+  .catch((error) => {
+    console.log('🚀 [BOOT] SplashScreen.preventAutoHideAsync: ERROR', error);
+  });
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading, isInstructor, isAdmin } = useAuth();
@@ -22,17 +43,26 @@ function RootLayoutNav() {
 
   useEffect(() => {
     const run = async () => {
-      if (!isAuthenticated || !isInstructor || !token) return;
-      const pushToken = await registerForPushNotificationsAsync();
-      if (!pushToken) return;
+      console.log('🚀 [BOOT] Push registration effect start');
       try {
-        await api.post('/users/me/push-token', { token: pushToken });
-      } catch {
-        // ignore
+        if (!isAuthenticated || !isInstructor || !token) return;
+
+        const pushToken = await registerForPushNotificationsAsync();
+        if (!pushToken) return;
+
+        try {
+          await api.post('/users/me/push-token', { token: pushToken });
+          console.log('🚀 [BOOT] Push token saved');
+        } catch (error) {
+          console.log('🚀 [BOOT] Push token save failed (ignored):', error);
+        }
+      } catch (error) {
+        // IMPORTANTE: evita "Uncaught (in promise)" no bootstrap
+        console.log('🚀 [BOOT] Push registration failed (ignored):', error);
       }
     };
 
-    run();
+    void run();
   }, [isAuthenticated, isInstructor, token]);
 
   useEffect(() => {
@@ -78,7 +108,14 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (!isLoading) {
-      SplashScreen.hideAsync();
+      console.log('🚀 [BOOT] isLoading=false -> hide splash');
+      void SplashScreen.hideAsync()
+        .then(() => {
+          console.log('🚀 [BOOT] SplashScreen.hideAsync: OK');
+        })
+        .catch((error) => {
+          console.log('🚀 [BOOT] SplashScreen.hideAsync: ERROR', error);
+        });
     }
   }, [isLoading]);
 
