@@ -223,7 +223,7 @@ export default function RequestsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#10B981" />
           <Text className="text-neutral-500 mt-4">Carregando solicitações...</Text>
@@ -233,9 +233,9 @@ export default function RequestsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       {/* Header */}
-      <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
+      <View className="flex-row items-center justify-between p-4 pt-8 border-b border-neutral-100">
         <TouchableOpacity onPress={() => router.back()}>
           <ArrowLeft size={24} color="#374151" />
         </TouchableOpacity>

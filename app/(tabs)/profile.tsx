@@ -41,7 +41,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-neutral-50" edges={['top', 'bottom']}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-6 pb-8">
+        <View className="p-6 pt-8 pb-8">
         {/* Avatar e Nome */}
         <View className="items-center mb-8">
           {isLoading ? (

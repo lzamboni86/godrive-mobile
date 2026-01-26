@@ -164,7 +164,7 @@ export default function DashboardScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top', 'bottom']}>
       <Toast
         message={toast.message}
         type={toast.type}
@@ -174,7 +174,7 @@ export default function DashboardScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerClassName="p-4"
+        contentContainerClassName="p-4 pt-8"
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

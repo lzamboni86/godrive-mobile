@@ -48,7 +48,7 @@ export default function ScheduleScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom']}>
+      <SafeAreaView className="flex-1 bg-neutral-50" edges={['top', 'bottom']}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#10B981" />
           <Text className="text-neutral-500 mt-4">Carregando agenda...</Text>
@@ -58,8 +58,8 @@ export default function ScheduleScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom']}>
-      <View className="flex-1 p-6">
+    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top', 'bottom']}>
+      <View className="flex-1 p-6 pt-8">
         <View className="mb-6">
           <Text className="text-neutral-900 text-2xl font-bold">Minha Agenda</Text>
           <Text className="text-neutral-500 text-sm mt-1">
