@@ -328,14 +328,9 @@ export default function ScheduleStep3Screen() {
                   Seu saldo disponível cobre esta reserva. O valor ficará bloqueado até o instrutor confirmar.
                 </Text>
               ) : (
-                <>
-                  <Text className="text-blue-700 text-sm mt-1">
-                    Pague de forma segura com cartão, pix ou boleto
-                  </Text>
-                  <Text className="text-blue-600 text-xs mt-2">
-                    ⚠️ Pagamento real - será cobrado
-                  </Text>
-                </>
+                <Text className="text-blue-700 text-sm mt-1">
+                  Pague de forma segura com cartão, pix ou boleto
+                </Text>
               )}
             </View>
           </View>
@@ -345,14 +340,33 @@ export default function ScheduleStep3Screen() {
             <View className="flex-row items-start">
               <AlertCircle size={20} color="#F59E0B" />
               <View className="ml-3 flex-1">
-                <Text className="text-amber-900 font-semibold mb-2">Importante:</Text>
-                <Text className="text-amber-700 text-sm">
-                  • Pagamento REAL será processado pelo Mercado Pago{'\n'}
-                  • Após aprovação, seu cartão será cobrado{'\n'}
-                  • O instrutor tem até 24h para aprovar ou recusar{'\n'}
-                  • Em caso de recusa, o valor será reembolsado em até 7 dias{'\n'}
-                  • Guarde o comprovante para suporte
-                </Text>
+                <Text className="text-amber-900 font-semibold mb-2">Atenção aos próximos passos:</Text>
+                <View className="space-y-2">
+                  <View className="flex-row items-start">
+                    <CheckCircle size={16} color="#F59E0B" className="mt-0.5 mr-2" />
+                    <Text className="text-amber-700 text-sm flex-1">
+                      Pagamento processado com segurança via Mercado Pago.
+                    </Text>
+                  </View>
+                  <View className="flex-row items-start">
+                    <Clock size={16} color="#F59E0B" className="mt-0.5 mr-2" />
+                    <Text className="text-amber-700 text-sm flex-1">
+                      O instrutor tem até 24h para aprovar ou recusar o seu pedido.
+                    </Text>
+                  </View>
+                  <View className="flex-row items-start">
+                    <Wallet size={16} color="#F59E0B" className="mt-0.5 mr-2" />
+                    <Text className="text-amber-700 text-sm flex-1">
+                      Em caso de recusa, o valor vira crédito imediato na sua carteira para novos agendamentos.
+                    </Text>
+                  </View>
+                  <View className="flex-row items-start">
+                    <CheckCircle size={16} color="#F59E0B" className="mt-0.5 mr-2" />
+                    <Text className="text-amber-700 text-sm flex-1">
+                      Um chat será aberto automaticamente após a aprovação para combinar o local da aula.
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
