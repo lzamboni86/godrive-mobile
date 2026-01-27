@@ -35,6 +35,14 @@ export interface User {
   phone?: string;
   role: UserRole;
   avatar?: string;
+  cpf?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressZipCode?: string;
+  addressNeighborhood?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressComplement?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -132,7 +140,6 @@ export interface WalletBalance {
 export interface MercadoPagoPreference {
   id: string;
   initPoint: string;
-  sandboxInitPoint: string;
   items: Array<{
     id: string;
     title: string;

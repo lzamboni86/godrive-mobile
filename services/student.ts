@@ -83,10 +83,9 @@ export interface ScheduleRequest {
 
 export interface ScheduleResponse {
   id: string;
+  lessonIds?: string[];
   preferenceId?: string;
   initPoint?: string;
-  sandboxInitPoint?: string;
-  isSandbox?: boolean;
   message: string;
 }
 
@@ -161,7 +160,19 @@ export const studentService = {
   },
 
   // Perfil
-  async updateProfile(data: { name: string; email: string; phone?: string }): Promise<void> {
+  async updateProfile(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    cpf?: string;
+    addressStreet?: string;
+    addressNumber?: string;
+    addressZipCode?: string;
+    addressNeighborhood?: string;
+    addressCity?: string;
+    addressState?: string;
+    addressComplement?: string;
+  }): Promise<void> {
     return api.put('/student/profile', data);
   },
 };

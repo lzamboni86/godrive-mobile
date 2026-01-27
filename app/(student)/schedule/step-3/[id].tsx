@@ -3,7 +3,6 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Clock, Calendar, DollarSign, CheckCircle, AlertCircle, Wallet } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { studentService, Instructor } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
 import { walletService } from '@/services/wallet';
@@ -144,31 +143,25 @@ export default function ScheduleStep3Screen() {
         
         console.log('📦 [STEP-3] Agendamento criado:', JSON.stringify(response, null, 2));
         
-        // Agora criar preferência com o ID do agendamento
-        // (a preferência já é criada no backend e retornada aqui)
-        if (!response?.initPoint) {
-          throw new Error('Preferência de pagamento não retornada pelo backend');
-        }
+        console.log('💳 [STEP-3] Abrindo checkout in-app (Secure Fields)');
 
-        const preference = {
-          id: response.preferenceId,
-          initPoint: response.initPoint,
-          sandboxInitPoint: response.sandboxInitPoint,
-        };
+        const formatBrl = (value: number) =>
+          value
+            .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+            .replace(/\u00A0/g, ' ');
 
-        console.log('💳 [STEP-3] Preferência recebida do backend:', preference.id);
-        
-        // Abrir checkout do Mercado Pago
-        await WebBrowser.openBrowserAsync(preference.initPoint);
-        
-        Alert.alert(
-          'Pagamento Iniciado',
-          'Complete o pagamento no Mercado Pago. Após a aprovação, sua reserva será confirmada.',
-          [{ 
-            text: 'OK', 
-            onPress: () => router.push('/(student)/schedule/pending' as any)
-          }]
-        );
+        const lessonsCount = Array.isArray(selectedTimes) ? selectedTimes.length : 0;
+        const summaryTitle = `${lessonsCount} ${lessonsCount === 1 ? 'Aula' : 'Aulas'} - ${formatBrl(totalAmount)}`;
+
+        router.push({
+          pathname: '/(student)/mercado-pago/secure-fields' as any,
+          params: {
+            amount: String(totalAmount),
+            externalReference: String(response?.lessonIds?.join?.(',') || ''),
+            summaryTitle,
+            summarySubtitle: 'Pagamento seguro',
+          },
+        });
       }
 
     } catch (error: any) {
@@ -191,7 +184,7 @@ export default function ScheduleStep3Screen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size="large" color="#00BFA5" />
           <Text className="text-neutral-500 mt-4">Carregando...</Text>
         </View>
       </SafeAreaView>

@@ -25,6 +25,21 @@ export interface WebhookNotification {
   };
 }
 
+export interface ConfirmCardPaymentRequest {
+  amount: number;
+  token: string;
+  paymentMethodId: string;
+  issuerId: string;
+  installments: number;
+  deviceId?: string;
+  externalReference?: string;
+  description?: string;
+  payerEmail?: string;
+  payerName?: string;
+  payerDocumentType?: string;
+  payerDocumentNumber?: string;
+}
+
 export const mercadoPagoService = {
   /**
    * Cria uma preferência de pagamento no Mercado Pago
@@ -103,6 +118,22 @@ export const mercadoPagoService = {
       console.log('💳 [MP] ✅ Pagamento reembolsado');
     } catch (error: any) {
       console.error('💳 [MP] ❌ Erro ao reembolsar pagamento:', error);
+      throw error;
+    }
+  },
+
+  async confirmCardPayment(request: ConfirmCardPaymentRequest): Promise<any> {
+    console.log('💳 [MP] Confirmando pagamento com cartão (Secure Fields)...');
+    console.log('💳 [MP] Request:', JSON.stringify({
+      ...request,
+      token: request.token ? '***' : request.token,
+    }, null, 2));
+
+    try {
+      const res = await api.post<{ data: any }>('/payments/mercado-pago/card/confirm', request);
+      return res?.data;
+    } catch (error: any) {
+      console.error('💳 [MP] ❌ Erro ao confirmar pagamento:', error);
       throw error;
     }
   },

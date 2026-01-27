@@ -14,6 +14,14 @@ export default function InstructorEditProfileScreen() {
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
+    cpf: user?.cpf || '',
+    addressZipCode: user?.addressZipCode || '',
+    addressStreet: user?.addressStreet || '',
+    addressNumber: user?.addressNumber || '',
+    addressNeighborhood: user?.addressNeighborhood || '',
+    addressCity: user?.addressCity || '',
+    addressState: user?.addressState || '',
+    addressComplement: user?.addressComplement || '',
     bio: '',
     pixKey: '',
     hourlyRate: '80'
@@ -139,6 +147,14 @@ export default function InstructorEditProfileScreen() {
         ...(formData.name ? { name: formData.name } : {}),
         ...(formData.email ? { email: formData.email } : {}),
         ...(typeof formData.phone === 'string' ? { phone: formData.phone } : {}),
+        ...(typeof formData.cpf === 'string' ? { cpf: formData.cpf } : {}),
+        ...(typeof formData.addressZipCode === 'string' ? { addressZipCode: formData.addressZipCode } : {}),
+        ...(typeof formData.addressStreet === 'string' ? { addressStreet: formData.addressStreet } : {}),
+        ...(typeof formData.addressNumber === 'string' ? { addressNumber: formData.addressNumber } : {}),
+        ...(typeof formData.addressNeighborhood === 'string' ? { addressNeighborhood: formData.addressNeighborhood } : {}),
+        ...(typeof formData.addressCity === 'string' ? { addressCity: formData.addressCity } : {}),
+        ...(typeof formData.addressState === 'string' ? { addressState: formData.addressState } : {}),
+        ...(typeof formData.addressComplement === 'string' ? { addressComplement: formData.addressComplement } : {}),
         ...(avatarUrl ? { avatar: avatarUrl } : {}),
       });
       
@@ -236,6 +252,106 @@ export default function InstructorEditProfileScreen() {
               placeholder="(00) 00000-0000"
               placeholderTextColor="#9CA3AF"
               keyboardType="phone-pad"
+            />
+          </View>
+
+          {/* CPF */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">CPF</Text>
+            <TextInput
+              value={formData.cpf}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, cpf: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="000.000.000-00"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="number-pad"
+            />
+          </View>
+
+          {/* CEP */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">CEP</Text>
+            <TextInput
+              value={formData.addressZipCode}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressZipCode: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="00000-000"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="number-pad"
+            />
+          </View>
+
+          {/* Rua */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Rua</Text>
+            <TextInput
+              value={formData.addressStreet}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressStreet: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="Rua Exemplo"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Número */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Número</Text>
+            <TextInput
+              value={formData.addressNumber}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressNumber: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="123"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="number-pad"
+            />
+          </View>
+
+          {/* Bairro */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Bairro</Text>
+            <TextInput
+              value={formData.addressNeighborhood}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressNeighborhood: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="Centro"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Cidade */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Cidade</Text>
+            <TextInput
+              value={formData.addressCity}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressCity: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="São Paulo"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* UF */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">UF</Text>
+            <TextInput
+              value={formData.addressState}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressState: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="SP"
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="characters"
+            />
+          </View>
+
+          {/* Complemento */}
+          <View>
+            <Text className="text-gray-700 font-medium mb-2">Complemento</Text>
+            <TextInput
+              value={formData.addressComplement}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, addressComplement: text }))}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900"
+              placeholder="Apto 12"
+              placeholderTextColor="#9CA3AF"
             />
           </View>
 

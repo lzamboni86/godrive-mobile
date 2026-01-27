@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Mail, Phone, Lock, ArrowLeft, GraduationCap, Eye, EyeOff } from 'lucide-react-native';
+import { User, Mail, Phone, Lock, ArrowLeft, GraduationCap, Eye, EyeOff, MapPin, FileText } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Toast, useToast } from '@/components/ui/Toast';
+import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
 
 export default function StudentSignupScreen() {
   const { signIn } = useAuth();
@@ -15,6 +16,14 @@ export default function StudentSignupScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [addressZipCode, setAddressZipCode] = useState('');
+  const [addressStreet, setAddressStreet] = useState('');
+  const [addressNumber, setAddressNumber] = useState('');
+  const [addressNeighborhood, setAddressNeighborhood] = useState('');
+  const [addressCity, setAddressCity] = useState('');
+  const [addressState, setAddressState] = useState('');
+  const [addressComplement, setAddressComplement] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +31,7 @@ export default function StudentSignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSignup() {
-    console.log('🔐 Student Signup - Dados:', { name, email, phone, password: '***' });
+    console.log('🔐 Student Signup - Dados:', { name, email, phone, cpf: cpf.trim() || undefined, password: '***' });
     
     if (!name.trim() || !email.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim()) {
       console.log('🔐 Student Signup - Validação falhou: campos vazios');
@@ -40,6 +49,12 @@ export default function StudentSignupScreen() {
       return;
     }
 
+    // Valida CPF se preenchido
+    if (cpf.trim() && !isValidCpf(cpf.trim())) {
+      showToast('CPF inválido', 'error');
+      return;
+    }
+
     setIsLoading(true);
     console.log('🔐 Student Signup - Iniciando requisição...');
     try {
@@ -47,6 +62,14 @@ export default function StudentSignupScreen() {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        cpf: unmaskCpf(cpf) || undefined,
+        addressZipCode: addressZipCode.trim() || undefined,
+        addressStreet: addressStreet.trim() || undefined,
+        addressNumber: addressNumber.trim() || undefined,
+        addressNeighborhood: addressNeighborhood.trim() || undefined,
+        addressCity: addressCity.trim() || undefined,
+        addressState: addressState.trim() || undefined,
+        addressComplement: addressComplement.trim() || undefined,
         password,
       });
       
@@ -136,6 +159,132 @@ export default function StudentSignupScreen() {
                     keyboardType="phone-pad"
                     value={phone}
                     onChangeText={setPhone}
+                  />
+                </View>
+              </View>
+
+              {/* CPF Input */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">CPF</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <FileText size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="000.000.000-00"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    value={formatCpf(cpf)}
+                    onChangeText={(text) => setCpf(formatCpf(text))}
+                    maxLength={14}
+                  />
+                </View>
+              </View>
+
+              {/* Address Header */}
+              <View className="mb-2">
+                <View className="flex-row items-center">
+                  <MapPin size={16} color="#6B7280" />
+                  <Text className="text-sm font-medium text-neutral-700 ml-2">Endereço (Opcional)</Text>
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">CEP</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="00000-000"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    value={addressZipCode}
+                    onChangeText={setAddressZipCode}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Rua</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Rua Exemplo"
+                    placeholderTextColor="#9CA3AF"
+                    value={addressStreet}
+                    onChangeText={setAddressStreet}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Número</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="123"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    value={addressNumber}
+                    onChangeText={setAddressNumber}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Bairro</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Centro"
+                    placeholderTextColor="#9CA3AF"
+                    value={addressNeighborhood}
+                    onChangeText={setAddressNeighborhood}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Cidade</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="São Paulo"
+                    placeholderTextColor="#9CA3AF"
+                    value={addressCity}
+                    onChangeText={setAddressCity}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">UF</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="SP"
+                    placeholderTextColor="#9CA3AF"
+                    autoCapitalize="characters"
+                    value={addressState}
+                    onChangeText={setAddressState}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Complemento</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Apto 12"
+                    placeholderTextColor="#9CA3AF"
+                    value={addressComplement}
+                    onChangeText={setAddressComplement}
                   />
                 </View>
               </View>

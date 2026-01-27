@@ -7,13 +7,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/contexts/AuthContext';
 import { studentService } from '@/services/student';
 import { uploadService } from '@/services/upload';
+import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
 
 export default function StudentEditProfileScreen() {
   const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || ''
+    phone: user?.phone || '',
+    cpf: user?.cpf || '',
+    addressZipCode: user?.addressZipCode || '',
+    addressStreet: user?.addressStreet || '',
+    addressNumber: user?.addressNumber || '',
+    addressNeighborhood: user?.addressNeighborhood || '',
+    addressCity: user?.addressCity || '',
+    addressState: user?.addressState || '',
+    addressComplement: user?.addressComplement || '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(user?.avatar || null);
@@ -59,6 +68,12 @@ export default function StudentEditProfileScreen() {
       return;
     }
 
+    // Valida CPF se preenchido
+    if (formData.cpf.trim() && !isValidCpf(formData.cpf.trim())) {
+      Alert.alert('Erro', 'CPF inválido.');
+      return;
+    }
+
     try {
       setIsLoading(true);
       let avatarUrl: string | undefined = undefined;
@@ -82,8 +97,16 @@ export default function StudentEditProfileScreen() {
         avatarUrl = profileImage;
       }
 
-      await studentService.updateProfile(formData);
-      updateUser({ ...user, ...formData, ...(avatarUrl ? { avatar: avatarUrl } : {}) });
+      await studentService.updateProfile({
+        ...formData,
+        cpf: unmaskCpf(formData.cpf) || undefined,
+      });
+      updateUser({ 
+        ...user, 
+        ...formData, 
+        ...(avatarUrl ? { avatar: avatarUrl } : {}),
+        cpf: unmaskCpf(formData.cpf) || undefined,
+      });
       
       Alert.alert(
         'Sucesso!',
@@ -178,6 +201,103 @@ export default function StudentEditProfileScreen() {
                 onChangeText={(text) => setFormData({ ...formData, phone: text })}
                 placeholder="(11) 99999-9999"
                 keyboardType="phone-pad"
+              />
+            </View>
+
+            {/* CPF */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">CPF</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formatCpf(formData.cpf)}
+                onChangeText={(text) => setFormData({ ...formData, cpf: formatCpf(text) })}
+                placeholder="000.000.000-00"
+                keyboardType="number-pad"
+                maxLength={14}
+              />
+            </View>
+
+            {/* CEP */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">CEP</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressZipCode}
+                onChangeText={(text) => setFormData({ ...formData, addressZipCode: text })}
+                placeholder="00000-000"
+                keyboardType="number-pad"
+              />
+            </View>
+
+            {/* Rua */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Rua</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressStreet}
+                onChangeText={(text) => setFormData({ ...formData, addressStreet: text })}
+                placeholder="Rua Exemplo"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Número */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Número</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressNumber}
+                onChangeText={(text) => setFormData({ ...formData, addressNumber: text })}
+                placeholder="123"
+                keyboardType="number-pad"
+              />
+            </View>
+
+            {/* Bairro */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Bairro</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressNeighborhood}
+                onChangeText={(text) => setFormData({ ...formData, addressNeighborhood: text })}
+                placeholder="Centro"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Cidade */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Cidade</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressCity}
+                onChangeText={(text) => setFormData({ ...formData, addressCity: text })}
+                placeholder="São Paulo"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* UF */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">UF</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressState}
+                onChangeText={(text) => setFormData({ ...formData, addressState: text })}
+                placeholder="SP"
+                autoCapitalize="characters"
+              />
+            </View>
+
+            {/* Complemento */}
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">Complemento</Text>
+              <TextInput
+                className="bg-neutral-50 border border-neutral-300 rounded-xl px-4 py-3 text-neutral-900"
+                value={formData.addressComplement}
+                onChangeText={(text) => setFormData({ ...formData, addressComplement: text })}
+                placeholder="Apto 12"
+                autoCapitalize="words"
               />
             </View>
 

@@ -12,6 +12,11 @@ export default function InstructorSignupScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [addressZipCode, setAddressZipCode] = useState('');
+  const [addressStreet, setAddressStreet] = useState('');
+  const [addressNumber, setAddressNumber] = useState('');
+  const [addressComplement, setAddressComplement] = useState('');
   const [cnh, setCnh] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | ''>('');
 
@@ -228,6 +233,14 @@ export default function InstructorSignupScreen() {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        cpf: cpf.trim() || undefined,
+        addressZipCode: addressZipCode.trim() || undefined,
+        addressStreet: addressStreet.trim() || undefined,
+        addressNumber: addressNumber.trim() || undefined,
+        addressNeighborhood: neighborhoodReside.trim() || undefined,
+        addressCity: city.trim() || undefined,
+        addressState: state.trim() || undefined,
+        addressComplement: addressComplement.trim() || undefined,
         cnh: cnh.trim(),
         gender: gender,
         state: state.trim(),
@@ -377,6 +390,84 @@ export default function InstructorSignupScreen() {
                     keyboardType="phone-pad"
                     value={phone}
                     onChangeText={setPhone}
+                  />
+                </View>
+              </View>
+
+              {/* CPF */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">CPF (Opcional)</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <FileText size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="000.000.000-00"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    value={cpf}
+                    onChangeText={setCpf}
+                  />
+                </View>
+              </View>
+
+              {/* CEP */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">CEP (Opcional)</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="00000-000"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    value={addressZipCode}
+                    onChangeText={setAddressZipCode}
+                  />
+                </View>
+              </View>
+
+              {/* Rua */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Rua (Opcional)</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Rua Exemplo"
+                    placeholderTextColor="#9CA3AF"
+                    value={addressStreet}
+                    onChangeText={setAddressStreet}
+                  />
+                </View>
+              </View>
+
+              {/* Número */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Número (Opcional)</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="123"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    value={addressNumber}
+                    onChangeText={setAddressNumber}
+                  />
+                </View>
+              </View>
+
+              {/* Complemento */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Complemento (Opcional)</Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <MapPin size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Apto 12"
+                    placeholderTextColor="#9CA3AF"
+                    value={addressComplement}
+                    onChangeText={setAddressComplement}
                   />
                 </View>
               </View>

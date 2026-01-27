@@ -230,6 +230,24 @@ export default function StudentTabLayout() {
           title: ''
         }} 
       />
+
+      <Tabs.Screen
+        name="mercado-pago/secure-fields"
+        options={{
+          href: null,
+          headerShown: false,
+          title: '',
+        }}
+      />
+
+      <Tabs.Screen
+        name="mercado-pago/confirm"
+        options={{
+          href: null,
+          headerShown: false,
+          title: '',
+        }}
+      />
     </Tabs>
   );
 }

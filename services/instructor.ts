@@ -5,6 +5,14 @@ export interface InstructorProfile {
   email?: string;
   phone?: string;
   avatar?: string;
+  cpf?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressZipCode?: string;
+  addressNeighborhood?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressComplement?: string;
   hourlyRate?: number;
   pixKey?: string;
   bio?: string;

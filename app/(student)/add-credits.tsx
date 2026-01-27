@@ -88,7 +88,7 @@ export default function AddCreditsScreen() {
       console.log('💳 [ADD-CREDITS] Preferência criada:', preference.id);
 
       // Abrir checkout do Mercado Pago
-      const url = preference.sandboxInitPoint || preference.initPoint;
+      const url = preference.initPoint;
       await WebBrowser.openBrowserAsync(url);
 
       // O webhook vai processar o pagamento e criar a transação na carteira
