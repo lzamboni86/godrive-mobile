@@ -217,29 +217,6 @@ export default function InstructorProfileScreen() {
               </View>
             </View>
 
-            {/* Contato */}
-            <View className="mb-6">
-              <Text className="text-neutral-900 font-semibold text-lg mb-3">Contato</Text>
-              <View className="space-y-3">
-                <View className="flex-row items-center">
-                  <Mail size={20} color="#6B7280" />
-                  <Text className="text-neutral-600 ml-3">{instructor.email}</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <MapPin size={20} color="#6B7280" />
-                  <Text className="text-neutral-600 ml-3">
-                    {instructor.city && instructor.state ? `${instructor.city}, ${instructor.state}` : 'Localização não informada'}
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  <MapPin size={20} color="#6B7280" />
-                  <Text className="text-neutral-600 ml-3">
-                    {instructor.neighborhoodTeach ? `Bairro de Atendimento: ${instructor.neighborhoodTeach}` : 'Bairro de atendimento não informado'}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
             {/* Disponibilidade */}
             <View className="mb-8">
               <Text className="text-neutral-900 font-semibold text-lg mb-3">Disponibilidade</Text>
