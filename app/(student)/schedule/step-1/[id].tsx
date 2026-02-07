@@ -285,12 +285,6 @@ export default function ScheduleStep1Screen() {
         </View>
 
         <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-          {/* Informações do Instrutor */}
-          <View className="bg-neutral-50 rounded-xl p-4 mb-6">
-            <Text className="text-neutral-900 font-semibold">{instructor.name}</Text>
-            <Text className="text-neutral-600 text-sm">{instructor.email}</Text>
-          </View>
-
           {/* Navegação do Mês */}
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity 
