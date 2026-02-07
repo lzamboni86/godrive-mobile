@@ -21,6 +21,7 @@ interface ScheduledLesson {
     amount: number;
     status: string;
   };
+  unreadMessages?: number;
 }
 
 export default function ScheduleScreen() {
@@ -124,7 +125,23 @@ export default function ScheduleScreen() {
       const response = await api.get(`/instructor/${user.instructorId}/schedule`);
       console.log('📅 Resposta agenda:', response);
       
-      setLessons(Array.isArray(response) ? response : []);
+      const lessonsData = Array.isArray(response) ? response : [];
+      
+      // Buscar contagem de mensagens não lidas para cada aula
+      const lessonsWithUnread = await Promise.all(
+        lessonsData.map(async (lesson: ScheduledLesson) => {
+          try {
+            const chatResponse = await api.get(`/chat/lesson/${lesson.id}/unread-count`);
+            const unreadCount = (chatResponse as any)?.count || 0;
+            return { ...lesson, unreadMessages: unreadCount };
+          } catch (error) {
+            console.warn(`Erro ao buscar contagem de não lidas para aula ${lesson.id}:`, error);
+            return { ...lesson, unreadMessages: 0 };
+          }
+        })
+      );
+      
+      setLessons(lessonsWithUnread);
     } catch (error) {
       console.error('Erro ao carregar agenda:', error);
       setLessons([]);
@@ -254,11 +271,33 @@ export default function ScheduleScreen() {
 
                   <View className="flex-row items-center justify-between mt-4 pt-4 border-t border-neutral-100">
                     <TouchableOpacity
-                      className="flex-row items-center bg-neutral-100 px-4 py-2 rounded-full"
+                      className={`flex-row items-center px-4 py-2 rounded-full relative ${
+                        lesson.unreadMessages && lesson.unreadMessages > 0
+                          ? 'bg-emerald-500'
+                          : 'bg-neutral-100'
+                      }`}
                       onPress={() => handleOpenChat(lesson.id)}
                     >
-                      <MessageCircle size={16} color="#374151" />
-                      <Text className="text-neutral-700 text-sm font-medium ml-2">Chat</Text>
+                      <MessageCircle 
+                        size={16} 
+                        color={lesson.unreadMessages && lesson.unreadMessages > 0 ? '#FFFFFF' : '#374151'} 
+                      />
+                      <Text 
+                        className={`text-sm font-medium ml-2 ${
+                          lesson.unreadMessages && lesson.unreadMessages > 0
+                            ? 'text-white'
+                            : 'text-neutral-700'
+                        }`}
+                      >
+                        Chat
+                      </Text>
+                      {lesson.unreadMessages && lesson.unreadMessages > 0 && (
+                        <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1">
+                          <Text className="text-white text-xs font-bold">
+                            {lesson.unreadMessages > 99 ? '99+' : lesson.unreadMessages}
+                          </Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
 
                     {canCompleteLesson(lesson.status, lesson) ? (
