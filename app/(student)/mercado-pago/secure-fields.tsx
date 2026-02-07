@@ -312,42 +312,6 @@ export default function MercadoPagoSecureFieldsScreen() {
             mixedContentMode="always"
           />
 
-          {pixPaymentId ? (
-            <View className="absolute left-4 right-4 bottom-24 bg-white border border-neutral-200 rounded-2xl p-3">
-              <Text className="text-neutral-900 font-semibold">Já pagou o PIX?</Text>
-              <Text className="text-neutral-600 text-xs mt-1">
-                Após concluir o pagamento no seu banco, toque em “Verificar pagamento”.
-              </Text>
-              <TouchableOpacity
-                className="bg-[#00BFA5] rounded-xl h-10 mt-2 disabled:opacity-60"
-                onPress={checkPixPaymentStatus}
-                disabled={isCheckingPix}
-              >
-                <View className="flex-row items-center justify-center h-full">
-                  {isCheckingPix ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
-                  <Text className="text-white font-semibold text-sm ml-2">
-                    {isCheckingPix ? 'Verificando...' : 'Verificar pagamento'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="bg-neutral-100 rounded-xl h-10 mt-1 disabled:opacity-60"
-                onPress={sendPixByEmail}
-                disabled={isSendingEmail}
-              >
-                <View className="flex-row items-center justify-center h-full">
-                  {isSendingEmail ? <ActivityIndicator size="small" color="#374151" /> : null}
-                  <Text className="text-neutral-700 font-semibold text-sm ml-2">
-                    {isSendingEmail ? 'Enviando...' : 'Enviar QR code por e-mail'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <Text className="text-neutral-500 text-xs mt-1">
-                O sistema verifica automaticamente por alguns instantes.
-              </Text>
-            </View>
-          ) : null}
-
           {isLoading ? (
             <View className="absolute inset-0 items-center justify-center bg-white/80">
               <ActivityIndicator size="large" color="#00BFA5" />
@@ -355,6 +319,42 @@ export default function MercadoPagoSecureFieldsScreen() {
             </View>
           ) : null}
         </View>
+
+        {pixPaymentId ? (
+          <View className="bg-white border-t border-neutral-200 px-4 py-3">
+            <Text className="text-neutral-900 font-semibold">Já pagou o PIX?</Text>
+            <Text className="text-neutral-600 text-xs mt-1">
+              Após concluir o pagamento no seu banco, toque em "Verificar pagamento".
+            </Text>
+            <TouchableOpacity
+              className="bg-[#00BFA5] rounded-xl h-10 mt-2 disabled:opacity-60"
+              onPress={checkPixPaymentStatus}
+              disabled={isCheckingPix}
+            >
+              <View className="flex-row items-center justify-center h-full">
+                {isCheckingPix ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
+                <Text className="text-white font-semibold text-sm ml-2">
+                  {isCheckingPix ? 'Verificando...' : 'Verificar pagamento'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-neutral-100 rounded-xl h-10 mt-1 disabled:opacity-60"
+              onPress={sendPixByEmail}
+              disabled={isSendingEmail}
+            >
+              <View className="flex-row items-center justify-center h-full">
+                {isSendingEmail ? <ActivityIndicator size="small" color="#374151" /> : null}
+                <Text className="text-neutral-700 font-semibold text-sm ml-2">
+                  {isSendingEmail ? 'Enviando...' : 'Enviar QR code por e-mail'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <Text className="text-neutral-500 text-xs mt-1">
+              O sistema verifica automaticamente por alguns instantes.
+            </Text>
+          </View>
+        ) : null}
       </View>
     </SafeAreaView>
   );
