@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -273,21 +273,23 @@ export default function MercadoPagoSecureFieldsScreen() {
           <View className="w-6" />
         </View>
 
-        <View className="flex-1">
-          <WebView
-            ref={webViewRef}
-            source={{ uri: checkoutUrl }}
-            onMessage={handleMessage}
-            onLoadStart={() => setIsLoading(true)}
-            onLoadEnd={() => setIsLoading(false)}
-            javaScriptEnabled
-            domStorageEnabled
-            originWhitelist={['*']}
-            mixedContentMode="always"
-          />
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
+          <View style={{ height: 600 }}>
+            <WebView
+              ref={webViewRef}
+              source={{ uri: checkoutUrl }}
+              onMessage={handleMessage}
+              onLoadStart={() => setIsLoading(true)}
+              onLoadEnd={() => setIsLoading(false)}
+              javaScriptEnabled
+              domStorageEnabled
+              originWhitelist={['*']}
+              mixedContentMode="always"
+            />
+          </View>
 
           {pixPaymentId ? (
-            <View className="absolute left-4 right-4 bottom-24 bg-white border border-neutral-200 rounded-2xl p-4">
+            <View className="mx-4 mt-6 bg-white border border-neutral-200 rounded-2xl p-4">
               <Text className="text-neutral-900 font-semibold">Já pagou o PIX?</Text>
               <Text className="text-neutral-600 text-sm mt-1">
                 Após concluir o pagamento no seu banco, toque em “Verificar pagamento”.
@@ -328,7 +330,7 @@ export default function MercadoPagoSecureFieldsScreen() {
               <Text className="text-neutral-600 mt-3">Carregando checkout...</Text>
             </View>
           ) : null}
-        </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
