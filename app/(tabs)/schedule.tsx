@@ -166,7 +166,7 @@ export default function ScheduleScreen() {
   const handleCompleteLesson = useCallback((lessonId: string) => {
     Alert.alert(
       'Finalizar Aula',
-      'Deseja realmente marcar esta aula como concluída? O pagamento será liberado automaticamente.',
+      'A aula já foi concluída? Com sua confirmação a aula será enviada para avaliação do aluno, somente após a avaliação (até 2 dias) o processo de pagamento iniciará.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
