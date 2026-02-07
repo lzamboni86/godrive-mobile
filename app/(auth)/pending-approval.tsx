@@ -80,7 +80,7 @@ export default function PendingApprovalScreen() {
             <Text className="text-neutral-700 font-medium ml-2">Dúvidas?</Text>
           </View>
           <Text className="text-neutral-600 text-sm ml-7">
-            Entre em contato pelo email suporte@godrive.com.br
+            Entre em contato pelo email contato@godrivegroup.com.br
           </Text>
         </View>
 
