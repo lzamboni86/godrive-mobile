@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -59,6 +59,21 @@ export default function MercadoPagoSecureFieldsScreen() {
 
   const handleBack = useCallback(() => {
     router.back();
+  }, []);
+
+  const applyWebViewBottomPadding = useCallback((enabled: boolean) => {
+    const padding = enabled ? 260 : 0;
+    const js = `
+      (function () {
+        try {
+          var pb = '${padding}px';
+          if (document && document.documentElement) document.documentElement.style.paddingBottom = pb;
+          if (document && document.body) document.body.style.paddingBottom = pb;
+        } catch (e) {}
+      })();
+      true;
+    `;
+    webViewRef.current?.injectJavaScript(js);
   }, []);
 
   const extractPaymentStatus = useCallback((payment: any) => {
@@ -208,6 +223,7 @@ export default function MercadoPagoSecureFieldsScreen() {
 
             if (possiblePaymentId) {
               setPixPaymentId(String(possiblePaymentId));
+              applyWebViewBottomPadding(true);
             }
             const payloadJson = JSON.stringify(pixData);
 
@@ -231,7 +247,10 @@ export default function MercadoPagoSecureFieldsScreen() {
 
         if (parsed.type === 'MP_PIX_CREATED') {
           const id = parsed.paymentId ? String(parsed.paymentId) : '';
-          if (id) setPixPaymentId(id);
+          if (id) {
+            setPixPaymentId(id);
+            applyWebViewBottomPadding(true);
+          }
           return;
         }
 
@@ -262,6 +281,10 @@ export default function MercadoPagoSecureFieldsScreen() {
     [amount, deviceId, params.externalReference],
   );
 
+  useEffect(() => {
+    applyWebViewBottomPadding(Boolean(pixPaymentId));
+  }, [applyWebViewBottomPadding, pixPaymentId]);
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="flex-1">
@@ -273,23 +296,24 @@ export default function MercadoPagoSecureFieldsScreen() {
           <View className="w-6" />
         </View>
 
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
-          <View style={{ height: 600 }}>
-            <WebView
-              ref={webViewRef}
-              source={{ uri: checkoutUrl }}
-              onMessage={handleMessage}
-              onLoadStart={() => setIsLoading(true)}
-              onLoadEnd={() => setIsLoading(false)}
-              javaScriptEnabled
-              domStorageEnabled
-              originWhitelist={['*']}
-              mixedContentMode="always"
-            />
-          </View>
+        <View className="flex-1">
+          <WebView
+            ref={webViewRef}
+            source={{ uri: checkoutUrl }}
+            onMessage={handleMessage}
+            onLoadStart={() => setIsLoading(true)}
+            onLoadEnd={() => {
+              setIsLoading(false);
+              applyWebViewBottomPadding(Boolean(pixPaymentId));
+            }}
+            javaScriptEnabled
+            domStorageEnabled
+            originWhitelist={['*']}
+            mixedContentMode="always"
+          />
 
           {pixPaymentId ? (
-            <View className="mx-4 mt-6 bg-white border border-neutral-200 rounded-2xl p-4">
+            <View className="absolute left-4 right-4 bottom-24 bg-white border border-neutral-200 rounded-2xl p-4">
               <Text className="text-neutral-900 font-semibold">Já pagou o PIX?</Text>
               <Text className="text-neutral-600 text-sm mt-1">
                 Após concluir o pagamento no seu banco, toque em “Verificar pagamento”.
@@ -330,7 +354,7 @@ export default function MercadoPagoSecureFieldsScreen() {
               <Text className="text-neutral-600 mt-3">Carregando checkout...</Text>
             </View>
           ) : null}
-        </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
