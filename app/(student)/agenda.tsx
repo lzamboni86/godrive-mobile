@@ -87,7 +87,7 @@ export default function StudentAgendaScreen() {
     switch (status) {
       case 'CONFIRMED': return 'emerald';
       case 'ADJUSTMENT_PENDING': return 'amber';
-      case 'SCHEDULED': return 'blue';
+      case 'SCHEDULED': return 'amber';
       case 'COMPLETED': return 'neutral';
       case 'CANCELLED': return 'red';
       default: return 'neutral';
@@ -96,9 +96,9 @@ export default function StudentAgendaScreen() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'CONFIRMED': return 'Confirmada';
+      case 'CONFIRMED': return 'Aula aceita';
       case 'ADJUSTMENT_PENDING': return 'Ajuste solicitado';
-      case 'SCHEDULED': return 'Agendada';
+      case 'SCHEDULED': return 'Pendente aprovação do instrutor';
       case 'COMPLETED': return 'Concluída';
       case 'CANCELLED': return 'Cancelada';
       default: return status;
