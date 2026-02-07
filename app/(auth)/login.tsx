@@ -47,7 +47,7 @@ export default function LoginScreen() {
           <View className="items-center mb-12">
             <View className="w-40 h-40 bg-white rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
               <Image 
-                source={require('@/assets/images/icon.png')}
+                source={require('@/assets/images/logo-app.png')}
                 className="w-32 h-32 rounded-xl"
                 resizeMode="contain"
               />
