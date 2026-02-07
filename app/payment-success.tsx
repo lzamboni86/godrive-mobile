@@ -13,7 +13,7 @@ export default function PaymentSuccessScreen() {
       if (user?.role === 'INSTRUCTOR') {
         router.replace('/(tabs)');
       } else {
-        router.replace('/(student)/schedule/success');
+        router.replace('/(student)/agenda' as any);
       }
     }, 2000);
 

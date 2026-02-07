@@ -149,7 +149,7 @@ export default function ScheduleStep3Screen() {
         Alert.alert(
           'Reserva Criada!',
           'Sua reserva foi criada usando seus créditos. Aguarde a confirmação do instrutor.',
-          [{ text: 'OK', onPress: () => router.push('/(student)/schedule/success' as any) }]
+          [{ text: 'OK', onPress: () => router.replace('/(student)/agenda' as any) }]
         );
 
       } else {

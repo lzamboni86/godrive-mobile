@@ -63,7 +63,7 @@ export default function MercadoPagoConfirmScreen() {
 
       const status = String(payment?.status || '').toLowerCase();
       if (status === 'approved') {
-        router.replace('/(student)/schedule/success' as any);
+        router.replace('/(student)/agenda' as any);
         return;
       }
 
