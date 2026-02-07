@@ -130,19 +130,11 @@ export default function InstructorProfileScreen() {
                 
                 <Text className="text-white text-2xl font-bold mb-2">{instructor.name}</Text>
 
-                {displayHeaderLine ? (
-                  <Text className="text-emerald-100 text-sm mb-3 text-center">
-                    {displayHeaderLine}
-                  </Text>
-                ) : (
-                  <View className="mb-3" />
-                )}
-                
                 <View className="flex-row items-center mb-4">
                   <Star size={20} color="#FFFFFF" fill="#FFFFFF" />
-                <Text className="text-white font-semibold ml-1">{ratingValue}</Text>
-                <Text className="text-emerald-100 ml-2">({instructor.completedLessonsCount || 0} aulas)</Text>
-              </View>
+                  <Text className="text-white font-semibold ml-1">{ratingValue}</Text>
+                  <Text className="text-emerald-100 ml-2">({instructor.completedLessonsCount || 0} aulas)</Text>
+                </View>
 
               <View className="flex-row gap-4">
                 <View className="bg-white/20 px-3 py-1 rounded-full">
@@ -163,31 +155,50 @@ export default function InstructorProfileScreen() {
             <View className="mb-6">
               <Text className="text-neutral-900 font-semibold text-lg mb-3">Sobre</Text>
               <View className="bg-neutral-50 rounded-xl p-4">
-                <Text className="text-neutral-700 leading-relaxed">
+                <Text className="text-neutral-700 leading-relaxed mb-4">
                   {instructor.bio || 'Instrutor experiente com mais de 5 anos de prática em formação de condutores. Especializado em condução defensiva e preparação para exames práticos. Paciente e dedicado, foco total no sucesso dos alunos.'}
                 </Text>
-              </View>
-            </View>
-
-            {/* Veículo */}
-            {instructor.vehicle && (
-              <View className="mb-6">
-                <Text className="text-neutral-900 font-semibold text-lg mb-3">Veículo</Text>
-                <View className="bg-neutral-50 rounded-xl p-4">
-                  <View className="flex-row items-center">
-                    <Car size={20} color="#10B981" />
-                    <View className="ml-3">
-                      <Text className="text-neutral-900 font-medium">
-                        {instructor.vehicle.make} {instructor.vehicle.model}
-                      </Text>
-                      <Text className="text-neutral-600 text-sm">
-                        Placa: {instructor.vehicle.plate || 'Não informada'}
-                      </Text>
+                
+                {/* Veículo e Bairro de Atendimento dentro do Sobre */}
+                {(instructor.vehicle || instructor.neighborhoodTeach) && (
+                  <View className="mt-4 pt-4 border-t border-neutral-200">
+                    <Text className="text-neutral-600 text-sm font-semibold mb-3">Detalhes</Text>
+                    <View className="space-y-2">
+                      {instructor.vehicle && (
+                        <View className="flex-row flex-wrap gap-2">
+                          <Text className="text-neutral-700 text-sm">
+                            <Text className="font-medium">Marca:</Text> {instructor.vehicle.make}
+                          </Text>
+                          <Text className="text-neutral-700 text-sm">
+                            <Text className="font-medium">Modelo:</Text> {instructor.vehicle.model}
+                          </Text>
+                          {instructor.vehicle.year && (
+                            <Text className="text-neutral-700 text-sm">
+                              <Text className="font-medium">Ano:</Text> {instructor.vehicle.year}
+                            </Text>
+                          )}
+                          {displayTransmission && (
+                            <Text className="text-neutral-700 text-sm">
+                              <Text className="font-medium">Câmbio:</Text> {displayTransmission}
+                            </Text>
+                          )}
+                          {displayEngine && (
+                            <Text className="text-neutral-700 text-sm">
+                              <Text className="font-medium">Motor:</Text> {displayEngine}
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                      {instructor.neighborhoodTeach && (
+                        <Text className="text-neutral-700 text-sm">
+                          <Text className="font-medium">Bairro de Atendimento:</Text> {instructor.neighborhoodTeach}
+                        </Text>
+                      )}
                     </View>
                   </View>
-                </View>
+                )}
               </View>
-            )}
+            </View>
 
             {/* Estatísticas */}
             <View className="mb-6">
