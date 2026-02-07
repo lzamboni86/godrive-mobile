@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState, getNeighborhoodsByCityDynamic } from '@/services/ibge';
 import { getFipeMarcas, getFipeModelos, FipeMarca, FipeModelo } from '@/services/fipe';
 import { fetchAddressByCep, isValidCepFormat, formatCep } from '@/services/viacep';
+import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
 
 export default function InstructorSignupScreen() {
   
@@ -484,8 +485,9 @@ export default function InstructorSignupScreen() {
                     placeholder="000.000.000-00"
                     placeholderTextColor="#9CA3AF"
                     keyboardType="number-pad"
-                    value={cpf}
-                    onChangeText={setCpf}
+                    value={formatCpf(cpf)}
+                    onChangeText={(text) => setCpf(text)}
+                    maxLength={14}
                   />
                 </View>
               </View>

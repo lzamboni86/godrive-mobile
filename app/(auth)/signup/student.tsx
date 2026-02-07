@@ -290,7 +290,7 @@ export default function StudentSignupScreen() {
                     placeholderTextColor="#9CA3AF"
                     keyboardType="number-pad"
                     value={formatCpf(cpf)}
-                    onChangeText={(text) => setCpf(formatCpf(text))}
+                    onChangeText={(text) => setCpf(text)}
                     maxLength={14}
                   />
                 </View>

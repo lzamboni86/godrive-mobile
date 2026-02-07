@@ -39,12 +39,21 @@ export function isValidCpf(cpf: string): boolean {
 }
 
 /**
- * Formata CPF com máscara 000.000.000-00
+ * Formata CPF com máscara 000.000.000-00 (formato parcial enquanto digita)
  */
 export function formatCpf(cpf: string): string {
   const cleaned = cpf.replace(/\D/g, '');
-  if (cleaned.length !== 11) return cpf;
-  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  
+  // Formata parcialmente baseado no tamanho
+  if (cleaned.length <= 3) {
+    return cleaned;
+  } else if (cleaned.length <= 6) {
+    return cleaned.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+  } else if (cleaned.length <= 9) {
+    return cleaned.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+  } else {
+    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+  }
 }
 
 /**
