@@ -141,7 +141,13 @@ const COMMON_NEIGHBORHOODS_BY_CITY: Record<string, string[]> = {
     'Jardim Botânico', 'Jardim Social', 'Mercês', 'Pinheirinho', 'Portão',
     'Prado Velho', 'Rebouças', 'Santa Cândida', 'Santa Felicidade', 'Santo Inácio',
     'São Braz', 'São Francisco', 'São Lourenço', 'São Miguel', 'Tatuquara',
-    'Umbará', 'Xaxim'
+    'Umbará', 'Xaxim', 'Tarumã', 'Atuba', 'Abranches', 'Alto da Glória',
+    'Alto da XV', 'Ahú', 'Barigui', 'Bela Vista', 'Campina do Barigui',
+    'Cascavel', 'Cachoeira', 'Capanema', 'Capão da Imbuia', 'Capão Raso',
+    'Cristo Rei', 'Ecoville', 'Fazendinha', 'Guaíra', 'Guabirotuba',
+    'Hauer', 'Industrial', 'Jardim das Américas', 'Lamenha Pequena', 'Lindoia',
+    'Maringá', 'Novo Mundo', 'Orleans', 'Parolin', 'Pilarzinho', 'Riviera',
+    'Seminário', 'Sítio Cercado', 'Taboão', 'Tingui', 'Vista Alegre'
   ],
   'São Paulo': [
     'Bela Vista', 'Bom Retiro', 'Brás', 'Cambuci', 'Cantareira', 'Casa Verde',
