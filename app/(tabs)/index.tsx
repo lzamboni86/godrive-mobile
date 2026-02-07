@@ -11,6 +11,7 @@ import { Lesson, LessonStatus, ApiError } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
 import { usePendingRequests } from '@/hooks/usePendingRequests';
+import api from '@/services/api';
 
 export default function DashboardScreen() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export default function DashboardScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [completingLessonId, setCompletingLessonId] = useState<string | null>(null);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const { toast, showSuccess, showError, hideToast } = useToast();
   const pendingCount = usePendingRequests();
 
@@ -28,6 +30,7 @@ export default function DashboardScreen() {
       if (!instructorId) {
         setLessons([]);
         setReleasedBalance(0);
+        setUnreadMessagesCount(0);
         return;
       }
 
@@ -35,6 +38,15 @@ export default function DashboardScreen() {
         lessonsService.getConfirmedLessons(instructorId),
         paymentsService.getReleasedBalance(instructorId),
       ]);
+
+      // Buscar contagem total de mensagens não lidas
+      try {
+        const unreadResponse = await api.get(`/chat/instructor/${instructorId}/unread-count`);
+        setUnreadMessagesCount((unreadResponse as any)?.count || 0);
+      } catch (error) {
+        console.warn('Erro ao buscar contagem de não lidas:', error);
+        setUnreadMessagesCount(0);
+      }
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -258,11 +270,25 @@ export default function DashboardScreen() {
               className="bg-white rounded-xl p-4 shadow-sm border border-neutral-200"
               onPress={() => router.push('/(tabs)/schedule')}
             >
-              <View className="w-12 h-12 bg-emerald-100 rounded-lg items-center justify-center mb-3">
-                <Calendar size={24} color="#10B981" />
+              <View className="flex-row justify-between items-start">
+                <View className="w-12 h-12 bg-emerald-100 rounded-lg items-center justify-center mb-3">
+                  <Calendar size={24} color="#10B981" />
+                </View>
+                {unreadMessagesCount > 0 && (
+                  <View className="bg-red-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
+                    <Text className="text-white text-xs font-bold">
+                      {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                    </Text>
+                  </View>
+                )}
               </View>
               <Text className="text-neutral-900 font-semibold text-sm mb-1">Minha Agenda</Text>
-              <Text className="text-neutral-500 text-xs">Aulas agendadas</Text>
+              <Text className="text-neutral-500 text-xs">
+                {unreadMessagesCount > 0 
+                  ? `${unreadMessagesCount} mensagem${unreadMessagesCount > 1 ? 's' : ''} não lida${unreadMessagesCount > 1 ? 's' : ''}`
+                  : 'Aulas agendadas'
+                }
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
