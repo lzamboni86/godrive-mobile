@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Clock, Calendar, DollarSign, CheckCircle, AlertCircle, Wallet } from 'lucide-react-native';
+import { ArrowLeft, Clock, Calendar, DollarSign, CheckCircle, AlertCircle, Wallet, Car, MapPin, Star } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { studentService, Instructor } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
@@ -267,8 +267,49 @@ export default function ScheduleStep3Screen() {
         <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
           {/* Informações do Instrutor */}
           <View className="bg-neutral-50 rounded-xl p-4 mb-6">
-            <Text className="text-neutral-900 font-semibold">{instructor.name}</Text>
-            <Text className="text-neutral-600 text-sm">{instructor.email}</Text>
+            <Text className="text-neutral-900 font-semibold text-lg">{instructor.name}</Text>
+            <View className="mt-3 space-y-2">
+              {instructor.vehicle && (
+                <View className="flex-row items-center">
+                  <Car size={16} color="#6B7280" />
+                  <Text className="text-neutral-600 text-sm ml-2">
+                    {instructor.vehicle.make} {instructor.vehicle.model} ({instructor.vehicle.year}) - {instructor.vehicle.plate}
+                  </Text>
+                </View>
+              )}
+              {instructor.vehicle && (
+                <View className="flex-row items-center">
+                  <Text className="text-neutral-600 text-sm ml-6">
+                    {instructor.vehicle.transmission === 'AUTOMATIC' ? 'Automático' : 'Manual'} • {instructor.vehicle.engineType === 'ELECTRIC' ? 'Elétrico' : 'Combustão'}
+                  </Text>
+                </View>
+              )}
+              {instructor.neighborhoodTeach && (
+                <View className="flex-row items-center">
+                  <MapPin size={16} color="#6B7280" />
+                  <Text className="text-neutral-600 text-sm ml-2">
+                    Atende em: {instructor.neighborhoodTeach}
+                    {instructor.city && instructor.state ? `, ${instructor.city}/${instructor.state}` : ''}
+                  </Text>
+                </View>
+              )}
+              <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-neutral-200">
+                <View className="flex-row items-center">
+                  <CheckCircle size={16} color="#10B981" />
+                  <Text className="text-emerald-600 text-sm ml-2 font-medium">
+                    {instructor.completedLessonsCount || 0} aulas concluídas
+                  </Text>
+                </View>
+                {instructor.rating && (
+                  <View className="flex-row items-center">
+                    <Star size={16} color="#F59E0B" />
+                    <Text className="text-amber-600 text-sm ml-1 font-medium">
+                      {instructor.rating.toFixed(1)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
           </View>
 
           {/* Resumo das Aulas */}
