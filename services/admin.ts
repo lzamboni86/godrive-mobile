@@ -28,6 +28,16 @@ export interface Dashboard {
   todayLessons: number;
   completedLessons: number;
   revenue: number;
+  recentActivities: Activity[];
+}
+
+export interface Activity {
+  id: string;
+  type: 'USER_REGISTERED' | 'INSTRUCTOR_PENDING' | 'LESSON_COMPLETED' | 'INSTRUCTOR_APPROVED' | 'INSTRUCTOR_REJECTED';
+  description: string;
+  userName: string;
+  userEmail: string;
+  createdAt: string;
 }
 
 export const adminService = {
@@ -60,10 +70,10 @@ export const adminService = {
     try {
       const data = await api.get<Dashboard>('/admin/dashboard');
       console.log('🔍 [FRONTEND] Response dashboard:', data);
-      return data || { totalUsers: 0, pendingInstructors: 0, todayLessons: 0, completedLessons: 0, revenue: 0 };
+      return data || { totalUsers: 0, pendingInstructors: 0, todayLessons: 0, completedLessons: 0, revenue: 0, recentActivities: [] };
     } catch (error) {
       console.error('🔍 [FRONTEND] Erro ao buscar dashboard:', error);
-      return { totalUsers: 0, pendingInstructors: 0, todayLessons: 0, completedLessons: 0, revenue: 0 };
+      return { totalUsers: 0, pendingInstructors: 0, todayLessons: 0, completedLessons: 0, revenue: 0, recentActivities: [] };
     }
   },
 

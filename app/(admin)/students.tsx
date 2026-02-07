@@ -112,10 +112,18 @@ export default function AdminStudentsScreen() {
 
                 {/* Progress */}
                 <View className="bg-neutral-50 rounded-lg p-3">
+                  {(() => {
+                    const rawTotal = student.totalLessons || 0;
+                    const progressTotal = rawTotal === 0 ? 2 : rawTotal;
+                    const progressCompleted = Math.max(student.completedLessons || 0, 0);
+                    const progressPct = progressTotal > 0 ? Math.min((progressCompleted / progressTotal) * 100, 100) : 0;
+
+                    return (
+                      <>
                   <View className="flex-row justify-between items-center mb-2">
                     <Text className="text-neutral-700 text-sm font-medium">Progresso</Text>
                     <Text className="text-emerald-600 text-sm font-bold">
-                      {student.completedLessons}/{student.totalLessons} aulas
+                      {progressCompleted}/{progressTotal} aulas
                     </Text>
                   </View>
                   
@@ -124,10 +132,13 @@ export default function AdminStudentsScreen() {
                     <View 
                       className="bg-emerald-500 h-2 rounded-full"
                       style={{ 
-                        width: `${student.totalLessons > 0 ? (student.completedLessons / student.totalLessons) * 100 : 0}%` 
+                        width: `${progressPct}%` 
                       }}
                     />
                   </View>
+                      </>
+                    );
+                  })()}
                   
                   <Text className="text-neutral-500 text-xs mt-1">
                     Cadastrado em: {student.createdAt}

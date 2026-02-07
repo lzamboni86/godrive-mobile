@@ -7,6 +7,21 @@ import { adminService, Dashboard } from '@/services/admin';
 import { Toast, useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Função para formatar tempo relativo
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'agora';
+  if (diffMins < 60) return `há ${diffMins} min`;
+  if (diffHours < 24) return `há ${diffHours}h`;
+  return `há ${diffDays}d`;
+}
+
 export default function AdminDashboardScreen() {
   const { showToast } = useToast();
   const { isLoading: authLoading, isAuthenticated, isAdmin, isInstructor } = useAuth();
@@ -144,40 +159,38 @@ export default function AdminDashboardScreen() {
           {/* Recent Activity */}
           <View className="bg-white rounded-2xl p-6 shadow-sm">
             <Text className="text-neutral-900 text-lg font-semibold mb-4">
-              Atividade Recente
+              Atividades
             </Text>
             
-            <View className="space-y-3">
-              <View className="flex-row items-center justify-between py-2 border-b border-neutral-100">
-                <View className="flex-row items-center">
-                  <CheckCircle size={16} color="#10B981" />
-                  <View className="ml-2">
-                    <Text className="text-neutral-900 text-sm font-medium">Novo aluno cadastrado</Text>
-                    <Text className="text-neutral-500 text-xs">Luis Silva • há 5 min</Text>
+            {dashboard?.recentActivities && dashboard.recentActivities.length > 0 ? (
+              <View className="space-y-3">
+                {dashboard.recentActivities.map((activity: any) => (
+                  <View key={activity.id} className="flex-row items-center justify-between py-2 border-b border-neutral-100">
+                    <View className="flex-row items-center">
+                      {activity.type === 'USER_REGISTERED' || activity.type === 'LESSON_COMPLETED' ? (
+                        <CheckCircle size={16} color="#10B981" />
+                      ) : activity.type === 'INSTRUCTOR_PENDING' ? (
+                        <AlertTriangle size={16} color="#F59E0B" />
+                      ) : activity.type === 'INSTRUCTOR_APPROVED' ? (
+                        <CheckCircle size={16} color="#10B981" />
+                      ) : (
+                        <AlertTriangle size={16} color="#EF4444" />
+                      )}
+                      <View className="ml-2">
+                        <Text className="text-neutral-900 text-sm font-medium">{activity.description}</Text>
+                        <Text className="text-neutral-500 text-xs">
+                          {activity.userName} • {formatTimeAgo(activity.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                </View>
+                ))}
               </View>
-              
-              <View className="flex-row items-center justify-between py-2 border-b border-neutral-100">
-                <View className="flex-row items-center">
-                  <AlertTriangle size={16} color="#F59E0B" />
-                  <View className="ml-2">
-                    <Text className="text-neutral-900 text-sm font-medium">Instrutor pendente</Text>
-                    <Text className="text-neutral-500 text-xs">João Santos • há 1h</Text>
-                  </View>
-                </View>
+            ) : (
+              <View className="items-center py-8">
+                <Text className="text-neutral-400 text-sm">Nenhuma atividade recente</Text>
               </View>
-              
-              <View className="flex-row items-center justify-between py-2">
-                <View className="flex-row items-center">
-                  <CheckCircle size={16} color="#10B981" />
-                  <View className="ml-2">
-                    <Text className="text-neutral-900 text-sm font-medium">Aula concluída</Text>
-                    <Text className="text-neutral-500 text-xs">Maria Silva • há 2h</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
+            )}
           </View>
         </View>
       </ScrollView>

@@ -23,6 +23,7 @@ export default function ScheduleStep3Screen() {
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [studentLessonsCount, setStudentLessonsCount] = useState(0);
   const [walletBalance, setWalletBalance] = useState<WalletBalance>({
     totalBalance: 0,
     availableBalance: 0,
@@ -38,6 +39,12 @@ export default function ScheduleStep3Screen() {
       loadWalletBalance();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadStudentLessonsCount();
+    }
+  }, [user?.id]);
 
   const loadInstructor = async () => {
     try {
@@ -62,6 +69,18 @@ export default function ScheduleStep3Screen() {
     }
   };
 
+  const loadStudentLessonsCount = async () => {
+    try {
+      if (!user?.id) return;
+      const lessons = await studentService.getStudentLessons(user.id);
+      const count = (lessons || []).filter((lesson: any) => String(lesson?.status || '') !== 'CANCELLED').length;
+      setStudentLessonsCount(count);
+    } catch (error: any) {
+      console.error('Erro ao carregar histórico de aulas:', error);
+      setStudentLessonsCount(0);
+    }
+  };
+
   const calculateTotal = () => {
     if (!instructor?.hourlyRate) {
       throw new Error('Preço do instrutor não encontrado');
@@ -77,6 +96,19 @@ export default function ScheduleStep3Screen() {
 
     if (!instructor) {
       Alert.alert('Erro', 'Instrutor não encontrado.');
+      return;
+    }
+
+    const minRequired = studentLessonsCount >= 2 ? 1 : 2;
+    if (selectedTimes.length < minRequired) {
+      if (minRequired === 2) {
+        Alert.alert(
+          'Agendamento',
+          'Pela regra do DETRAN/Governo, seu agendamento inicial deve conter ao menos 2 aulas. Após as duas primeiras, você poderá agendar de 1 em 1.'
+        );
+      } else {
+        Alert.alert('Aviso', `Selecione pelo menos ${minRequired} ${minRequired === 1 ? 'aula' : 'aulas'} para continuar.`);
+      }
       return;
     }
 

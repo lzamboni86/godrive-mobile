@@ -21,7 +21,7 @@ export default function ScheduleStep1Screen() {
   const now = new Date();
   const [currentYear, setCurrentYear] = useState(now.getFullYear());
   const [currentMonthIndex, setCurrentMonthIndex] = useState(now.getMonth());
-  const [completedLessons, setCompletedLessons] = useState(0);
+  const [studentLessonsCount, setStudentLessonsCount] = useState(0);
 
   const normalizeDateString = (value: string) => {
     if (!value) return '';
@@ -36,25 +36,25 @@ export default function ScheduleStep1Screen() {
   useEffect(() => {
     if (id) {
       loadInstructor();
-      loadCompletedLessons();
+      loadStudentLessonsCount();
     }
   }, [id, user?.id]);
 
-  const loadCompletedLessons = async () => {
+  const loadStudentLessonsCount = async () => {
     try {
       if (!user?.id) return;
       
-      console.log('📚 [STEP-1] Carregando aulas concluídas para user:', user.id);
-      const pastLessons = await studentService.getPastLessons(user.id);
-      console.log('📚 [STEP-1] Aulas passadas recebidas:', pastLessons.length);
-      
-      const completed = pastLessons.filter(lesson => lesson.status === 'COMPLETED').length;
-      console.log('📚 [STEP-1] Aulas completas:', completed);
-      setCompletedLessons(completed);
+      console.log('📚 [STEP-1] Carregando histórico de aulas para user:', user.id);
+      const lessons = await studentService.getStudentLessons(user.id);
+      console.log('📚 [STEP-1] Aulas recebidas:', lessons.length);
+
+      const count = (lessons || []).filter((lesson: any) => String(lesson?.status || '') !== 'CANCELLED').length;
+      console.log('📚 [STEP-1] Aulas válidas (não canceladas):', count);
+      setStudentLessonsCount(count);
     } catch (error) {
-      console.error('❌ [STEP-1] Erro ao carregar aulas concluídas:', error);
-      // Em caso de erro, assume que é novo aluno (0 aulas completas)
-      setCompletedLessons(0);
+      console.error('❌ [STEP-1] Erro ao carregar histórico de aulas:', error);
+      // Em caso de erro, assume que é novo aluno (0 aulas)
+      setStudentLessonsCount(0);
     }
   };
 
@@ -131,10 +131,17 @@ export default function ScheduleStep1Screen() {
   };
 
   const handleContinue = () => {
-    const minRequired = completedLessons >= 2 ? 1 : 2;
+    const minRequired = studentLessonsCount >= 2 ? 1 : 2;
     
     if (selectedDates.length < minRequired) {
-      Alert.alert('Aviso', `Selecione pelo menos ${minRequired} ${minRequired === 1 ? 'data' : 'datas'} para continuar.`);
+      if (minRequired === 2) {
+        Alert.alert(
+          'Agendamento',
+          'Pela regra do DETRAN/Governo, seu agendamento inicial deve conter ao menos 2 aulas. Após as duas primeiras, você poderá agendar de 1 em 1.'
+        );
+      } else {
+        Alert.alert('Aviso', `Selecione pelo menos ${minRequired} ${minRequired === 1 ? 'data' : 'datas'} para continuar.`);
+      }
       return;
     }
     
@@ -356,9 +363,9 @@ export default function ScheduleStep1Screen() {
           <View className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
             <Text className="text-amber-900 font-semibold mb-2">Importante:</Text>
             <Text className="text-amber-700 text-sm mb-3">
-              {completedLessons >= 2 
+              {studentLessonsCount >= 2
                 ? '• Selecione no mínimo 1 aula\n• Máximo 10 datas por solicitação'
-                : '• Se esta é sua primeira vez, selecione ao menos 2 aulas para começar. Já completou as obrigatórias? Pode marcar uma por vez!\n• Máximo 10 datas por solicitação'
+                : '• Se esta é sua primeira vez, selecione ao menos 2 aulas para começar. Após as duas primeiras, você poderá agendar de 1 em 1.\n• Máximo 10 datas por solicitação'
               }
             </Text>
           </View>
@@ -429,15 +436,15 @@ export default function ScheduleStep1Screen() {
         <View className="p-6 border-t border-neutral-100 bg-white">
           <TouchableOpacity 
             className={`rounded-xl p-4 ${
-              selectedDates.length >= (completedLessons >= 2 ? 1 : 2) 
+              selectedDates.length >= (studentLessonsCount >= 2 ? 1 : 2) 
                 ? 'bg-emerald-500' 
                 : 'bg-neutral-300'
             }`}
             onPress={handleContinue}
-            disabled={selectedDates.length < (completedLessons >= 2 ? 1 : 2)}
+            disabled={selectedDates.length < (studentLessonsCount >= 2 ? 1 : 2)}
           >
             <Text className={`text-center font-semibold text-lg ${
-              selectedDates.length >= (completedLessons >= 2 ? 1 : 2) 
+              selectedDates.length >= (studentLessonsCount >= 2 ? 1 : 2) 
                 ? 'text-white' 
                 : 'text-neutral-500'
             }`}>
