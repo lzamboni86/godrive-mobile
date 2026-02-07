@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
@@ -6,11 +6,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { API_BASE_URL } from '@/services/api';
 import api from '@/services/api';
+import { mercadoPagoService } from '@/services/mercado-pago';
 
 type MpMessage =
   | { type: 'MP_READY' }
   | { type: 'MP_DEVICE_ID'; deviceId?: string }
   | { type: 'MP_PIX_CREATE'; amount?: string; externalReference?: string; deviceId?: string | null }
+  | { type: 'MP_PIX_CREATED'; paymentId?: string | null }
   | { type: 'MP_PIX_COPY'; value?: string }
   | {
       type: 'MP_TOKEN';
@@ -34,6 +36,8 @@ export default function MercadoPagoSecureFieldsScreen() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
+  const [isCheckingPix, setIsCheckingPix] = useState(false);
 
   const amount = useMemo(() => {
     const raw = (params.amount || '').toString();
@@ -55,6 +59,82 @@ export default function MercadoPagoSecureFieldsScreen() {
   const handleBack = useCallback(() => {
     router.back();
   }, []);
+
+  const extractPaymentStatus = useCallback((payment: any) => {
+    const status = payment?.status ?? payment?.data?.status;
+    return String(status || '').toLowerCase();
+  }, []);
+
+  const checkPixPaymentStatus = useCallback(async () => {
+    if (!pixPaymentId) return;
+    setIsCheckingPix(true);
+    try {
+      const payment = await mercadoPagoService.getPaymentStatus(pixPaymentId);
+      const status = extractPaymentStatus(payment);
+
+      if (status === 'approved') {
+        router.replace({
+          pathname: '/(student)/schedule/success' as any,
+          params: { collection_status: 'approved' },
+        });
+        return;
+      }
+
+      if (status === 'pending' || status === 'in_process') {
+        Alert.alert('Pagamento', 'Ainda estamos aguardando a confirmação do PIX. Tente novamente em instantes.');
+        return;
+      }
+
+      router.replace('/(student)/schedule/failure' as any);
+    } catch (e: any) {
+      Alert.alert('Pagamento', e?.message || 'Não foi possível verificar o pagamento.');
+    } finally {
+      setIsCheckingPix(false);
+    }
+  }, [extractPaymentStatus, pixPaymentId]);
+
+  useEffect(() => {
+    if (!pixPaymentId) return;
+
+    let cancelled = false;
+    let tries = 0;
+    const maxTries = 24;
+    const timer = setInterval(async () => {
+      if (cancelled) return;
+      tries += 1;
+      try {
+        const payment = await mercadoPagoService.getPaymentStatus(pixPaymentId);
+        const status = extractPaymentStatus(payment);
+
+        if (status === 'approved') {
+          clearInterval(timer);
+          router.replace({
+            pathname: '/(student)/schedule/success' as any,
+            params: { collection_status: 'approved' },
+          });
+          return;
+        }
+
+        if (status && status !== 'pending' && status !== 'in_process') {
+          clearInterval(timer);
+          router.replace('/(student)/schedule/failure' as any);
+          return;
+        }
+      } catch {
+        // Ignora erro momentâneo e tenta novamente
+      }
+
+      if (tries >= maxTries) {
+        clearInterval(timer);
+        router.replace('/(student)/schedule/pending' as any);
+      }
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [extractPaymentStatus, pixPaymentId]);
 
   const handleMessage = useCallback(
     async (event: any) => {
@@ -103,15 +183,41 @@ export default function MercadoPagoSecureFieldsScreen() {
               payload,
             );
 
-            const pixData = res?.data;
+            const pixData: any = (res as any)?.data ?? res;
+            const possiblePaymentId =
+              pixData?.id ||
+              pixData?.paymentId ||
+              pixData?.data?.id ||
+              (res as any)?.id ||
+              (res as any)?.paymentId ||
+              null;
+
+            if (possiblePaymentId) {
+              setPixPaymentId(String(possiblePaymentId));
+            }
             const payloadJson = JSON.stringify(pixData);
-            const js = `window.__MP_HANDLE_PIX_RESULT(${JSON.stringify(payloadJson)}); true;`;
+
+            const js = `
+              window.__MP_HANDLE_PIX_RESULT(${JSON.stringify(payloadJson)});
+              try {
+                if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MP_PIX_CREATED', paymentId: ${JSON.stringify(possiblePaymentId)} }));
+                }
+              } catch (e) {}
+              true;
+            `;
             webViewRef.current?.injectJavaScript(js);
           } catch (e: any) {
             const payloadJson = JSON.stringify({ message: e?.message || 'Erro ao gerar PIX' });
             const js = `window.__MP_HANDLE_PIX_ERROR(${JSON.stringify(payloadJson)}); true;`;
             webViewRef.current?.injectJavaScript(js);
           }
+          return;
+        }
+
+        if (parsed.type === 'MP_PIX_CREATED') {
+          const id = parsed.paymentId ? String(parsed.paymentId) : '';
+          if (id) setPixPaymentId(id);
           return;
         }
 
@@ -165,6 +271,30 @@ export default function MercadoPagoSecureFieldsScreen() {
             originWhitelist={['*']}
             mixedContentMode="always"
           />
+
+          {pixPaymentId ? (
+            <View className="absolute left-4 right-4 bottom-4 bg-white border border-neutral-200 rounded-2xl p-4">
+              <Text className="text-neutral-900 font-semibold">Já pagou o PIX?</Text>
+              <Text className="text-neutral-600 text-sm mt-1">
+                Após concluir o pagamento no seu banco, toque em “Verificar pagamento”.
+              </Text>
+              <TouchableOpacity
+                className="bg-[#00BFA5] rounded-xl h-12 mt-3 disabled:opacity-60"
+                onPress={checkPixPaymentStatus}
+                disabled={isCheckingPix}
+              >
+                <View className="flex-row items-center justify-center h-full">
+                  {isCheckingPix ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
+                  <Text className="text-white font-semibold text-base ml-2">
+                    {isCheckingPix ? 'Verificando...' : 'Verificar pagamento'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <Text className="text-neutral-500 text-xs mt-2">
+                O sistema verifica automaticamente por alguns instantes e, se necessário, você será direcionado para “Aguardando confirmação”.
+              </Text>
+            </View>
+          ) : null}
 
           {isLoading ? (
             <View className="absolute inset-0 items-center justify-center bg-white/80">
