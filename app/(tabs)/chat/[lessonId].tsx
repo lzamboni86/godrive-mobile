@@ -145,9 +145,9 @@ export default function ChatScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 80}
       >
         {/* Header */}
         <View className="bg-white border-b border-neutral-200 px-4 pt-8 pb-3">

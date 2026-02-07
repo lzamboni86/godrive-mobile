@@ -160,9 +160,9 @@ export default function StudentChatScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 80}
       >
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
@@ -255,20 +255,15 @@ export default function StudentChatScreen() {
                   editable={!isSending}
                 />
               </View>
-              <TouchableOpacity
+              <Button
                 onPress={sendMessage}
                 disabled={!newMessage.trim() || isSending}
-                className={`w-10 h-10 rounded-full items-center justify-center ${
-                  newMessage.trim() && !isSending
-                    ? 'bg-emerald-500'
-                    : 'bg-neutral-200'
-                }`}
+                loading={isSending}
+                className="ml-2 p-2"
+                variant="ghost"
               >
-                <Send
-                  size={20}
-                  color={newMessage.trim() && !isSending ? 'white' : '#9CA3AF'}
-                />
-              </TouchableOpacity>
+                <Send size={20} color={newMessage.trim() ? "#10B981" : "#9CA3AF"} />
+              </Button>
             </View>
           </View>
         )}

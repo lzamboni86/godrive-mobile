@@ -124,17 +124,17 @@ export default function StudentPaymentsScreen() {
                 <Text className="text-white text-lg font-semibold mb-4">Resumo Financeiro</Text>
                 <View className="grid grid-cols-2 gap-4">
                   <View>
-                    <Text className="text-emerald-50 text-sm">Total Pago</Text>
+                    <Text className="text-white text-sm opacity-90">Total Pago</Text>
                     <Text className="text-white text-2xl font-bold">R$ {summary.totalPaid.toFixed(2)}</Text>
                   </View>
                   <View>
-                    <Text className="text-emerald-50 text-sm">Aulas Realizadas</Text>
+                    <Text className="text-white text-sm opacity-90">Aulas Realizadas</Text>
                     <Text className="text-white text-2xl font-bold">{summary.totalLessons}</Text>
                   </View>
                 </View>
                 {summary.pendingPayments > 0 && (
                   <View className="mt-4 pt-4 border-t border-emerald-400">
-                    <Text className="text-emerald-50 text-sm">Pagamentos Pendentes</Text>
+                    <Text className="text-white text-sm opacity-90">Pagamentos Pendentes</Text>
                     <Text className="text-white text-lg font-semibold">R$ {summary.pendingPayments.toFixed(2)}</Text>
                   </View>
                 )}
