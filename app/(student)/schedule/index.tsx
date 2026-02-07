@@ -127,8 +127,7 @@ export default function ScheduleSearchScreen() {
     // Filtro por busca
     if (searchTerm) {
       filtered = filtered.filter(instructor => 
-        instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        instructor.email.toLowerCase().includes(searchTerm.toLowerCase())
+        instructor.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -509,7 +508,6 @@ export default function ScheduleSearchScreen() {
                     </View>
                     <View className="flex-1">
                       <Text className="text-neutral-900 font-semibold text-lg">{instructor.name}</Text>
-                      <Text className="text-neutral-600 text-sm mb-2">{instructor.email}</Text>
                       
                       <View className="flex-row items-center mb-2">
                         <Star size={16} color="#F59E0B" fill="#F59E0B" />
