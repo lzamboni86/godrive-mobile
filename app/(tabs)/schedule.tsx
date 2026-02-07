@@ -178,7 +178,7 @@ export default function ScheduleScreen() {
               await lessonsService.completeLesson(lessonId);
               await paymentsService.releasePayment(lessonId);
               setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: 'COMPLETED' } : l)));
-              Alert.alert('Sucesso', 'Aula finalizada e pagamento liberado!');
+              Alert.alert('Sucesso', 'Aula finalizada, processo de avaliação e pagamento iniciados');
             } catch (e: any) {
               const apiError = e as ApiError;
               Alert.alert('Erro', apiError?.message || 'Erro ao finalizar aula');

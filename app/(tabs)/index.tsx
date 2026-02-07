@@ -159,7 +159,7 @@ export default function DashboardScreen() {
                 setReleasedBalance((prev) => prev + completedLesson.price);
               }
 
-              showSuccess('Aula finalizada e pagamento liberado!');
+              showSuccess('Aula finalizada, processo de avaliação e pagamento iniciados');
             } catch (error) {
               const apiError = error as ApiError;
               showError(apiError.message || 'Erro ao finalizar aula');
