@@ -98,7 +98,9 @@ export default function StudentAgendaScreen() {
     switch (status) {
       case 'CONFIRMED': return 'Aula aceita';
       case 'ADJUSTMENT_PENDING': return 'Ajuste solicitado';
-      case 'SCHEDULED': return 'Pendente aprovação do instrutor';
+      case 'SCHEDULED': return 'Pendente aceite instrutor';
+      case 'WAITING_APPROVAL': return 'Pendente aceite instrutor';
+      case 'REQUESTED': return 'Pendente aceite instrutor';
       case 'COMPLETED': return 'Concluída';
       case 'CANCELLED': return 'Cancelada';
       default: return status;
@@ -192,6 +194,10 @@ export default function StudentAgendaScreen() {
                       const color = getStatusColor(lesson.status);
                       const canAdjust = canRequestAdjustment(lesson);
                       const within24h = isWithin24Hours(lesson);
+                      const isPendingInstructorAcceptance =
+                        lesson.status === 'WAITING_APPROVAL' ||
+                        lesson.status === 'REQUESTED' ||
+                        lesson.status === 'SCHEDULED';
                       return (
                         <TouchableOpacity
                           key={lesson.id}
@@ -233,6 +239,12 @@ export default function StudentAgendaScreen() {
                             <Clock size={16} color={color === 'neutral' ? '#6B7280' : '#10B981'} />
                             <Text className="ml-2">{formatTime(lesson.time)} - {formatDuration(lesson.duration)} - {lesson.location || 'Local a definir'}</Text>
                           </View>
+
+                          {isPendingInstructorAcceptance && (
+                            <View className="mt-3 bg-amber-100 border border-amber-200 rounded-lg px-3 py-2">
+                              <Text className="text-amber-800 text-xs font-semibold">Pendente aceite instrutor</Text>
+                            </View>
+                          )}
 
                           {lesson.status === 'CONFIRMED' && (
                             <View className="mt-3">

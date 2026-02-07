@@ -35,7 +35,17 @@ export interface Lesson {
   date: string;
   time: string;
   duration: number;
-  status: 'SCHEDULED' | 'CONFIRMED' | 'ADJUSTMENT_PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'EVALUATED' | 'CANCELLED';
+  status:
+    | 'REQUESTED'
+    | 'WAITING_APPROVAL'
+    | 'PENDING_PAYMENT'
+    | 'SCHEDULED'
+    | 'CONFIRMED'
+    | 'ADJUSTMENT_PENDING'
+    | 'IN_PROGRESS'
+    | 'COMPLETED'
+    | 'EVALUATED'
+    | 'CANCELLED';
   price: number;
   location?: string;
   instructor?: {
