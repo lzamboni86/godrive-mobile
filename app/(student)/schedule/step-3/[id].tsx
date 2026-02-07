@@ -347,16 +347,16 @@ export default function ScheduleStep3Screen() {
             <View className="space-y-2">
               <View className="flex-row justify-between">
                 <Text className="text-emerald-700">Aulas ({selectedTimes.length}x)</Text>
-                <Text className="text-emerald-700">R$ {instructor?.hourlyRate || 0}</Text>
+                <Text className="text-emerald-700">R$ {(instructor?.hourlyRate || 0) * selectedTimes.length}</Text>
               </View>
               <View className="flex-row justify-between">
                 <Text className="text-emerald-700">Subtotal</Text>
-                <Text className="text-emerald-700">R$ {totalAmount}</Text>
+                <Text className="text-emerald-700">R$ {(instructor?.hourlyRate || 0) * selectedTimes.length}</Text>
               </View>
               <View className="border-t border-emerald-200 pt-2 mt-2">
                 <View className="flex-row justify-between">
                   <Text className="text-emerald-900 font-semibold">Total</Text>
-                  <Text className="text-emerald-900 font-bold text-lg">R$ {totalAmount}</Text>
+                  <Text className="text-emerald-900 font-bold text-lg">R$ {(instructor?.hourlyRate || 0) * selectedTimes.length}</Text>
                 </View>
               </View>
             </View>
