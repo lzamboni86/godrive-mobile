@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Send, Lock } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +44,7 @@ interface Chat {
 export default function StudentChatScreen() {
   const { user } = useAuth();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
+  const insets = useSafeAreaInsets();
   
   const [chat, setChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -157,11 +158,11 @@ export default function StudentChatScreen() {
   const otherParticipant = getOtherParticipant();
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
       >
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
@@ -187,6 +188,7 @@ export default function StudentChatScreen() {
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1, paddingBottom: 16 }}
+          keyboardShouldPersistTaps="handled"
         >
           {messages.length === 0 ? (
             <View className="flex-1 justify-center items-center py-8">
@@ -237,7 +239,10 @@ export default function StudentChatScreen() {
 
         {/* Input */}
         {canSend && (
-          <View className="px-4 pt-2 pb-4 border-t border-neutral-100">
+          <View
+            className="px-4 pt-2 border-t border-neutral-100"
+            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+          >
             <View className="flex-row items-end space-x-2">
               <View className="flex-1">
                 <TextInput

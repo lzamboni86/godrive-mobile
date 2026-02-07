@@ -5,7 +5,7 @@ import { Send, Lock } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/Button';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Message {
   id: string;
@@ -44,6 +44,7 @@ interface Chat {
 export default function ChatScreen() {
   const { user } = useAuth();
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
+  const insets = useSafeAreaInsets();
   
   const [chat, setChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -146,6 +147,7 @@ export default function ChatScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
       >
         {/* Header */}
         <View className="bg-white border-b border-neutral-200 px-4 pt-8 pb-3">
@@ -178,8 +180,9 @@ export default function ChatScreen() {
       <ScrollView
         ref={scrollViewRef}
         className="flex-1 px-4 py-2"
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 16 }}
         onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+        keyboardShouldPersistTaps="handled"
       >
         {messages.length === 0 ? (
           <View className="flex-1 justify-center items-center py-8">
@@ -221,7 +224,10 @@ export default function ChatScreen() {
 
       {/* Input */}
       {canSend ? (
-        <View className="bg-white border-t border-neutral-200 px-4 py-3">
+        <View
+          className="bg-white border-t border-neutral-200 px-4 py-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+        >
           <View className="flex-row items-center bg-neutral-100 rounded-xl px-4">
             <TextInput
               className="flex-1 py-3 text-neutral-900"
