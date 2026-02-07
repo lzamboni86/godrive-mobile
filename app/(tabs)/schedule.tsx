@@ -127,18 +127,23 @@ export default function ScheduleScreen() {
       
       const lessonsData = Array.isArray(response) ? response : [];
       
-      // Buscar contagem de mensagens não lidas para cada aula
-      const lessonsWithUnread = await Promise.all(
+      // Buscar contagem de mensagens não lidas para cada aula (não crítico, não deve quebrar a agenda)
+      const lessonsWithUnread = await Promise.allSettled(
         lessonsData.map(async (lesson: ScheduledLesson) => {
           try {
             const chatResponse = await api.get(`/chat/lesson/${lesson.id}/unread-count`);
             const unreadCount = (chatResponse as any)?.count || 0;
             return { ...lesson, unreadMessages: unreadCount };
           } catch (error) {
+            // Silenciosamente ignora erro na busca de não lidas para não quebrar a agenda
             console.warn(`Erro ao buscar contagem de não lidas para aula ${lesson.id}:`, error);
             return { ...lesson, unreadMessages: 0 };
           }
         })
+      ).then(results => 
+        results.map(result => 
+          result.status === 'fulfilled' ? result.value : { unreadMessages: 0, ...result.reason }
+        )
       );
       
       setLessons(lessonsWithUnread);
