@@ -54,7 +54,9 @@ export default function ChatListScreen() {
       const lessonsWithChat = response.filter((lesson: Lesson) => 
         lesson.status === 'CONFIRMED' || 
         lesson.status === 'IN_PROGRESS' || 
-        lesson.status === 'COMPLETED'
+        lesson.status === 'COMPLETED' ||
+        lesson.status === 'SCHEDULED' ||
+        lesson.status === 'APPROVED'
       );
       
       setLessons(lessonsWithChat);
