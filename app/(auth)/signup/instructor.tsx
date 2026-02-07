@@ -46,6 +46,7 @@ export default function InstructorSignupScreen() {
 
   const [picker, setPicker] = useState<{ title: string; options: { label: string; value: string }[]; onSelect: (v: string) => void } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
 
   const [ibgeStates, setIbgeStates] = useState<IbgeState[]>([]);
   const [ibgeCities, setIbgeCities] = useState<IbgeCity[]>([]);
@@ -245,6 +246,7 @@ export default function InstructorSignupScreen() {
 
   const openPicker = (title: string, options: { label: string; value: string }[], onSelect: (v: string) => void) => {
     setPicker({ title, options, onSelect });
+    setPickerSearch('');
     setPickerOpen(true);
   };
 
@@ -400,13 +402,34 @@ export default function InstructorSignupScreen() {
                       </TouchableOpacity>
                     </View>
 
-                    <View className="max-h-96">
+                    {/* Campo de busca - só mostra se tiver mais de 10 opções */}
+                    {(picker?.options?.length || 0) > 10 && (
+                      <View className="mb-3">
+                        <TextInput
+                          className="border border-neutral-300 rounded-xl px-4 py-3 text-base text-neutral-900 bg-neutral-50"
+                          placeholder="Buscar..."
+                          placeholderTextColor="#9CA3AF"
+                          value={pickerSearch}
+                          onChangeText={setPickerSearch}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                      </View>
+                    )}
+
+                    <View className="max-h-80">
                       <ScrollView 
                         showsVerticalScrollIndicator={true}
                         indicatorStyle="black"
                         contentContainerStyle={{ paddingBottom: 20 }}
+                        keyboardShouldPersistTaps="handled"
                       >
-                        {(picker?.options || []).map((opt) => (
+                        {(picker?.options || [])
+                          .filter((opt) => 
+                            !pickerSearch || 
+                            opt.label.toLowerCase().includes(pickerSearch.toLowerCase())
+                          )
+                          .map((opt) => (
                           <TouchableOpacity
                             key={`${picker?.title}-${opt.value}`}
                             className="py-4 border-b border-neutral-100"
@@ -419,6 +442,12 @@ export default function InstructorSignupScreen() {
                             <Text className="text-neutral-900 text-base">{opt.label}</Text>
                           </TouchableOpacity>
                         ))}
+                        {(picker?.options || []).filter((opt) => 
+                          !pickerSearch || 
+                          opt.label.toLowerCase().includes(pickerSearch.toLowerCase())
+                        ).length === 0 && (
+                          <Text className="text-neutral-500 text-center py-4">Nenhum resultado encontrado</Text>
+                        )}
                       </ScrollView>
                     </View>
                   </View>
