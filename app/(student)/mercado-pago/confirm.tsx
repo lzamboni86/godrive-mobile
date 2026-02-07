@@ -108,7 +108,7 @@ export default function MercadoPagoConfirmScreen() {
             <View className="flex-row items-start">
               <ShieldCheck size={20} color="#00BFA5" />
               <View className="ml-3 flex-1">
-                <Text className="text-teal-900 font-semibold mb-1">Pagamento seguro</Text>
+                <Text className="text-[#009EE3] font-semibold mb-1">Pagamento seguro</Text>
                 <Text className="text-teal-700 text-sm">
                   Seus dados do cartão estão protegidos por criptografia e não são armazenados.
                 </Text>
@@ -135,17 +135,17 @@ export default function MercadoPagoConfirmScreen() {
           </View>
 
           <TouchableOpacity
-            className="bg-[#00BFA5] rounded-2xl h-14 disabled:opacity-60 disabled:cursor-default active:scale-[0.98] transition-all"
+            className="bg-[#00BFA5] rounded-2xl h-16 disabled:opacity-60 disabled:cursor-default active:scale-[0.98] transition-all"
             onPress={handleContinue}
             disabled={isLoading}
           >
-            <View className="flex-row items-center justify-center h-full">
+            <View className="flex-row items-center justify-center h-full px-4">
               {isLoading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <CreditCard size={20} color="#FFFFFF" />
               )}
-              <Text className="text-white font-semibold text-base ml-2">
+              <Text className="text-white font-semibold text-lg ml-3">
                 {isLoading ? 'Processando...' : 'Confirmar pagamento'}
               </Text>
             </View>

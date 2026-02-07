@@ -38,6 +38,7 @@ export default function MercadoPagoSecureFieldsScreen() {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
   const [isCheckingPix, setIsCheckingPix] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const amount = useMemo(() => {
     const raw = (params.amount || '').toString();
@@ -64,6 +65,19 @@ export default function MercadoPagoSecureFieldsScreen() {
     const status = payment?.status ?? payment?.data?.status;
     return String(status || '').toLowerCase();
   }, []);
+
+  const sendPixByEmail = useCallback(async () => {
+    if (!pixPaymentId) return;
+    setIsSendingEmail(true);
+    try {
+      await api.post('/payments/mercado-pago/pix/send-email', { paymentId: pixPaymentId });
+      Alert.alert('PIX enviado', 'O QR code foi enviado para seu e-mail.');
+    } catch (e: any) {
+      Alert.alert('Erro ao enviar', e?.message || 'Não foi possível enviar o QR code por e-mail.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  }, [pixPaymentId]);
 
   const checkPixPaymentStatus = useCallback(async () => {
     if (!pixPaymentId) return;
@@ -273,7 +287,7 @@ export default function MercadoPagoSecureFieldsScreen() {
           />
 
           {pixPaymentId ? (
-            <View className="absolute left-4 right-4 bottom-4 bg-white border border-neutral-200 rounded-2xl p-4">
+            <View className="absolute left-4 right-4 bottom-24 bg-white border border-neutral-200 rounded-2xl p-4">
               <Text className="text-neutral-900 font-semibold">Já pagou o PIX?</Text>
               <Text className="text-neutral-600 text-sm mt-1">
                 Após concluir o pagamento no seu banco, toque em “Verificar pagamento”.
@@ -287,6 +301,18 @@ export default function MercadoPagoSecureFieldsScreen() {
                   {isCheckingPix ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
                   <Text className="text-white font-semibold text-base ml-2">
                     {isCheckingPix ? 'Verificando...' : 'Verificar pagamento'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="bg-neutral-100 rounded-xl h-12 mt-2 disabled:opacity-60"
+                onPress={sendPixByEmail}
+                disabled={isSendingEmail}
+              >
+                <View className="flex-row items-center justify-center h-full">
+                  {isSendingEmail ? <ActivityIndicator size="small" color="#374151" /> : null}
+                  <Text className="text-neutral-700 font-semibold text-base ml-2">
+                    {isSendingEmail ? 'Enviando...' : 'Enviar QR code por e-mail'}
                   </Text>
                 </View>
               </TouchableOpacity>
