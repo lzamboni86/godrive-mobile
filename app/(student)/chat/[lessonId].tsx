@@ -155,7 +155,7 @@ export default function StudentChatScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
       >
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
