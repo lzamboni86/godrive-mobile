@@ -305,24 +305,26 @@ export function getNeighborhoodsByCity(cityName: string): string[] {
   return COMMON_NEIGHBORHOODS_BY_CITY[cityName] || [];
 }
 
-// Função principal que tenta buscar da lista pré-cadastrada primeiro, depois API IBGE
+// Função principal que busca da API IBGE primeiro (para cobrir todo Brasil)
 export async function getNeighborhoodsByCityDynamic(cityName: string, stateUf: string): Promise<string[]> {
   console.log(`🔍 Buscando bairros para: ${cityName}/${stateUf}`);
   
-  // Primeiro, tentar usar lista pré-cadastrada (mais confiável)
-  const preloaded = COMMON_NEIGHBORHOODS_BY_CITY[cityName];
-  if (preloaded && preloaded.length > 0) {
-    console.log(`✅ Usando lista pré-cadastrada para ${cityName}:`, preloaded);
-    return preloaded;
-  }
-  
-  // Se não tiver lista pré-cadastrada, tentar API IBGE
+  // Tentar API IBGE primeiro (cobertura nacional)
   try {
-    console.log(`📡 Tentando API IBGE para ${cityName}`);
+    console.log(`📡 Buscando na API IBGE para ${cityName}/${stateUf}`);
     return await getNeighborhoodsByCityFromIBGE(cityName, stateUf);
   } catch (error) {
     console.warn(`❌ Falha na API IBGE para ${cityName}:`, error);
+    
+    // Fallback: lista pré-cadastrada (apenas para cidades principais)
+    const preloaded = COMMON_NEIGHBORHOODS_BY_CITY[cityName];
+    if (preloaded && preloaded.length > 0) {
+      console.log(`✅ Usando lista pré-cadastrada para ${cityName}:`, preloaded);
+      return preloaded;
+    }
+    
     // Último fallback: lista vazia
+    console.log(`❌ Nenhum bairro encontrado para ${cityName}`);
     return [];
   }
 }
