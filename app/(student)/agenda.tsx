@@ -212,8 +212,8 @@ export default function StudentAgendaScreen() {
                                 {lesson.instructor?.name || 'Instrutor'}
                               </Text>
                             </View>
-                            <View className="flex-row items-center">
-                              <View className={`bg-${color}-500 px-2 py-1 rounded-full mr-2`}>
+                            <View className="items-end">
+                              <View className={`bg-${color}-500 px-2 py-1 rounded-full mb-1`}>
                                 <Text className="text-white text-xs font-medium">
                                   {getStatusText(lesson.status)}
                                 </Text>
@@ -224,9 +224,10 @@ export default function StudentAgendaScreen() {
                                     e.stopPropagation();
                                     openChat(lesson.id);
                                   }}
-                                  className="bg-emerald-500 p-2 rounded-full"
+                                  className="flex-row items-center bg-emerald-500 px-3 py-1 rounded-full"
                                 >
-                                  <MessageCircle size={16} color="white" />
+                                  <MessageCircle size={14} color="white" />
+                                  <Text className="text-white text-xs font-medium ml-1">Chat</Text>
                                 </TouchableOpacity>
                               )}
                             </View>
