@@ -136,23 +136,20 @@ export default function LoginScreen() {
 
           {/* Footer */}
           <View className="mt-auto pt-8">
-            <View className="flex-row justify-center space-x-4 mb-4">
-              <Button
-                variant="ghost"
-                onPress={() => router.push('/(auth)/privacy-policy' as any)}
-                className="p-0"
-              >
-                <Text className="text-brand-primary text-xs underline">Política de Privacidade</Text>
-              </Button>
-              <Text className="text-neutral-400 text-xs">•</Text>
-              <Button
-                variant="ghost"
-                onPress={() => router.push('/(auth)/terms-of-use' as any)}
-                className="p-0"
-              >
-                <Text className="text-brand-primary text-xs underline">Termo de uso</Text>
-              </Button>
-            </View>
+            <Button
+              variant="ghost"
+              onPress={() => router.push('/(auth)/privacy-policy' as any)}
+              className="mb-2"
+            >
+              <Text className="text-brand-primary text-xs underline">Política de Privacidade</Text>
+            </Button>
+            <Button
+              variant="ghost"
+              onPress={() => router.push('/(auth)/terms-of-use' as any)}
+              className="mb-4"
+            >
+              <Text className="text-brand-primary text-xs underline">Termo de uso</Text>
+            </Button>
             <Text className="text-center text-neutral-400 text-xs">
               Go Drive Group
             </Text>
