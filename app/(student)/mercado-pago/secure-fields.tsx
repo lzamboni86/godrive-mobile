@@ -61,8 +61,8 @@ export default function MercadoPagoSecureFieldsScreen() {
     router.back();
   }, []);
 
-  const applyWebViewBottomPadding = useCallback((enabled: boolean) => {
-    const padding = enabled ? 260 : 0;
+  const applyWebViewBottomPadding = useCallback((_enabled: boolean) => {
+    const padding = 0;
     const js = `
       (function () {
         try {
