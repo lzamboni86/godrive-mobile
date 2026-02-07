@@ -40,3 +40,10 @@ yarn-error.*
 
 expo-env.d.ts
 # @end expo-cli
+
+# Local/temp assets (keep repo clean)
+assets/images/*_old.png
+assets/images/*_old.jpg
+assets/images/logo-app.png
+assets/images/icon.jpg
+assets/images/adaptive-icon.jpg
