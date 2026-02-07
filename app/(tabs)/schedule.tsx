@@ -70,10 +70,41 @@ export default function ScheduleScreen() {
     return { label: s || 'Status', bg: 'bg-neutral-100', text: 'text-neutral-600' };
   }, []);
 
-  const canCompleteLesson = useCallback((status?: string) => {
-    const s = String(status || '').toUpperCase();
-    return s === 'CONFIRMED' || s === 'IN_PROGRESS' || s === 'APPROVED' || s === 'SCHEDULED';
+  const getLessonDateTime = useCallback((lesson: Pick<ScheduledLesson, 'lessonDate' | 'lessonTime'>) => {
+    try {
+      const date = new Date(String(lesson.lessonDate));
+      const rawTime = String(lesson.lessonTime || '');
+      if (rawTime.includes('T')) {
+        const timeDate = new Date(rawTime);
+        if (!Number.isNaN(timeDate.getTime()) && !Number.isNaN(date.getTime())) {
+          date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
+          return date;
+        }
+      }
+
+      const match = rawTime.match(/(\d{2}):(\d{2})/);
+      if (match && !Number.isNaN(date.getTime())) {
+        const hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        date.setHours(hours, minutes, 0, 0);
+        return date;
+      }
+
+      return date;
+    } catch {
+      return null;
+    }
   }, []);
+
+  const canCompleteLesson = useCallback((status?: string, lesson?: ScheduledLesson) => {
+    const s = String(status || '').toUpperCase();
+    const statusOk = s === 'CONFIRMED' || s === 'IN_PROGRESS' || s === 'APPROVED' || s === 'SCHEDULED';
+    if (!statusOk || !lesson) return false;
+
+    const dateTime = getLessonDateTime(lesson);
+    if (!dateTime) return false;
+    return dateTime.getTime() <= Date.now();
+  }, [getLessonDateTime]);
 
   useEffect(() => {
     loadSchedule();
@@ -230,7 +261,7 @@ export default function ScheduleScreen() {
                       <Text className="text-neutral-700 text-sm font-medium ml-2">Chat</Text>
                     </TouchableOpacity>
 
-                    {canCompleteLesson(lesson.status) ? (
+                    {canCompleteLesson(lesson.status, lesson) ? (
                       <TouchableOpacity
                         className={`flex-row items-center px-4 py-2 rounded-full ${
                           completingLessonId === lesson.id ? 'bg-emerald-300' : 'bg-emerald-500'
