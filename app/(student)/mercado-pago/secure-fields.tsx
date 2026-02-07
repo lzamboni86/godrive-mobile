@@ -102,10 +102,7 @@ export default function MercadoPagoSecureFieldsScreen() {
       const status = extractPaymentStatus(payment);
 
       if (status === 'approved') {
-        router.replace({
-          pathname: '/(student)/schedule/success' as any,
-          params: { collection_status: 'approved' },
-        });
+        router.replace('/(student)/agenda' as any);
         return;
       }
 
@@ -137,10 +134,7 @@ export default function MercadoPagoSecureFieldsScreen() {
 
         if (status === 'approved') {
           clearInterval(timer);
-          router.replace({
-            pathname: '/(student)/schedule/success' as any,
-            params: { collection_status: 'approved' },
-          });
+          router.replace('/(student)/agenda' as any);
           return;
         }
 
