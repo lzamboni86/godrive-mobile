@@ -1,14 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Modal, ActivityIndicator } from 'react-native';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Modal, ActivityIndicator, Keyboard } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft, User, Mail, Phone, FileText, Car, Lock, Check, Eye, EyeOff, MapPin } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { getIbgeCitiesByUf, getIbgeStates, IbgeCity, IbgeState, getNeighborhoodsByCityDynamic } from '@/services/ibge';
 import { getFipeMarcas, getFipeModelos, FipeMarca, FipeModelo } from '@/services/fipe';
+import { fetchAddressByCep, isValidCepFormat, formatCep } from '@/services/viacep';
+
 export default function InstructorSignupScreen() {
   
+  const insets = useSafeAreaInsets();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -55,6 +59,14 @@ export default function InstructorSignupScreen() {
   const [isLoadingMarcas, setIsLoadingMarcas] = useState(false);
   const [isLoadingModelos, setIsLoadingModelos] = useState(false);
   const [selectedMarcaCodigo, setSelectedMarcaCodigo] = useState<string>('');
+
+  // Estados para busca de CEP
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+  const [cepError, setCepError] = useState('');
+  const numberInputRef = useRef<TextInput>(null);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const stateLabel = useMemo(() => {
     if (!state) return '';
@@ -166,6 +178,70 @@ export default function InstructorSignupScreen() {
     }
   }, [selectedMarcaCodigo]);
 
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates?.height ?? 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  // Busca automática de endereço pelo CEP
+  useEffect(() => {
+    const cleanCep = addressZipCode.replace(/\D/g, '');
+    
+    if (cleanCep.length !== 8) {
+      setCepError('');
+      return;
+    }
+
+    const fetchAddress = async () => {
+      setIsLoadingCep(true);
+      setCepError('');
+      
+      try {
+        const address = await fetchAddressByCep(cleanCep);
+        
+        if (address) {
+          setAddressStreet(address.street);
+          setNeighborhoodReside(address.neighborhood);
+          setCity(address.city);
+          setState(address.state);
+          
+          // Carregar cidades do estado para manter consistência
+          if (address.state) {
+            loadCities(address.state);
+          }
+          
+          // Focar no campo número após preencher
+          setTimeout(() => {
+            numberInputRef.current?.focus();
+          }, 100);
+        } else {
+          // CEP não encontrado - limpar campos
+          setAddressStreet('');
+          setCepError('CEP não encontrado');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        setCepError('Erro ao buscar CEP');
+      } finally {
+        setIsLoadingCep(false);
+      }
+    };
+
+    fetchAddress();
+  }, [addressZipCode]);
+
   const openPicker = (title: string, options: { label: string; value: string }[], onSelect: (v: string) => void) => {
     setPicker({ title, options, onSelect });
     setPickerOpen(true);
@@ -274,7 +350,11 @@ export default function InstructorSignupScreen() {
       className="flex-1 bg-white"
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        ref={scrollViewRef}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: 24 + Math.max(insets.bottom, 16) + keyboardHeight,
+        }}
         keyboardShouldPersistTaps="handled"
       >
         <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -396,7 +476,7 @@ export default function InstructorSignupScreen() {
 
               {/* CPF */}
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">CPF (Opcional)</Text>
+                <Text className="text-sm font-medium text-neutral-700 mb-2">CPF</Text>
                 <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
                   <FileText size={20} color="#6B7280" />
                   <TextInput
@@ -412,9 +492,9 @@ export default function InstructorSignupScreen() {
 
               {/* CEP */}
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">CEP (Opcional)</Text>
-                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
-                  <MapPin size={20} color="#6B7280" />
+                <Text className="text-sm font-medium text-neutral-700 mb-2">CEP</Text>
+                <View className={`flex-row items-center border rounded-xl px-4 bg-neutral-50 ${cepError ? 'border-red-400' : 'border-neutral-300'}`}>
+                  <MapPin size={20} color={cepError ? '#F87171' : '#6B7280'} />
                   <TextInput
                     className="flex-1 py-4 px-3 text-base text-neutral-900"
                     placeholder="00000-000"
@@ -422,13 +502,20 @@ export default function InstructorSignupScreen() {
                     keyboardType="number-pad"
                     value={addressZipCode}
                     onChangeText={setAddressZipCode}
+                    maxLength={9}
                   />
+                  {isLoadingCep && <ActivityIndicator size="small" color="#3B82F6" />}
                 </View>
+                {cepError ? (
+                  <Text className="text-red-500 text-xs mt-1">{cepError}</Text>
+                ) : (
+                  <Text className="text-neutral-500 text-xs mt-1">Digite o CEP para preencher o endereço automaticamente</Text>
+                )}
               </View>
 
               {/* Rua */}
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Rua (Opcional)</Text>
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Rua</Text>
                 <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
                   <MapPin size={20} color="#6B7280" />
                   <TextInput
@@ -443,10 +530,11 @@ export default function InstructorSignupScreen() {
 
               {/* Número */}
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Número (Opcional)</Text>
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Número</Text>
                 <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
                   <MapPin size={20} color="#6B7280" />
                   <TextInput
+                    ref={numberInputRef}
                     className="flex-1 py-4 px-3 text-base text-neutral-900"
                     placeholder="123"
                     placeholderTextColor="#9CA3AF"
@@ -869,6 +957,11 @@ export default function InstructorSignupScreen() {
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 50);
+                    }}
                   />
                   <Button
                     variant="ghost"
@@ -896,6 +989,11 @@ export default function InstructorSignupScreen() {
                     secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 50);
+                    }}
                   />
                   <Button
                     variant="ghost"

@@ -46,16 +46,11 @@ export default function LoginScreen() {
           {/* Logo Section */}
           <View className="items-center mb-12">
             <View className="w-40 h-40 bg-white rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
-              <View className="items-center">
-                <View className="w-24 h-24 bg-brand-primary rounded-xl items-center justify-center mb-3">
-                  <Text className="text-white text-4xl font-bold">GD</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <View className="w-10 h-1 bg-brand-primary rounded-full mr-1"></View>
-                  <View className="w-3 h-3 bg-brand-primary rounded-full"></View>
-                  <View className="w-10 h-1 bg-brand-primary rounded-full ml-1"></View>
-                </View>
-              </View>
+              <Image 
+                source={require('@/assets/images/icon.png')}
+                className="w-32 h-32 rounded-xl"
+                resizeMode="contain"
+              />
             </View>
             <Text className="text-2xl font-bold text-neutral-900 tracking-wide">GO DRIVE</Text>
           </View>

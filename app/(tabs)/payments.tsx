@@ -90,18 +90,18 @@ export default function PaymentsScreen() {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.instructorId) {
       loadPayments();
     }
-  }, [user?.id]);
+  }, [user?.instructorId]);
 
   const loadPayments = async () => {
     try {
-      if (!user?.id) return;
+      if (!user?.instructorId) return;
       setIsLoading(true);
       const [paymentsData, summaryData] = await Promise.all([
-        api.get<any[]>(`/instructor/${user.id}/payments`),
-        api.get<any>(`/instructor/${user.id}/payments/summary`)
+        api.get<any[]>(`/instructor/${user.instructorId}/payments`),
+        api.get<any>(`/instructor/${user.instructorId}/payments/summary`)
       ]);
 
       const paymentsPayload = Array.isArray(paymentsData)

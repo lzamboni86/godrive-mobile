@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { User, UserRole } from '@/types';
 import authService, { LoginCredentials, AuthResponse } from '@/services/auth';
+import { instructorService } from '@/services/instructor';
 
 interface AuthContextData {
   user: User | null;
@@ -35,6 +36,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (session) {
         setUser(session.user);
         setToken(session.accessToken);
+
+        if (session.user?.role === UserRole.INSTRUCTOR && !session.user?.instructorId) {
+          try {
+            const profile = (await instructorService.getProfile(session.user.id)) as any;
+            const instructorId = String(profile?.instructor?.id || '');
+            if (instructorId) {
+              const updatedUser = { ...session.user, instructorId };
+              setUser(updatedUser);
+              authService.updateStoredUser(updatedUser).catch(() => {});
+            }
+          } catch {
+            // ignore
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading stored session:', error);

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, ActivityIndicator, Keyboard, Alert } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Mail, Phone, Lock, ArrowLeft, GraduationCap, Eye, EyeOff, MapPin, FileText } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,10 +8,12 @@ import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Toast, useToast } from '@/components/ui/Toast';
 import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
+import { fetchAddressByCep } from '@/services/viacep';
 
 export default function StudentSignupScreen() {
   const { signIn } = useAuth();
   const { toast, showToast, hideToast } = useToast();
+  const insets = useSafeAreaInsets();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,6 +31,73 @@ export default function StudentSignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Estados para busca de CEP
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+  const [cepError, setCepError] = useState('');
+  const numberInputRef = useRef<TextInput>(null);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates?.height ?? 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  // Busca automática de endereço pelo CEP
+  useEffect(() => {
+    const cleanCep = addressZipCode.replace(/\D/g, '');
+    
+    if (cleanCep.length !== 8) {
+      setCepError('');
+      return;
+    }
+
+    const fetchAddress = async () => {
+      setIsLoadingCep(true);
+      setCepError('');
+      
+      try {
+        const address = await fetchAddressByCep(cleanCep);
+        
+        if (address) {
+          setAddressStreet(address.street);
+          setAddressNeighborhood(address.neighborhood);
+          setAddressCity(address.city);
+          setAddressState(address.state);
+          
+          // Focar no campo número após preencher
+          setTimeout(() => {
+            numberInputRef.current?.focus();
+          }, 100);
+        } else {
+          // CEP não encontrado - limpar campos
+          setAddressStreet('');
+          setCepError('CEP não encontrado');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar CEP:', error);
+        setCepError('Erro ao buscar CEP');
+      } finally {
+        setIsLoadingCep(false);
+      }
+    };
+
+    fetchAddress();
+  }, [addressZipCode]);
 
   async function handleSignup() {
     console.log('🔐 Student Signup - Dados:', { name, email, phone, cpf: cpf.trim() || undefined, password: '***' });
@@ -72,12 +141,30 @@ export default function StudentSignupScreen() {
         addressComplement: addressComplement.trim() || undefined,
         password,
       });
-      
-      // Auto login após cadastro
-      await signIn({ email: email.trim(), password });
-      
-      showToast('Cadastro realizado com sucesso!', 'success');
-      router.replace('/(student)/agenda');
+
+      const studentName = name.trim() || 'Aluno';
+      Alert.alert(
+        'Cadastro concluído',
+        `Cadastro concluído com sucesso!\nSeja bem-vindo(a), ${studentName}.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              (async () => {
+                try {
+                  setIsLoading(true);
+                  await signIn({ email: email.trim(), password });
+                  router.replace('/(student)' as any);
+                } catch (e: any) {
+                  Alert.alert('Erro', e?.message || 'Erro ao fazer login. Tente novamente.');
+                } finally {
+                  setIsLoading(false);
+                }
+              })();
+            },
+          },
+        ]
+      );
     } catch (error: any) {
       showToast(error.message || 'Erro ao cadastrar. Tente novamente.', 'error');
     } finally {
@@ -91,7 +178,11 @@ export default function StudentSignupScreen() {
       className="flex-1 bg-white"
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        ref={scrollViewRef}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: 24 + Math.max(insets.bottom, 16) + keyboardHeight,
+        }}
         keyboardShouldPersistTaps="handled"
       >
         <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -190,8 +281,8 @@ export default function StudentSignupScreen() {
 
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-700 mb-2">CEP</Text>
-                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
-                  <MapPin size={20} color="#6B7280" />
+                <View className={`flex-row items-center border rounded-xl px-4 bg-neutral-50 ${cepError ? 'border-red-400' : 'border-neutral-300'}`}>
+                  <MapPin size={20} color={cepError ? '#F87171' : '#6B7280'} />
                   <TextInput
                     className="flex-1 py-4 px-3 text-base text-neutral-900"
                     placeholder="00000-000"
@@ -199,8 +290,15 @@ export default function StudentSignupScreen() {
                     keyboardType="number-pad"
                     value={addressZipCode}
                     onChangeText={setAddressZipCode}
+                    maxLength={9}
                   />
+                  {isLoadingCep && <ActivityIndicator size="small" color="#10B981" />}
                 </View>
+                {cepError ? (
+                  <Text className="text-red-500 text-xs mt-1">{cepError}</Text>
+                ) : (
+                  <Text className="text-neutral-500 text-xs mt-1">Digite o CEP para preencher o endereço automaticamente</Text>
+                )}
               </View>
 
               <View className="mb-4">
@@ -222,6 +320,7 @@ export default function StudentSignupScreen() {
                 <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
                   <MapPin size={20} color="#6B7280" />
                   <TextInput
+                    ref={numberInputRef}
                     className="flex-1 py-4 px-3 text-base text-neutral-900"
                     placeholder="123"
                     placeholderTextColor="#9CA3AF"
@@ -301,6 +400,11 @@ export default function StudentSignupScreen() {
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 50);
+                    }}
                   />
                   <Button
                     variant="ghost"
@@ -328,6 +432,11 @@ export default function StudentSignupScreen() {
                     secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 50);
+                    }}
                   />
                   <Button
                     variant="ghost"

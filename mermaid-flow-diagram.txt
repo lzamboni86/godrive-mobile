@@ -1,0 +1,92 @@
+graph TD
+    %% Estilo dos Componentes
+    classDef student fill:#10B981,fill-opacity:0.1,stroke:#10B981,stroke-width:2px,color:#064E3B
+    classDef instructor fill:#059669,fill-opacity:0.1,stroke:#059669,stroke-width:2px,color:#064E3B
+    classDef admin fill:#047857,fill-opacity:0.1,stroke:#047857,stroke-width:2px,color:#064E3B
+    classDef app fill:#F3F4F6,stroke:#6B7280,stroke-width:2px,color:#111827
+    classDef backend fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px,color:#78350F
+    classDef payment fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A
+    classDef database fill:#EDE9FE,stroke:#8B5CF6,stroke-width:2px,color:#4C1D95
+    classDef security fill:#FEE2E2,stroke:#EF4444,stroke-width:2px,color:#7F1D1D
+    classDef process fill:#D1FAE5,stroke:#10B981,stroke-width:2px,color:#064E3B
+
+    %% Atores
+    S[👨‍🎓 Estudante\naluno@gmail.com]:::student
+    I[👨‍🏫 Instrutor\ninstrutor@gmail.com]:::instructor
+    A[👤 Administrador]:::admin
+
+    %% Sistema
+    APP[📱 Go Drive App]:::app
+    BACKEND[🖥️ Backend Render]:::backend
+    DB[🗄️ Banco Neon]:::database
+    MP[💳 Mercado Pago]:::payment
+
+    %% Segurança
+    CPF[🔍 Validação CPF]:::security
+    TOKEN[🔐 Tokenização]:::security
+
+    %% Processos
+    TAX[💰 Taxa 12% Delta Pro]:::process
+    ESCROW[🔒 Sistema Escrow]:::process
+    RELEASE[💸 Liberação Pagamento]:::process
+
+    %% Status Aula
+    PENDING[⏳ PENDING_PAYMENT]:::process
+    CONFIRMED[✅ CONFIRMED]:::process
+    INPROGRESS[🚗 IN_PROGRESS]:::process
+    COMPLETED[🎯 COMPLETED]:::process
+
+    %% Fluxo Principal
+    S -->|1. Busca Instrutor|APP
+    S -->|2. Dados Cartão|TOKEN
+    TOKEN -->|3. Tokenização Segura|APP
+    APP -->|4. Cria Preferência|MP
+    MP -->|5. Processamento|MP
+    MP -->|6. Webhook Confirmação|BACKEND
+
+    %% Validação
+    APP -->|Validação CPF|CPF
+    CPF -->|LGPD Check|BACKEND
+    BACKEND -->|Dados Seguros|DB
+
+    %% Lógica Financeira
+    BACKEND -->|Grava Transação|DB
+    BACKEND -->|Calcula Taxa|TAX
+    TAX -->|12% Platform Fee|BACKEND
+    BACKEND -->|Divide Saldo|ESCROW
+
+    %% Fluxo Carteira Aluno
+    ESCROW -->|Crédito Bloqueado|DB
+    DB -->|Saldo: Bloqueado|S
+
+    %% Fluxo Pagamento Instrutor
+    ESCROW -->|Saldo Retido|DB
+    DB -->|Saldo: Disponível|I
+
+    %% Ciclo Vida Aula
+    APP -->|Agendamento|PENDING
+    PENDING -->|Pagamento OK|CONFIRMED
+    CONFIRMED -->|Início Aula|INPROGRESS
+    INPROGRESS -->|Aula Concluída|COMPLETED
+
+    %% Liberação Financeira
+    COMPLETED -->|Trigger Liberação|RELEASE
+    RELEASE -->|Desbloqueia Saldo|DB
+    DB -->|Saldo Liberado|I
+    DB -->|Saldo Utilizado|S
+
+    %% Administração
+    A -->|Monitoramento|BACKEND
+    A -->|Relatórios|DB
+    BACKEND -->|Dashboard|A
+
+    %% Comunicação
+    I -->|Aceita/Rejeita|APP
+    APP -->|Atualização Status|BACKEND
+    BACKEND -->|Notificação|S
+    BACKEND -->|Notificação|I
+
+    %% Integrações
+    MP -.->|API REST|BACKEND
+    BACKEND -.->|Webhooks|MP
+    BACKEND -.->|SQL|DB

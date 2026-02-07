@@ -14,7 +14,7 @@ import { usePendingRequests } from '@/hooks/usePendingRequests';
 
 export default function DashboardScreen() {
   const { user } = useAuth();
-  const instructorId = user?.id || 'unknown';
+  const instructorId = user?.instructorId || '';
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [releasedBalance, setReleasedBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +25,12 @@ export default function DashboardScreen() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
+      if (!instructorId) {
+        setLessons([]);
+        setReleasedBalance(0);
+        return;
+      }
+
       const [lessonsData, balanceData] = await Promise.all([
         lessonsService.getConfirmedLessons(instructorId),
         paymentsService.getReleasedBalance(instructorId),

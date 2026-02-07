@@ -1,0 +1,220 @@
+{
+  "summary": {
+    "total": 30,
+    "success": 16,
+    "fail": 0,
+    "info": 14
+  },
+  "details": [
+    {
+      "step": "Criar aluno",
+      "status": "INFO",
+      "message": "Iniciando criação de aluno",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:45.673Z"
+    },
+    {
+      "step": "Criar aluno",
+      "status": "SUCCESS",
+      "message": "Aluno registrado com sucesso",
+      "data": "{\n  \"user\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\",\n    \"name\": \"Aluno Teste E2E\",\n    \"phone\": \"11999999999\",\n    \"role\": \"STUDENT\",\n    \"cpf\": \"72442841282\",\n    \"addressStreet\": null,\n    \"addressNumber\": null,\n    \"addressZipCode\": null,\n    \"addressNeighborhood\": null,\n    \"addressCity\": null,\n    \"addressState\": null,\n    \"addressComplement\": null,\n    \"createdAt\": \"2026-02-01T21:06:46.522Z\",\n    \"updatedAt\": \"2026-02-01T21:06:46.522Z\"\n  },\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbWw0OGU5bzkwMDAwMnBoNDZzZHAxMTRrIiwiZW1haWwiOiJhbHVuby5lMmUuMTc2OTk4MDAwNTY3M0B0ZXN0LmNvbSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzY5OTgwMDA2LCJleHAiOjE3NzA1ODQ4MDZ9.U9SAnXwj56Y3e0rU0NO0M-Gh2MGUrtyMjk4SlIKRkkA\"\n}",
+      "timestamp": "2026-02-01T21:06:46.821Z"
+    },
+    {
+      "step": "Criar aluno",
+      "status": "SUCCESS",
+      "message": "Login do aluno realizado",
+      "data": "{\n  \"userId\": \"cml48e9o900002ph46sdp114k\"\n}",
+      "timestamp": "2026-02-01T21:06:47.317Z"
+    },
+    {
+      "step": "Criar instrutor",
+      "status": "INFO",
+      "message": "Iniciando criação de instrutor",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:47.831Z"
+    },
+    {
+      "step": "Criar instrutor",
+      "status": "SUCCESS",
+      "message": "Instrutor registrado com sucesso",
+      "data": "{\n  \"message\": \"Cadastro recebido com sucesso! Aguardando aprovação administrativa.\",\n  \"user\": {\n    \"id\": \"cml48eay700012ph4x0jpjyty\",\n    \"email\": \"instrutor.e2e.1769980007831@test.com\",\n    \"name\": \"Instrutor Teste E2E\",\n    \"phone\": \"11888888888\",\n    \"role\": \"INSTRUCTOR\",\n    \"cpf\": \"61152311590\",\n    \"addressStreet\": \"Rua Teste\",\n    \"addressNumber\": \"123\",\n    \"addressZipCode\": \"01234567\",\n    \"addressNeighborhood\": \"Bairro Teste\",\n    \"addressCity\": \"São Paulo\",\n    \"addressState\": \"SP\",\n    \"addressComplement\": null,\n    \"createdAt\": \"2026-02-01T21:06:48.176Z\",\n    \"updatedAt\": \"2026-02-01T21:06:48.176Z\"\n  }\n}",
+      "timestamp": "2026-02-01T21:06:48.905Z"
+    },
+    {
+      "step": "Criar instrutor",
+      "status": "INFO",
+      "message": "Login do instrutor ainda indisponível (aguardando aprovação)",
+      "data": "\"HTTP 401: {\\\"message\\\":\\\"Seu cadastro como instrutor ainda está em análise. Aguarde a aprovação administrativa.\\\",\\\"error\\\":\\\"Unauthorized\\\",\\\"statusCode\\\":401}\"",
+      "timestamp": "2026-02-01T21:06:49.248Z"
+    },
+    {
+      "step": "Aprovar instrutor",
+      "status": "INFO",
+      "message": "Buscando instrutores pendentes",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:49.765Z"
+    },
+    {
+      "step": "Aprovar instrutor",
+      "status": "SUCCESS",
+      "message": "Instrutor aprovado com sucesso",
+      "data": "{\n  \"message\": \"Instrutor aprovado com sucesso\",\n  \"instructorId\": \"cml48eay700012ph4x0jpjyty\"\n}",
+      "timestamp": "2026-02-01T21:06:50.966Z"
+    },
+    {
+      "step": "Aprovar instrutor",
+      "status": "SUCCESS",
+      "message": "Login atualizado após aprovação",
+      "data": "{\n  \"instructorId\": \"cml48eb2a00032ph45cckjdt3\"\n}",
+      "timestamp": "2026-02-01T21:06:51.311Z"
+    },
+    {
+      "step": "Agendar aula",
+      "status": "INFO",
+      "message": "Buscando instrutores aprovados",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:51.813Z"
+    },
+    {
+      "step": "Agendar aula",
+      "status": "SUCCESS",
+      "message": "Agendamento criado",
+      "data": "{\n  \"id\": \"cml48ef0o00072ph4rup713ko\",\n  \"lessonIds\": [\n    \"cml48ef0o00072ph4rup713ko\"\n  ],\n  \"message\": \"Solicitação criada com sucesso\"\n}",
+      "timestamp": "2026-02-01T21:06:54.901Z"
+    },
+    {
+      "step": "Simular pagamento MP",
+      "status": "INFO",
+      "message": "Enviando webhook simulado de pagamento aprovado",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:54.901Z"
+    },
+    {
+      "step": "Simular pagamento MP",
+      "status": "SUCCESS",
+      "message": "Aula movida para WAITING_APPROVAL (simulação)",
+      "data": "{\n  \"id\": \"cml48ef0o00072ph4rup713ko\",\n  \"studentId\": \"cml48e9o900002ph46sdp114k\",\n  \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n  \"vehicleId\": null,\n  \"status\": \"WAITING_APPROVAL\",\n  \"lessonDate\": \"2026-02-01T00:00:00.000Z\",\n  \"lessonTime\": \"1970-01-01T13:00:00.000Z\",\n  \"proposedLessonDate\": null,\n  \"proposedLessonTime\": null,\n  \"payoutStatus\": \"PENDING\",\n  \"receiptUrl\": null,\n  \"createdAt\": \"2026-02-01T21:06:53.449Z\",\n  \"updatedAt\": \"2026-02-01T21:06:54.905Z\",\n  \"student\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\",\n    \"passwordHash\": \"$2b$10$K5LBLh6rvu7ZP4dh7oF4teRBzJiSuCCjPFTuDizj7B5L/emqkV9y.\",\n    \"role\": \"STUDENT\",\n    \"name\": \"Aluno Teste E2E\",\n    \"phone\": \"11999999999\",\n    \"avatar\": null,\n    \"expoPushToken\": null,\n    \"cpf\": \"72442841282\",\n    \"addressStreet\": null,\n    \"addressNumber\": null,\n    \"addressZipCode\": null,\n    \"addressNeighborhood\": null,\n    \"addressCity\": null,\n    \"addressState\": null,\n    \"addressComplement\": null,\n    \"createdAt\": \"2026-02-01T21:06:46.522Z\",\n    \"updatedAt\": \"2026-02-01T21:06:46.522Z\"\n  },\n  \"instructor\": {\n    \"id\": \"cml48eb2a00032ph45cckjdt3\",\n    \"userId\": \"cml48eay700012ph4x0jpjyty\",\n    \"gender\": \"MALE\",\n    \"licenseCategories\": [\n      \"B\"\n    ],\n    \"status\": \"APPROVED\",\n    \"hourlyRate\": 100,\n    \"pixKey\": null,\n    \"averageRating\": 0,\n    \"totalReviews\": 0,\n    \"city\": \"São Paulo\",\n    \"state\": \"SP\",\n    \"neighborhoodReside\": null,\n    \"neighborhoodTeach\": \"Bairro Teste\",\n    \"bio\": null,\n    \"completedLessonsCount\": 0,\n    \"rating\": 0,\n    \"createdAt\": \"2026-02-01T21:06:48.322Z\",\n    \"updatedAt\": \"2026-02-01T21:06:50.651Z\"\n  },\n  \"vehicle\": null\n}",
+      "timestamp": "2026-02-01T21:06:56.068Z"
+    },
+    {
+      "step": "Aprovar aula",
+      "status": "INFO",
+      "message": "Buscando solicitações do instrutor",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:56.581Z"
+    },
+    {
+      "step": "Aprovar aula",
+      "status": "SUCCESS",
+      "message": "Aula aprovada",
+      "data": "{\n  \"message\": \"Aula aprovada com sucesso\",\n  \"lesson\": {\n    \"id\": \"cml48ef0o00072ph4rup713ko\",\n    \"studentId\": \"cml48e9o900002ph46sdp114k\",\n    \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n    \"vehicleId\": null,\n    \"status\": \"CONFIRMED\",\n    \"lessonDate\": \"2026-02-01T00:00:00.000Z\",\n    \"lessonTime\": \"1970-01-01T13:00:00.000Z\",\n    \"proposedLessonDate\": null,\n    \"proposedLessonTime\": null,\n    \"payoutStatus\": \"PENDING\",\n    \"receiptUrl\": null,\n    \"createdAt\": \"2026-02-01T21:06:53.449Z\",\n    \"updatedAt\": \"2026-02-01T21:06:57.465Z\",\n    \"payment\": {\n      \"id\": \"cml48ef0o00082ph4otj4ew8f\",\n      \"lessonId\": \"cml48ef0o00072ph4rup713ko\",\n      \"status\": \"PENDING\",\n      \"amount\": \"100\",\n      \"currency\": \"BRL\",\n      \"mercadoPagoId\": null,\n      \"mercadoPagoStatus\": null,\n      \"mercadoPagoPaymentId\": null,\n      \"mercadoPagoPreferenceId\": null,\n      \"mercadoPagoMerchantOrderId\": null,\n      \"mercadoPagoApprovedAt\": null,\n      \"mercadoPagoNotificationUrl\": null,\n      \"createdAt\": \"2026-02-01T21:06:53.449Z\",\n      \"updatedAt\": \"2026-02-01T21:06:53.449Z\",\n      \"releasedAt\": null,\n      \"refundedAt\": null\n    }\n  }\n}",
+      "timestamp": "2026-02-01T21:06:59.365Z"
+    },
+    {
+      "step": "Ver agenda aluno",
+      "status": "INFO",
+      "message": "Buscando aulas do aluno",
+      "data": null,
+      "timestamp": "2026-02-01T21:06:59.881Z"
+    },
+    {
+      "step": "Ver agenda aluno",
+      "status": "SUCCESS",
+      "message": "Aula encontrada na agenda do aluno",
+      "data": "{\n  \"id\": \"cml48ef0o00072ph4rup713ko\",\n  \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n  \"studentId\": \"cml48e9o900002ph46sdp114k\",\n  \"date\": \"2026-02-01T00:00:00.000Z\",\n  \"time\": \"1970-01-01T13:00:00.000Z\",\n  \"duration\": 2,\n  \"status\": \"CONFIRMED\",\n  \"price\": 100,\n  \"location\": \"Local a definir\",\n  \"instructor\": {\n    \"name\": \"instrutor.e2e.1769980007831\",\n    \"email\": \"instrutor.e2e.1769980007831@test.com\"\n  }\n}",
+      "timestamp": "2026-02-01T21:07:00.940Z"
+    },
+    {
+      "step": "Chat aluno envia",
+      "status": "INFO",
+      "message": "Enviando mensagem do aluno",
+      "data": null,
+      "timestamp": "2026-02-01T21:07:01.447Z"
+    },
+    {
+      "step": "Chat aluno envia",
+      "status": "SUCCESS",
+      "message": "Mensagem enviada",
+      "data": "{\n  \"id\": \"cml48epmz000c2ph4qdn4b4qv\",\n  \"chatId\": \"cml48em17000a2ph4al9n18ts\",\n  \"senderId\": \"cml48e9o900002ph46sdp114k\",\n  \"content\": \"Olá, estou pronto para a aula!\",\n  \"createdAt\": \"2026-02-01T21:07:07.211Z\",\n  \"updatedAt\": \"2026-02-01T21:07:07.211Z\",\n  \"sender\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"name\": \"Aluno Teste E2E\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\",\n    \"role\": \"STUDENT\"\n  }\n}",
+      "timestamp": "2026-02-01T21:07:08.369Z"
+    },
+    {
+      "step": "Chat instrutor recebe",
+      "status": "INFO",
+      "message": "Buscando mensagens do instrutor",
+      "data": null,
+      "timestamp": "2026-02-01T21:07:08.880Z"
+    },
+    {
+      "step": "Chat instrutor recebe",
+      "status": "SUCCESS",
+      "message": "Mensagem recebida pelo instrutor",
+      "data": "{\n  \"id\": \"cml48epmz000c2ph4qdn4b4qv\",\n  \"chatId\": \"cml48em17000a2ph4al9n18ts\",\n  \"senderId\": \"cml48e9o900002ph46sdp114k\",\n  \"content\": \"Olá, estou pronto para a aula!\",\n  \"createdAt\": \"2026-02-01T21:07:07.211Z\",\n  \"updatedAt\": \"2026-02-01T21:07:07.211Z\",\n  \"sender\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"name\": \"Aluno Teste E2E\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\",\n    \"role\": \"STUDENT\"\n  }\n}",
+      "timestamp": "2026-02-01T21:07:11.044Z"
+    },
+    {
+      "step": "Finalizar aula",
+      "status": "INFO",
+      "message": "Instrutor finalizando aula",
+      "data": null,
+      "timestamp": "2026-02-01T21:07:11.547Z"
+    },
+    {
+      "step": "Finalizar aula",
+      "status": "SUCCESS",
+      "message": "Aula finalizada",
+      "data": "{\n  \"id\": \"cml48ef0o00072ph4rup713ko\",\n  \"studentId\": \"cml48e9o900002ph46sdp114k\",\n  \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n  \"vehicleId\": null,\n  \"status\": \"COMPLETED\",\n  \"lessonDate\": \"2026-02-01T00:00:00.000Z\",\n  \"lessonTime\": \"1970-01-01T13:00:00.000Z\",\n  \"proposedLessonDate\": null,\n  \"proposedLessonTime\": null,\n  \"payoutStatus\": \"PENDING\",\n  \"receiptUrl\": null,\n  \"createdAt\": \"2026-02-01T21:06:53.449Z\",\n  \"updatedAt\": \"2026-02-01T21:07:11.551Z\",\n  \"student\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\",\n    \"passwordHash\": \"$2b$10$K5LBLh6rvu7ZP4dh7oF4teRBzJiSuCCjPFTuDizj7B5L/emqkV9y.\",\n    \"role\": \"STUDENT\",\n    \"name\": \"Aluno Teste E2E\",\n    \"phone\": \"11999999999\",\n    \"avatar\": null,\n    \"expoPushToken\": null,\n    \"cpf\": \"72442841282\",\n    \"addressStreet\": null,\n    \"addressNumber\": null,\n    \"addressZipCode\": null,\n    \"addressNeighborhood\": null,\n    \"addressCity\": null,\n    \"addressState\": null,\n    \"addressComplement\": null,\n    \"createdAt\": \"2026-02-01T21:06:46.522Z\",\n    \"updatedAt\": \"2026-02-01T21:06:46.522Z\"\n  },\n  \"instructor\": {\n    \"id\": \"cml48eb2a00032ph45cckjdt3\",\n    \"userId\": \"cml48eay700012ph4x0jpjyty\",\n    \"gender\": \"MALE\",\n    \"licenseCategories\": [\n      \"B\"\n    ],\n    \"status\": \"APPROVED\",\n    \"hourlyRate\": 100,\n    \"pixKey\": null,\n    \"averageRating\": 0,\n    \"totalReviews\": 0,\n    \"city\": \"São Paulo\",\n    \"state\": \"SP\",\n    \"neighborhoodReside\": null,\n    \"neighborhoodTeach\": \"Bairro Teste\",\n    \"bio\": null,\n    \"completedLessonsCount\": 0,\n    \"rating\": 0,\n    \"createdAt\": \"2026-02-01T21:06:48.322Z\",\n    \"updatedAt\": \"2026-02-01T21:06:50.651Z\"\n  },\n  \"vehicle\": null\n}",
+      "timestamp": "2026-02-01T21:07:13.475Z"
+    },
+    {
+      "step": "Avaliar instrutor",
+      "status": "INFO",
+      "message": "Aluno avaliando instrutor",
+      "data": null,
+      "timestamp": "2026-02-01T21:07:13.981Z"
+    },
+    {
+      "step": "Avaliar instrutor",
+      "status": "SUCCESS",
+      "message": "Instrutor avaliado",
+      "data": "{\n  \"id\": \"cml48evni000e2ph4rvpgrhv8\",\n  \"lessonId\": \"cml48ef0o00072ph4rup713ko\",\n  \"studentId\": \"cml48e9o900002ph46sdp114k\",\n  \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n  \"rating\": 5,\n  \"comment\": \"Excelente aula!\",\n  \"createdAt\": \"2026-02-01T21:07:15.006Z\",\n  \"updatedAt\": \"2026-02-01T21:07:15.006Z\",\n  \"instructor\": {\n    \"id\": \"cml48eb2a00032ph45cckjdt3\",\n    \"userId\": \"cml48eay700012ph4x0jpjyty\",\n    \"gender\": \"MALE\",\n    \"licenseCategories\": [\n      \"B\"\n    ],\n    \"status\": \"APPROVED\",\n    \"hourlyRate\": 100,\n    \"pixKey\": null,\n    \"averageRating\": 0,\n    \"totalReviews\": 0,\n    \"city\": \"São Paulo\",\n    \"state\": \"SP\",\n    \"neighborhoodReside\": null,\n    \"neighborhoodTeach\": \"Bairro Teste\",\n    \"bio\": null,\n    \"completedLessonsCount\": 1,\n    \"rating\": 0,\n    \"createdAt\": \"2026-02-01T21:06:48.322Z\",\n    \"updatedAt\": \"2026-02-01T21:07:13.183Z\",\n    \"user\": {\n      \"id\": \"cml48eay700012ph4x0jpjyty\",\n      \"email\": \"instrutor.e2e.1769980007831@test.com\",\n      \"passwordHash\": \"$2b$10$7asYMqm.AeUmPMLTQGzcveRTIR8kAiiFhZOAZJDxjCzO/WXoDrypS\",\n      \"role\": \"INSTRUCTOR\",\n      \"name\": \"Instrutor Teste E2E\",\n      \"phone\": \"11888888888\",\n      \"avatar\": null,\n      \"expoPushToken\": null,\n      \"cpf\": \"61152311590\",\n      \"addressStreet\": \"Rua Teste\",\n      \"addressNumber\": \"123\",\n      \"addressZipCode\": \"01234567\",\n      \"addressNeighborhood\": \"Bairro Teste\",\n      \"addressCity\": \"São Paulo\",\n      \"addressState\": \"SP\",\n      \"addressComplement\": null,\n      \"createdAt\": \"2026-02-01T21:06:48.176Z\",\n      \"updatedAt\": \"2026-02-01T21:06:48.176Z\"\n    }\n  },\n  \"student\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"name\": \"Aluno Teste E2E\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\"\n  }\n}",
+      "timestamp": "2026-02-01T21:07:17.233Z"
+    },
+    {
+      "step": "Fluxo rejeição",
+      "status": "INFO",
+      "message": "Iniciando fluxo de rejeição",
+      "data": null,
+      "timestamp": "2026-02-01T21:07:17.748Z"
+    },
+    {
+      "step": "Simular pagamento MP",
+      "status": "INFO",
+      "message": "Enviando webhook simulado de pagamento aprovado",
+      "data": null,
+      "timestamp": "2026-02-01T21:07:19.643Z"
+    },
+    {
+      "step": "Simular pagamento MP",
+      "status": "SUCCESS",
+      "message": "Aula movida para WAITING_APPROVAL (simulação)",
+      "data": "{\n  \"id\": \"cml48ey7z000g2ph4msnx4aiz\",\n  \"studentId\": \"cml48e9o900002ph46sdp114k\",\n  \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n  \"vehicleId\": null,\n  \"status\": \"WAITING_APPROVAL\",\n  \"lessonDate\": \"2026-02-02T00:00:00.000Z\",\n  \"lessonTime\": \"1970-01-01T17:00:00.000Z\",\n  \"proposedLessonDate\": null,\n  \"proposedLessonTime\": null,\n  \"payoutStatus\": \"PENDING\",\n  \"receiptUrl\": null,\n  \"createdAt\": \"2026-02-01T21:07:18.336Z\",\n  \"updatedAt\": \"2026-02-01T21:07:19.646Z\",\n  \"student\": {\n    \"id\": \"cml48e9o900002ph46sdp114k\",\n    \"email\": \"aluno.e2e.1769980005673@test.com\",\n    \"passwordHash\": \"$2b$10$K5LBLh6rvu7ZP4dh7oF4teRBzJiSuCCjPFTuDizj7B5L/emqkV9y.\",\n    \"role\": \"STUDENT\",\n    \"name\": \"Aluno Teste E2E\",\n    \"phone\": \"11999999999\",\n    \"avatar\": null,\n    \"expoPushToken\": null,\n    \"cpf\": \"72442841282\",\n    \"addressStreet\": null,\n    \"addressNumber\": null,\n    \"addressZipCode\": null,\n    \"addressNeighborhood\": null,\n    \"addressCity\": null,\n    \"addressState\": null,\n    \"addressComplement\": null,\n    \"createdAt\": \"2026-02-01T21:06:46.522Z\",\n    \"updatedAt\": \"2026-02-01T21:06:46.522Z\"\n  },\n  \"instructor\": {\n    \"id\": \"cml48eb2a00032ph45cckjdt3\",\n    \"userId\": \"cml48eay700012ph4x0jpjyty\",\n    \"gender\": \"MALE\",\n    \"licenseCategories\": [\n      \"B\"\n    ],\n    \"status\": \"APPROVED\",\n    \"hourlyRate\": 100,\n    \"pixKey\": null,\n    \"averageRating\": 5,\n    \"totalReviews\": 1,\n    \"city\": \"São Paulo\",\n    \"state\": \"SP\",\n    \"neighborhoodReside\": null,\n    \"neighborhoodTeach\": \"Bairro Teste\",\n    \"bio\": null,\n    \"completedLessonsCount\": 1,\n    \"rating\": 5,\n    \"createdAt\": \"2026-02-01T21:06:48.322Z\",\n    \"updatedAt\": \"2026-02-01T21:07:16.797Z\"\n  },\n  \"vehicle\": null\n}",
+      "timestamp": "2026-02-01T21:07:20.513Z"
+    },
+    {
+      "step": "Fluxo rejeição",
+      "status": "SUCCESS",
+      "message": "Aula rejeitada",
+      "data": "{\n  \"message\": \"Aula recusada com sucesso\",\n  \"lesson\": {\n    \"id\": \"cml48ey7z000g2ph4msnx4aiz\",\n    \"studentId\": \"cml48e9o900002ph46sdp114k\",\n    \"instructorId\": \"cml48eb2a00032ph45cckjdt3\",\n    \"vehicleId\": null,\n    \"status\": \"CANCELLED\",\n    \"lessonDate\": \"2026-02-02T00:00:00.000Z\",\n    \"lessonTime\": \"1970-01-01T17:00:00.000Z\",\n    \"proposedLessonDate\": null,\n    \"proposedLessonTime\": null,\n    \"payoutStatus\": \"PENDING\",\n    \"receiptUrl\": null,\n    \"createdAt\": \"2026-02-01T21:07:18.336Z\",\n    \"updatedAt\": \"2026-02-01T21:07:20.663Z\",\n    \"payment\": {\n      \"id\": \"cml48ey80000h2ph4f8u0jzxs\",\n      \"lessonId\": \"cml48ey7z000g2ph4msnx4aiz\",\n      \"status\": \"PENDING\",\n      \"amount\": \"80\",\n      \"currency\": \"BRL\",\n      \"mercadoPagoId\": null,\n      \"mercadoPagoStatus\": null,\n      \"mercadoPagoPaymentId\": null,\n      \"mercadoPagoPreferenceId\": null,\n      \"mercadoPagoMerchantOrderId\": null,\n      \"mercadoPagoApprovedAt\": null,\n      \"mercadoPagoNotificationUrl\": null,\n      \"createdAt\": \"2026-02-01T21:07:18.336Z\",\n      \"updatedAt\": \"2026-02-01T21:07:18.336Z\",\n      \"releasedAt\": null,\n      \"refundedAt\": null\n    }\n  }\n}",
+      "timestamp": "2026-02-01T21:07:22.720Z"
+    },
+    {
+      "step": "Fluxo rejeição",
+      "status": "SUCCESS",
+      "message": "Valor reembolsado para carteira",
+      "data": "{\n  \"totalBalance\": 0,\n  \"availableBalance\": 0,\n  \"lockedBalance\": 0,\n  \"usedBalance\": 0\n}",
+      "timestamp": "2026-02-01T21:07:23.246Z"
+    }
+  ]
+}

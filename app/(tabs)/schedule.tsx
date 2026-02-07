@@ -32,9 +32,15 @@ export default function ScheduleScreen() {
   const loadSchedule = async () => {
     try {
       setIsLoading(true);
-      console.log('📅 Buscando agenda para User ID:', user?.id);
+
+      if (!user?.instructorId) {
+        setLessons([]);
+        return;
+      }
+
+      console.log('📅 Buscando agenda para Instructor ID:', user.instructorId);
       
-      const response = await api.get(`/instructor/${user?.id}/schedule`);
+      const response = await api.get(`/instructor/${user.instructorId}/schedule`);
       console.log('📅 Resposta agenda:', response);
       
       setLessons(Array.isArray(response) ? response : []);

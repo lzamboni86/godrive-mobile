@@ -71,12 +71,15 @@ export default function RequestsScreen() {
   const loadRequests = async () => {
     try {
       setIsLoading(true);
+
+      if (!user?.instructorId) {
+        setRequests([]);
+        return;
+      }
       
-      // Por enquanto, usar o user.id diretamente
-      // O backend vai buscar pelo userId se não encontrar como instructorId
-      console.log('🔍 Buscando solicitações para User ID:', user?.id);
-      
-      const response = await api.get(`/instructor/${user?.id}/requests`);
+      console.log('🔍 Buscando solicitações para Instructor ID:', user.instructorId);
+
+      const response = await api.get(`/instructor/${user.instructorId}/requests`);
       console.log('📋 Resposta requests:', JSON.stringify(response, null, 2));
       
       // Verificar estrutura antes de setar

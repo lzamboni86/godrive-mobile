@@ -30,6 +30,7 @@ export enum UserRole {
 
 export interface User {
   id: string;
+  instructorId?: string;
   email: string;
   name: string;
   phone?: string;

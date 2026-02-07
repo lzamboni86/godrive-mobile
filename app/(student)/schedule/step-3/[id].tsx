@@ -97,7 +97,7 @@ export default function ScheduleStep3Screen() {
         // Criar solicitação de agendamento
         const scheduleData = {
           studentId: user.id,
-          instructorId: instructor.userId ?? instructor.id,
+          instructorId: instructor.id,
           lessons: selectedTimes.map(time => ({
             date: time.date,
             time: time.time,
@@ -127,7 +127,7 @@ export default function ScheduleStep3Screen() {
         // Criar solicitação de agendamento primeiro (sem preferenceId ainda)
         const scheduleData = {
           studentId: user.id,
-          instructorId: instructor.userId ?? instructor.id,
+          instructorId: instructor.id,
           lessons: selectedTimes.map(time => ({
             date: time.date,
             time: time.time,

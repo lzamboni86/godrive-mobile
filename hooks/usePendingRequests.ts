@@ -13,11 +13,11 @@ export function usePendingRequests() {
   const [pendingCount, setPendingCount] = useState(0);
 
   const fetchPendingCount = async () => {
-    if (!user?.id) return;
+    if (!user?.instructorId) return;
     
     try {
       // Buscar apenas solicitações pendentes
-      const response = await api.get(`/instructor/${user?.id}/requests`);
+      const response = await api.get(`/instructor/${user.instructorId}/requests`);
       
       const requests = Array.isArray(response) ? response : [];
       
@@ -39,10 +39,10 @@ export function usePendingRequests() {
     fetchPendingCount();
 
     return () => undefined;
-  }, [user?.id]);
+  }, [user?.instructorId]);
 
   useEffect(() => {
-    if (!user?.id || !token) return;
+    if (!user?.instructorId || !token) return;
 
     const socket = connectRealtime(token);
     const refresh = () => fetchPendingCount();
@@ -89,7 +89,7 @@ export function usePendingRequests() {
       if (responseSub) responseSub.remove();
       appStateSub.remove();
     };
-  }, [user?.id, token]);
+  }, [user?.instructorId, token]);
 
   return pendingCount;
 }
