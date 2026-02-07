@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GraduationCap, Car, ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -16,8 +16,12 @@ export default function ProfileSelectionScreen() {
           >
             <ArrowLeft size={24} color="#1E3A8A" />
           </TouchableOpacity>
-          <View className="w-32 h-32 bg-brand-primary rounded-3xl items-center justify-center mb-6">
-            <Text className="text-white text-5xl font-bold">G</Text>
+          <View className="w-32 h-32 bg-white rounded-3xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
+            <Image 
+              source={require('@/assets/images/logo-app.png')}
+              className="w-24 h-24 rounded-2xl"
+              resizeMode="contain"
+            />
           </View>
           <Text className="text-3xl font-bold text-brand-primary">GO DRIVE</Text>
           <Text className="text-neutral-500 mt-2 text-base">Escolha seu perfil</Text>
