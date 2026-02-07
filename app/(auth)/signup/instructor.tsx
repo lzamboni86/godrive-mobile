@@ -221,7 +221,15 @@ export default function InstructorSignupScreen() {
           
           // Carregar cidades do estado para manter consistência
           if (address.state) {
-            loadCities(address.state);
+            await loadCities(address.state);
+            
+            // Aguardar um pouco para garantir que as cidades foram carregadas
+            setTimeout(() => {
+              // Carregar bairros da cidade retornada pelo CEP
+              if (address.city) {
+                loadNeighborhoods(address.city, address.state);
+              }
+            }, 500);
           }
           
           // Focar no campo número após preencher
