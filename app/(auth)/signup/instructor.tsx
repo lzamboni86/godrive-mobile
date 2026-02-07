@@ -935,7 +935,7 @@ export default function InstructorSignupScreen() {
                   <Text className="text-neutral-500 mr-2">R$</Text>
                   <TextInput
                     className="flex-1 py-4 px-3 text-base text-neutral-900"
-                    placeholder="80.00"
+                    placeholder="80"
                     placeholderTextColor="#9CA3AF"
                     keyboardType="numeric"
                     value={hourlyRate}
