@@ -517,25 +517,41 @@ export default function ScheduleSearchScreen() {
                         <Text className="text-neutral-500 text-sm ml-2">({instructor.completedLessonsCount || 0} aulas)</Text>
                       </View>
 
+                      {/* Veículo */}
                       {instructor.vehicle && (
-                        <View className="flex-row items-center">
+                        <View className="flex-row items-center mb-2">
                           <View className="bg-blue-100 px-2 py-1 rounded">
                             <Text className="text-blue-700 text-xs font-medium">
                               {instructor.vehicle.make} {instructor.vehicle.model}{instructor.vehicle.year ? ` ${instructor.vehicle.year}` : ''}
                             </Text>
                           </View>
-                          {instructor.cnh && (
-                            <View className="bg-purple-100 px-2 py-1 rounded ml-2">
-                              <Text className="text-purple-700 text-xs font-medium">
-                                CNH {instructor.cnh}
-                              </Text>
-                            </View>
-                          )}
                         </View>
                       )}
 
+                      {/* CNH (sempre exibir se existir) */}
+                      {instructor.cnh && (
+                        <View className="flex-row items-center mb-2">
+                          <View className="bg-purple-100 px-2 py-1 rounded">
+                            <Text className="text-purple-700 text-xs font-medium">
+                              CNH {instructor.cnh}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+
+                      {/* Bairro de atendimento (sempre exibir se existir) */}
+                      {instructor.neighborhoodTeach && (
+                        <View className="flex-row items-center mb-2">
+                          <MapPin size={14} color="#6B7280" />
+                          <Text className="text-neutral-600 text-xs ml-1">
+                            Bairro: {instructor.neighborhoodTeach}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Cidade/Estado (sempre exibir se existir) */}
                       {instructor.city && instructor.state && (
-                        <View className="flex-row items-center mt-2">
+                        <View className="flex-row items-center">
                           <MapPin size={14} color="#6B7280" />
                           <Text className="text-neutral-600 text-xs ml-1">
                             {instructor.city}, {instructor.state}
