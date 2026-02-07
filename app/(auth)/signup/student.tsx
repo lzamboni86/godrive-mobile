@@ -6,13 +6,11 @@ import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
-import { Toast, useToast } from '@/components/ui/Toast';
 import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
 import { fetchAddressByCep } from '@/services/viacep';
 
 export default function StudentSignupScreen() {
   const { signIn } = useAuth();
-  const { toast, showToast, hideToast } = useToast();
   const insets = useSafeAreaInsets();
   
   const [name, setName] = useState('');
@@ -100,34 +98,52 @@ export default function StudentSignupScreen() {
   }, [addressZipCode]);
 
   async function handleSignup() {
-    console.log('🔐 Student Signup - Dados:', { name, email, phone, cpf: cpf.trim() || undefined, password: '***' });
+    console.log('🔐 Student Signup - Dados:', { 
+      name: name.trim(), 
+      email: email.trim(), 
+      phone: phone.trim(), 
+      cpf: cpf.trim() || undefined, 
+      password: '***',
+      confirmPassword: '***'
+    });
     
     if (!name.trim() || !email.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim()) {
       console.log('🔐 Student Signup - Validação falhou: campos vazios');
-      showToast('Preencha todos os campos', 'error');
+      console.log('🔐 Campos vazios:', {
+        name: !name.trim(),
+        email: !email.trim(),
+        phone: !phone.trim(),
+        password: !password.trim(),
+        confirmPassword: !confirmPassword.trim()
+      });
+      Alert.alert('Erro', 'Preencha todos os campos');
       return;
     }
 
     if (password !== confirmPassword) {
-      showToast('As senhas não coincidem', 'error');
+      console.log('🔐 Student Signup - Senhas não coincidem');
+      Alert.alert('Erro', 'As senhas não coincidem');
       return;
     }
 
     if (password.length < 6) {
-      showToast('A senha deve ter pelo menos 6 caracteres', 'error');
+      console.log('🔐 Student Signup - Senha muito curta');
+      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres');
       return;
     }
 
     // Valida CPF se preenchido
     if (cpf.trim() && !isValidCpf(cpf.trim())) {
-      showToast('CPF inválido', 'error');
+      console.log('🔐 Student Signup - CPF inválido');
+      Alert.alert('Erro', 'CPF inválido');
       return;
     }
 
+    console.log('🔐 Student Signup - Validação passou, iniciando cadastro...');
     setIsLoading(true);
-    console.log('🔐 Student Signup - Iniciando requisição...');
     try {
-      await api.post('/auth/register/student', {
+      console.log('🔐 Student Signup - Enviando dados para API...');
+      const response = await api.post('/auth/register/student', {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -141,6 +157,8 @@ export default function StudentSignupScreen() {
         addressComplement: addressComplement.trim() || undefined,
         password,
       });
+      
+      console.log('🔐 Student Signup - Resposta da API:', response);
 
       const studentName = name.trim() || 'Aluno';
       Alert.alert(
@@ -166,7 +184,14 @@ export default function StudentSignupScreen() {
         ]
       );
     } catch (error: any) {
-      showToast(error.message || 'Erro ao cadastrar. Tente novamente.', 'error');
+      console.log('🔐 Student Signup - Erro completo:', error);
+      console.log('🔐 Student Signup - Detalhes do erro:', {
+        message: error.message,
+        statusCode: error.statusCode,
+        error: error.error,
+        response: error.response?.data
+      });
+      Alert.alert('Erro', error.message || 'Erro ao cadastrar. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
