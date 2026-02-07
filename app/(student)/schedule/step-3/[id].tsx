@@ -335,9 +335,6 @@ export default function ScheduleStep3Screen() {
                   <>
                     <DollarSign size={20} color="#3B82F6" />
                     <Text className="text-blue-900 font-medium ml-2">Mercado Pago</Text>
-                    <View className="bg-red-500 px-2 py-1 rounded-full ml-2">
-                      <Text className="text-white text-xs font-bold">PRODUÇÃO</Text>
-                    </View>
                   </>
                 )}
               </View>
@@ -347,7 +344,7 @@ export default function ScheduleStep3Screen() {
                 </Text>
               ) : (
                 <Text className="text-blue-700 text-sm mt-1">
-                  Pague de forma segura com cartão, pix ou boleto
+                  Pague de forma segura com cartão ou pix
                 </Text>
               )}
             </View>
