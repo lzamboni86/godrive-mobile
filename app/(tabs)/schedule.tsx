@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, Clock, User, MessageCircle, CheckCircle } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { lessonsService, paymentsService } from '@/services/lessons';
@@ -110,6 +111,13 @@ export default function ScheduleScreen() {
   useEffect(() => {
     loadSchedule();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadSchedule();
+      return undefined;
+    }, [user?.instructorId])
+  );
 
   const loadSchedule = async () => {
     try {

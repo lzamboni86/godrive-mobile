@@ -73,6 +73,12 @@ export default function StudentChatScreen() {
       const response = await api.get(`/chat/lesson/${lessonId}`);
       setChat(response as Chat);
       setMessages((response as Chat).messages || []);
+
+      try {
+        await api.post(`/chat/lesson/${lessonId}/mark-read`);
+      } catch {
+        // Ignora erro de marcação como lido
+      }
       
       // Verificar se pode enviar mensagens
       const canSendResponse = await api.get(`/chat/${(response as Chat).id}/can-send`);

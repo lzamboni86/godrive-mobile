@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Wallet, BookOpen, TrendingUp, Calendar, DollarSign, ShoppingBag, MessageSquare, Settings, User } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { BalanceCard } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { Toast, useToast } from '@/components/ui/Toast';
@@ -124,6 +125,13 @@ export default function DashboardScreen() {
   useEffect(() => {
     fetchDashboardData().finally(() => setIsLoading(false));
   }, [fetchDashboardData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDashboardData();
+      return undefined;
+    }, [fetchDashboardData])
+  );
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
