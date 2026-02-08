@@ -18,7 +18,7 @@ export default function ProfileSelectionScreen() {
           </TouchableOpacity>
           <View className="w-32 h-32 bg-white rounded-3xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
             <Image 
-              source={require('@/assets/images/logo-app.jpg')}
+              source={require('@/assets/images/logo-app.png')}
               className="w-24 h-24 rounded-2xl"
               resizeMode="contain"
             />
