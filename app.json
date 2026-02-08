@@ -8,6 +8,7 @@
     "scheme": "godrive",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "locale": "pt-BR",
     "splash": {
       "image": "./assets/images/logo-app.png",
       "resizeMode": "contain",

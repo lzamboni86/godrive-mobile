@@ -147,7 +147,7 @@ export default function ChatScreen() {
       <KeyboardAvoidingView
         behavior="padding"
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 80}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         {/* Header */}
         <View className="bg-white border-b border-neutral-200 px-4 pt-8 pb-3">
@@ -161,10 +161,10 @@ export default function ChatScreen() {
             </Button>
             <View className="flex-1">
               <Text className="font-semibold text-neutral-900">
-                {otherParticipant?.name}
+                {otherParticipant?.name || 'Nome não disponível'}
               </Text>
               <Text className="text-sm text-neutral-500">
-                {otherParticipant?.email}
+                {otherParticipant?.email || 'Email não disponível'}
               </Text>
             </View>
             {!canSend && (
@@ -214,6 +214,7 @@ export default function ChatScreen() {
                   {new Date(message.createdAt).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit',
+                    timeZone: 'America/Sao_Paulo'
                   })}
                 </Text>
               </View>
@@ -226,7 +227,6 @@ export default function ChatScreen() {
       {canSend ? (
         <View
           className="bg-white border-t border-neutral-200 px-4 py-3"
-          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
         >
           <View className="flex-row items-center bg-neutral-100 rounded-xl px-4">
             <TextInput
