@@ -40,6 +40,35 @@ export interface Activity {
   createdAt: string;
 }
 
+export interface PayoutLesson {
+  id: string;
+  instructorName: string;
+  instructorEmail: string;
+  amount: number;
+  evaluatedAt: string;
+  expectedPayoutDate: string;
+  daysUntilPayout: number;
+}
+
+export interface PayoutSummary {
+  totalPending: number;
+  totalAmount: number;
+  lessons: PayoutLesson[];
+}
+
+export interface PayoutResult {
+  success: boolean;
+  transactionId?: string;
+  error?: string;
+}
+
+export interface PayoutBatchResult {
+  processed: number;
+  success: number;
+  failed: number;
+  errors: Array<{ lessonId: string; error: string }>;
+}
+
 export const adminService = {
   async getInstructors(): Promise<Instructor[]> {
     console.log('🔍 [FRONTEND] Buscando instrutores...');
@@ -143,6 +172,56 @@ export const adminService = {
     } catch (error) {
       console.error('🔍 [FRONTEND] Erro ao buscar logs:', error);
       return [];
+    }
+  },
+
+  // ========== PAYOUTS ==========
+
+  async getPayoutSummary(): Promise<PayoutSummary> {
+    console.log('💸 [FRONTEND] Buscando resumo de payouts...');
+    try {
+      const data = await api.get<PayoutSummary>('/admin/payouts/summary');
+      console.log('💸 [FRONTEND] Response payout summary:', data);
+      return data || { totalPending: 0, totalAmount: 0, lessons: [] };
+    } catch (error) {
+      console.error('💸 [FRONTEND] Erro ao buscar resumo de payouts:', error);
+      return { totalPending: 0, totalAmount: 0, lessons: [] };
+    }
+  },
+
+  async anticipatePayout(lessonId: string): Promise<PayoutResult> {
+    console.log('💸 [FRONTEND] Antecipando payout:', lessonId);
+    try {
+      const data = await api.post<PayoutResult>(`/admin/payouts/${lessonId}/anticipate`);
+      console.log('💸 [FRONTEND] Payout antecipado:', data);
+      return data;
+    } catch (error: any) {
+      console.error('💸 [FRONTEND] Erro ao antecipar payout:', error);
+      throw error;
+    }
+  },
+
+  async retryPayout(lessonId: string): Promise<PayoutResult> {
+    console.log('💸 [FRONTEND] Reprocessando payout:', lessonId);
+    try {
+      const data = await api.post<PayoutResult>(`/admin/payouts/${lessonId}/retry`);
+      console.log('💸 [FRONTEND] Payout reprocessado:', data);
+      return data;
+    } catch (error: any) {
+      console.error('💸 [FRONTEND] Erro ao reprocessar payout:', error);
+      throw error;
+    }
+  },
+
+  async processAllPayouts(): Promise<PayoutBatchResult> {
+    console.log('💸 [FRONTEND] Processando todos os payouts...');
+    try {
+      const data = await api.post<PayoutBatchResult>('/admin/payouts/process-all');
+      console.log('💸 [FRONTEND] Payouts processados:', data);
+      return data;
+    } catch (error: any) {
+      console.error('💸 [FRONTEND] Erro ao processar payouts:', error);
+      throw error;
     }
   },
 };
