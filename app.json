@@ -36,7 +36,11 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./public/favicon.svg",
+      "meta": {
+        "title": "Go Drive - Plataforma de Auto Escolas",
+        "description": "Sistema completo de gestão para auto escolas"
+      }
     },
     "plugins": [
       "expo-router",

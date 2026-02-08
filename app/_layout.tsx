@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { View, ActivityIndicator, LogBox } from 'react-native';
+import { View, ActivityIndicator, LogBox, Platform } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { registerForPushNotificationsAsync } from '@/services/push';
@@ -38,8 +38,26 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading, isInstructor, isAdmin } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const pathname = usePathname();
 
   const { token } = useAuth();
+
+  // Atualizar título da página na web
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (pathname.startsWith('/(admin)')) {
+        document.title = 'Go Drive Admin';
+      } else if (pathname.startsWith('/(tabs)')) {
+        document.title = 'Go Drive Instrutor';
+      } else if (pathname.startsWith('/(student)')) {
+        document.title = 'Go Drive Aluno';
+      } else if (pathname.startsWith('/(auth)')) {
+        document.title = 'Go Drive - Login';
+      } else {
+        document.title = 'Go Drive';
+      }
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const run = async () => {
