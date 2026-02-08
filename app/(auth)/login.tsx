@@ -1,12 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, Monitor } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 
 const isWeb = Platform.OS === 'web';
+
+const showAlert = (title: string, message: string) => {
+  if (isWeb) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = (globalThis as any)?.window as Window | undefined;
+      w?.alert?.(`${title}\n\n${message}`);
+      return;
+    } catch {
+      // fallback
+    }
+  }
+
+  Alert.alert(title, message);
+};
 
 export default function LoginScreen() {
   const { signIn, isLoading } = useAuth();
@@ -23,7 +38,7 @@ export default function LoginScreen() {
     console.log('🔐 [LOGIN WEB] Senha preenchida:', !!password.trim());
     
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Erro', 'Preencha todos os campos');
+      showAlert('Erro', 'Preencha todos os campos');
       return;
     }
 
@@ -35,10 +50,9 @@ export default function LoginScreen() {
       // Verificar acesso web - apenas admins podem acessar via navegador
       if (isWeb && result?.user?.role !== 'ADMIN') {
         console.log('🔐 [LOGIN WEB] Acesso negado - role:', result?.user?.role);
-        Alert.alert(
+        showAlert(
           'Acesso Restrito',
           'Acesso exclusivo via aplicativo móvel. Faça o download do app Go Drive na App Store ou Google Play.',
-          [{ text: 'OK' }]
         );
         return;
       }
@@ -51,7 +65,7 @@ export default function LoginScreen() {
       console.log('🔐 [LOGIN WEB] Final message to show:', errorMessage);
       
       // Usar Alert nativo que sempre funciona
-      Alert.alert('Erro de Login', errorMessage);
+      showAlert('Erro de Login', errorMessage);
     }
   }
 

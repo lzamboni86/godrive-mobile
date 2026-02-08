@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import api from './api';
 import { User, UserRole } from '@/types';
 
@@ -6,6 +7,44 @@ const TOKEN_KEY = 'godrive_auth_token';
 const USER_KEY = 'godrive_user';
 const AVATAR_KEY_PREFIX = 'godrive_user_avatar_';
 const LEGACY_AVATAR_KEY_PREFIX = 'godrive_user_avatar:';
+
+const isWeb = Platform.OS === 'web';
+
+const safeLocalStorage = () => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ls = (globalThis as any)?.localStorage as Storage | undefined;
+    return ls;
+  } catch {
+    return undefined;
+  }
+};
+
+const storageGetItem = async (key: string): Promise<string | null> => {
+  if (isWeb) {
+    const ls = safeLocalStorage();
+    return ls?.getItem(key) ?? null;
+  }
+  return SecureStore.getItemAsync(key);
+};
+
+const storageSetItem = async (key: string, value: string): Promise<void> => {
+  if (isWeb) {
+    const ls = safeLocalStorage();
+    ls?.setItem(key, value);
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
+};
+
+const storageDeleteItem = async (key: string): Promise<void> => {
+  if (isWeb) {
+    const ls = safeLocalStorage();
+    ls?.removeItem(key);
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
+};
 
 export interface LoginCredentials {
   email: string;
@@ -39,15 +78,15 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(USER_KEY);
+    await storageDeleteItem(TOKEN_KEY);
+    await storageDeleteItem(USER_KEY);
     api.setAuthToken(null);
   }
 
   async getStoredSession(): Promise<AuthResponse | null> {
     try {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      const userJson = await SecureStore.getItemAsync(USER_KEY);
+      const token = await storageGetItem(TOKEN_KEY);
+      const userJson = await storageGetItem(USER_KEY);
       
       if (token && userJson) {
         const userFromStorage = JSON.parse(userJson) as User;
@@ -64,32 +103,32 @@ class AuthService {
   }
 
   async saveSession(auth: AuthResponse): Promise<void> {
-    await SecureStore.setItemAsync(TOKEN_KEY, auth.accessToken);
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(auth.user));
+    await storageSetItem(TOKEN_KEY, auth.accessToken);
+    await storageSetItem(USER_KEY, JSON.stringify(auth.user));
   }
 
   async updateStoredUser(user: User): Promise<void> {
-    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    await storageSetItem(USER_KEY, JSON.stringify(user));
   }
 
   async updateStoredAvatar(userId: string, avatarUri: string): Promise<void> {
-    await SecureStore.setItemAsync(`${AVATAR_KEY_PREFIX}${userId}`, avatarUri);
+    await storageSetItem(`${AVATAR_KEY_PREFIX}${userId}`, avatarUri);
 
     // Tenta remover a chave antiga (com ':') caso exista
     try {
-      await SecureStore.deleteItemAsync(`${LEGACY_AVATAR_KEY_PREFIX}${userId}`);
+      await storageDeleteItem(`${LEGACY_AVATAR_KEY_PREFIX}${userId}`);
     } catch {
       // ignore
     }
   }
 
   async getStoredAvatar(userId: string): Promise<string | null> {
-    const current = await SecureStore.getItemAsync(`${AVATAR_KEY_PREFIX}${userId}`);
+    const current = await storageGetItem(`${AVATAR_KEY_PREFIX}${userId}`);
     if (current) return current;
 
     // Fallback: lê chave antiga (para quem já tinha avatar salvo)
     try {
-      const legacy = await SecureStore.getItemAsync(`${LEGACY_AVATAR_KEY_PREFIX}${userId}`);
+      const legacy = await storageGetItem(`${LEGACY_AVATAR_KEY_PREFIX}${userId}`);
       if (legacy) {
         // migra para a chave nova
         await this.updateStoredAvatar(userId, legacy);
