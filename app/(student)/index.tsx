@@ -36,15 +36,27 @@ export default function StudentHomeScreen() {
   };
 
   const loadDashboard = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('🔍 [STUDENT-HOME] user.id não disponível');
+      return;
+    }
+
+    console.log('🔍 [STUDENT-HOME] Carregando dashboard para user.id:', user.id);
 
     try {
       setIsLoading(true);
 
+      console.log('🔍 [STUDENT-HOME] Chamando getUpcomingLessons e getPastLessons...');
       const [upcoming, past] = await Promise.all([
         studentService.getUpcomingLessons(user.id),
         studentService.getPastLessons(user.id),
       ]);
+
+      console.log('🔍 [STUDENT-HOME] upcoming:', upcoming?.length, 'aulas');
+      console.log('🔍 [STUDENT-HOME] past:', past?.length, 'aulas');
+      if (upcoming?.length > 0) {
+        console.log('🔍 [STUDENT-HOME] Primeira aula upcoming:', JSON.stringify(upcoming[0], null, 2));
+      }
 
       const now = new Date();
 
@@ -66,7 +78,10 @@ export default function StudentHomeScreen() {
         (l) => l.status === 'WAITING_APPROVAL' || l.status === 'REQUESTED' || l.status === 'ADJUSTMENT_PENDING',
       );
       setPendingInstructorUpcoming(pendingInstructor.length);
-    } catch {
+    } catch (error: any) {
+      console.error('❌ [STUDENT-HOME] Erro ao carregar dashboard:', error);
+      console.error('❌ [STUDENT-HOME] Mensagem:', error?.message);
+      console.error('❌ [STUDENT-HOME] Response:', error?.response?.data);
       setTodayLessons(0);
       setCompletedLessons(0);
       setConfirmedUpcoming(0);

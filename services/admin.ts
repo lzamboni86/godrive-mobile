@@ -377,4 +377,22 @@ export const adminService = {
     const baseUrl = 'https://godrive-7j7x.onrender.com';
     return `${baseUrl}/reports/${reportType}/csv?startDate=${filters.startDate}&endDate=${filters.endDate}`;
   },
+
+  /**
+   * Corrige o studentId de aulas que foram associadas ao ID errado
+   */
+  async fixLessonStudentId(oldStudentId: string, newStudentId: string): Promise<{ message: string; count: number }> {
+    console.log('🔧 [FRONTEND] Corrigindo studentId das aulas...');
+    try {
+      const data = await api.post<{ message: string; count: number }>('/admin/lessons/fix-student-id', {
+        oldStudentId,
+        newStudentId,
+      });
+      console.log('🔧 [FRONTEND] Response correção:', data);
+      return data;
+    } catch (error) {
+      console.error('🔧 [FRONTEND] Erro ao corrigir studentId:', error);
+      throw error;
+    }
+  },
 };

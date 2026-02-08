@@ -131,7 +131,16 @@ export const studentService = {
   },
 
   async getUpcomingLessons(studentId: string): Promise<Lesson[]> {
-    return api.get<Lesson[]>(`/student/lessons/student/${studentId}/upcoming`);
+    console.log('🔍 [STUDENT-SERVICE] getUpcomingLessons - studentId:', studentId);
+    try {
+      const result = await api.get<Lesson[]>(`/student/lessons/student/${studentId}/upcoming`);
+      console.log('🔍 [STUDENT-SERVICE] getUpcomingLessons - resultado:', result?.length, 'aulas');
+      return result;
+    } catch (error: any) {
+      console.error('❌ [STUDENT-SERVICE] getUpcomingLessons - erro:', error?.message);
+      console.error('❌ [STUDENT-SERVICE] getUpcomingLessons - response:', error?.response?.data);
+      throw error;
+    }
   },
 
   async getPastLessons(studentId: string): Promise<Lesson[]> {
