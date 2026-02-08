@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
-import { Users, Settings, CheckCircle, AlertTriangle, FileText, DollarSign, Send } from 'lucide-react-native';
+import { Users, Settings, CheckCircle, AlertTriangle, FileText, DollarSign, Send, BarChart3 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -86,6 +86,13 @@ export default function AdminLayout() {
         options={{
           title: 'Payouts',
           tabBarIcon: ({ color, size }) => <Send size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reports"
+        options={{
+          title: 'Relatórios',
+          tabBarIcon: ({ color, size }) => <BarChart3 size={size} color={color} />,
         }}
       />
       <Tabs.Screen

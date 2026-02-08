@@ -10,7 +10,7 @@ interface AuthContextData {
   isAuthenticated: boolean;
   isInstructor: boolean;
   isAdmin: boolean;
-  signIn: (credentials: LoginCredentials) => Promise<void>;
+  signIn: (credentials: LoginCredentials) => Promise<{ user: User }>;
   signOut: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const signIn = useCallback(async (credentials: LoginCredentials) => {
+  const signIn = useCallback(async (credentials: LoginCredentials): Promise<{ user: User }> => {
     setIsLoading(true);
     try {
       const response = await authService.login(credentials);
@@ -66,6 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log('🔐 User role:', response.user.role);
       setUser(response.user);
       setToken(response.accessToken);
+      return { user: response.user };
     } catch (error) {
       console.log('🔐 Login error:', error);
       throw error;

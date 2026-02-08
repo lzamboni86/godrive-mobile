@@ -69,6 +69,108 @@ export interface PayoutBatchResult {
   errors: Array<{ lessonId: string; error: string }>;
 }
 
+// ========== REPORTS INTERFACES ==========
+
+export interface ReportFilters {
+  startDate: string;
+  endDate: string;
+}
+
+export interface StudentsReport {
+  summary: {
+    totalStudents: number;
+    newStudentsInPeriod: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  students: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    lessonsCount: number;
+    createdAt: string;
+  }>;
+}
+
+export interface InstructorsReport {
+  summary: {
+    totalInstructors: number;
+    newInstructorsInPeriod: number;
+    approvedCount: number;
+    pendingCount: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  instructors: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    status: string;
+    rating: number;
+    completedLessons: number;
+    lessonsInPeriod: number;
+    createdAt: string;
+  }>;
+}
+
+export interface FinancialReport {
+  summary: {
+    totalTransactions: number;
+    totalReceived: number;
+    totalPending: number;
+    mercadoPagoFee: number;
+    platformFee: number;
+    netToInstructors: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  byStatus: Array<{
+    status: string;
+    count: number;
+    total: number;
+  }>;
+  transactions: Array<{
+    id: string;
+    lessonId: string;
+    studentName: string;
+    instructorName: string;
+    amount: number;
+    status: string;
+    mercadoPagoId: string | null;
+    createdAt: string;
+    releasedAt: string | null;
+  }>;
+}
+
+export interface LogsReport {
+  summary: {
+    totalLogs: number;
+    uniqueUsers: number;
+    uniqueActions: number;
+    periodStart: string;
+    periodEnd: string;
+  };
+  byAction: Array<{
+    action: string;
+    count: number;
+  }>;
+  byUser: Array<{
+    userId: string;
+    userName: string;
+    count: number;
+  }>;
+  logs: Array<{
+    id: string;
+    action: string;
+    details: string | null;
+    userId: string | null;
+    ipAddress: string | null;
+    createdAt: string;
+  }>;
+}
+
 export const adminService = {
   async getInstructors(): Promise<Instructor[]> {
     console.log('🔍 [FRONTEND] Buscando instrutores...');
@@ -223,5 +325,56 @@ export const adminService = {
       console.error('💸 [FRONTEND] Erro ao processar payouts:', error);
       throw error;
     }
+  },
+
+  // ========== REPORTS ==========
+
+  async getStudentsReport(filters: ReportFilters): Promise<StudentsReport> {
+    console.log('📊 [FRONTEND] Buscando relatório de alunos...');
+    try {
+      const data = await api.get<StudentsReport>(`/reports/students?startDate=${filters.startDate}&endDate=${filters.endDate}`);
+      return data;
+    } catch (error) {
+      console.error('📊 [FRONTEND] Erro ao buscar relatório de alunos:', error);
+      throw error;
+    }
+  },
+
+  async getInstructorsReport(filters: ReportFilters): Promise<InstructorsReport> {
+    console.log('📊 [FRONTEND] Buscando relatório de instrutores...');
+    try {
+      const data = await api.get<InstructorsReport>(`/reports/instructors?startDate=${filters.startDate}&endDate=${filters.endDate}`);
+      return data;
+    } catch (error) {
+      console.error('📊 [FRONTEND] Erro ao buscar relatório de instrutores:', error);
+      throw error;
+    }
+  },
+
+  async getFinancialReport(filters: ReportFilters): Promise<FinancialReport> {
+    console.log('📊 [FRONTEND] Buscando relatório financeiro...');
+    try {
+      const data = await api.get<FinancialReport>(`/reports/financial?startDate=${filters.startDate}&endDate=${filters.endDate}`);
+      return data;
+    } catch (error) {
+      console.error('📊 [FRONTEND] Erro ao buscar relatório financeiro:', error);
+      throw error;
+    }
+  },
+
+  async getLogsReport(filters: ReportFilters): Promise<LogsReport> {
+    console.log('📊 [FRONTEND] Buscando relatório de logs...');
+    try {
+      const data = await api.get<LogsReport>(`/reports/logs?startDate=${filters.startDate}&endDate=${filters.endDate}`);
+      return data;
+    } catch (error) {
+      console.error('📊 [FRONTEND] Erro ao buscar relatório de logs:', error);
+      throw error;
+    }
+  },
+
+  getCSVExportUrl(reportType: 'students' | 'instructors' | 'financial' | 'logs', filters: ReportFilters): string {
+    const baseUrl = 'https://godrive-7j7x.onrender.com';
+    return `${baseUrl}/reports/${reportType}/csv?startDate=${filters.startDate}&endDate=${filters.endDate}`;
   },
 };

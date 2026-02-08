@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, Monitor } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
+
+const isWeb = Platform.OS === 'web';
 
 export default function LoginScreen() {
   const { signIn, isLoading } = useAuth();
@@ -21,7 +23,18 @@ export default function LoginScreen() {
     }
 
     try {
-      await signIn({ email: email.trim(), password });
+      const result = await signIn({ email: email.trim(), password });
+      
+      // Verificar acesso web - apenas admins podem acessar via navegador
+      if (isWeb && result?.user?.role !== 'ADMIN') {
+        Alert.alert(
+          'Acesso Restrito',
+          'Acesso exclusivo via aplicativo móvel. Faça o download do app Go Drive na App Store ou Google Play.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      
       // Redirecionamento é gerenciado automaticamente pelo _layout.tsx baseado no role
     } catch (error: any) {
       console.log('🔐 Login screen error:', error);
