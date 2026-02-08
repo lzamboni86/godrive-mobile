@@ -17,16 +17,24 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin() {
+    console.log('🔐 [LOGIN WEB] Iniciando login...');
+    console.log('🔐 [LOGIN WEB] Plataforma:', Platform.OS);
+    console.log('🔐 [LOGIN WEB] Email:', email.trim());
+    console.log('🔐 [LOGIN WEB] Senha preenchida:', !!password.trim());
+    
     if (!email.trim() || !password.trim()) {
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
     }
 
     try {
+      console.log('🔐 [LOGIN WEB] Chamando signIn...');
       const result = await signIn({ email: email.trim(), password });
+      console.log('🔐 [LOGIN WEB] Login sucesso:', result);
       
       // Verificar acesso web - apenas admins podem acessar via navegador
       if (isWeb && result?.user?.role !== 'ADMIN') {
+        console.log('🔐 [LOGIN WEB] Acesso negado - role:', result?.user?.role);
         Alert.alert(
           'Acesso Restrito',
           'Acesso exclusivo via aplicativo móvel. Faça o download do app Go Drive na App Store ou Google Play.',
@@ -35,11 +43,12 @@ export default function LoginScreen() {
         return;
       }
       
+      console.log('🔐 [LOGIN WEB] Login autorizado, redirecionando...');
       // Redirecionamento é gerenciado automaticamente pelo _layout.tsx baseado no role
     } catch (error: any) {
-      console.log('🔐 Login screen error:', error);
+      console.log('🔐 [LOGIN WEB] Erro no login:', error);
       const errorMessage = error?.message || error?.error?.message || 'Erro ao fazer login';
-      console.log('🔐 Final message to show:', errorMessage);
+      console.log('🔐 [LOGIN WEB] Final message to show:', errorMessage);
       
       // Usar Alert nativo que sempre funciona
       Alert.alert('Erro de Login', errorMessage);
