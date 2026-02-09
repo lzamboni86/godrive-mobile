@@ -13,6 +13,7 @@ export default function StudentHomeScreen() {
   const [completedLessons, setCompletedLessons] = useState(0);
   const [confirmedUpcoming, setConfirmedUpcoming] = useState(0);
   const [pendingInstructorUpcoming, setPendingInstructorUpcoming] = useState(0);
+  const [pendingReviews, setPendingReviews] = useState(0);
   const [nextTodayTime, setNextTodayTime] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,6 +72,9 @@ export default function StudentHomeScreen() {
       const completed = past.filter((l) => l.status === 'COMPLETED' || l.status === 'EVALUATED');
       setCompletedLessons(completed.length);
 
+      const reviewsPending = past.filter((l) => l.status === 'COMPLETED');
+      setPendingReviews(reviewsPending.length);
+
       const confirmed = upcoming.filter((l) => l.status === 'CONFIRMED');
       setConfirmedUpcoming(confirmed.length);
 
@@ -86,6 +90,7 @@ export default function StudentHomeScreen() {
       setCompletedLessons(0);
       setConfirmedUpcoming(0);
       setPendingInstructorUpcoming(0);
+      setPendingReviews(0);
       setNextTodayTime(null);
     } finally {
       setIsLoading(false);
@@ -177,15 +182,20 @@ export default function StudentHomeScreen() {
               <View className="items-center">
                 <View className="w-12 h-12 rounded-full bg-blue-100 items-center justify-center mb-3 relative">
                   <Clock size={24} color="#3B82F6" />
-                  {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0) && (
+                  {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0 || pendingReviews > 0) && (
                     <View className="absolute -top-2 -right-2 flex-row space-x-1">
                       {confirmedUpcoming > 0 && (
-                        <View className="bg-red-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
+                        <View className="bg-emerald-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
                           <Text className="text-white text-[10px] font-bold">{confirmedUpcoming}</Text>
                         </View>
                       )}
-                      {pendingInstructorUpcoming > 0 && (
+                      {pendingReviews > 0 && (
                         <View className="bg-blue-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
+                          <Text className="text-white text-[10px] font-bold">{pendingReviews}</Text>
+                        </View>
+                      )}
+                      {pendingInstructorUpcoming > 0 && (
+                        <View className="bg-amber-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
                           <Text className="text-white text-[10px] font-bold">{pendingInstructorUpcoming}</Text>
                         </View>
                       )}
@@ -196,24 +206,37 @@ export default function StudentHomeScreen() {
                 <Text className="text-neutral-500 text-xs text-center mt-1">
                   {isLoading
                     ? 'Carregando...'
-                    : confirmedUpcoming > 0
-                      ? `${confirmedUpcoming} aprovada${confirmedUpcoming > 1 ? 's' : ''}`
-                      : pendingInstructorUpcoming > 0
-                        ? `${pendingInstructorUpcoming} pendente${pendingInstructorUpcoming > 1 ? 's' : ''}`
-                        : 'Aulas agendadas'
+                    : (() => {
+                        const parts: string[] = [];
+                        if (confirmedUpcoming > 0) {
+                          parts.push(`${confirmedUpcoming} aprovada${confirmedUpcoming > 1 ? 's' : ''}`);
+                        }
+                        if (pendingReviews > 0) {
+                          parts.push(`${pendingReviews} avaliação pendente${pendingReviews > 1 ? 's' : ''}`);
+                        }
+                        if (pendingInstructorUpcoming > 0) {
+                          parts.push(`${pendingInstructorUpcoming} pendente${pendingInstructorUpcoming > 1 ? 's' : ''}`);
+                        }
+                        return parts.length > 0 ? parts.join(' • ') : 'Aulas agendadas';
+                      })()
                   }
                 </Text>
 
-                {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0) && (
+                {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0 || pendingReviews > 0) && (
                   <View className="flex-row flex-wrap justify-center mt-2">
                     {confirmedUpcoming > 0 && (
-                      <View className="bg-red-50 border border-red-200 rounded-full px-2 py-1 mr-2 mb-2">
-                        <Text className="text-red-700 text-[10px] font-semibold">Aprovadas</Text>
+                      <View className="bg-emerald-50 border border-emerald-200 rounded-full px-2 py-1 mr-2 mb-2">
+                        <Text className="text-emerald-700 text-[10px] font-semibold">Aprovadas</Text>
+                      </View>
+                    )}
+                    {pendingReviews > 0 && (
+                      <View className="bg-blue-50 border border-blue-200 rounded-full px-2 py-1 mr-2 mb-2">
+                        <Text className="text-blue-700 text-[10px] font-semibold">Avaliações</Text>
                       </View>
                     )}
                     {pendingInstructorUpcoming > 0 && (
-                      <View className="bg-blue-50 border border-blue-200 rounded-full px-2 py-1 mb-2">
-                        <Text className="text-blue-700 text-[10px] font-semibold">Pendentes</Text>
+                      <View className="bg-amber-50 border border-amber-200 rounded-full px-2 py-1 mb-2">
+                        <Text className="text-amber-700 text-[10px] font-semibold">Pendentes</Text>
                       </View>
                     )}
                   </View>

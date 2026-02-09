@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Send, Lock } from 'lucide-react-native';
+import { Send, Lock, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/Button';
@@ -166,7 +166,13 @@ export default function StudentChatScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-neutral-100">
-          <View className="flex-1">
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="p-2"
+          >
+            <ArrowLeft size={24} color="#374151" />
+          </TouchableOpacity>
+          <View className="flex-1 ml-2">
             <Text className="text-lg font-semibold text-neutral-900">
               {otherParticipant?.name || 'Chat'}
             </Text>

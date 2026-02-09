@@ -64,11 +64,12 @@ export default function StudentAgendaScreen() {
   };
 
   const formatTime = (timeString: string) => {
-    const time = new Date(timeString);
-    return time.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    // Extract time directly from ISO string to avoid timezone conversion
+    if (timeString.includes('T')) {
+      return timeString.split('T')[1].slice(0, 5);
+    }
+    // Fallback for HH:mm format
+    return timeString.slice(0, 5);
   };
 
   const formatDuration = (duration: number) => {
@@ -110,7 +111,8 @@ export default function StudentAgendaScreen() {
   const getLessonDateTime = (lesson: Lesson) => {
     const date = new Date(lesson.date);
     const time = new Date(lesson.time);
-    date.setHours(time.getHours(), time.getMinutes(), 0, 0);
+    // Use UTC methods to avoid timezone offset
+    date.setUTCHours(time.getUTCHours(), time.getUTCMinutes(), 0, 0);
     return date;
   };
 

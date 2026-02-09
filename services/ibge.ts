@@ -309,6 +309,12 @@ export function getNeighborhoodsByCity(cityName: string): string[] {
 export async function getNeighborhoodsByCityDynamic(cityName: string, stateUf: string): Promise<string[]> {
   console.log(`🔍 Buscando bairros para: ${cityName}/${stateUf}`);
   
+  // Early fallback for major cities to ensure immediate response
+  if (cityName && COMMON_NEIGHBORHOODS_BY_CITY[cityName]) {
+    console.log(`✅ Usando lista pré-cadastrada imediata para ${cityName}`);
+    return COMMON_NEIGHBORHOODS_BY_CITY[cityName];
+  }
+  
   // Tentar API IBGE primeiro (cobertura nacional)
   try {
     console.log(`📡 Buscando na API IBGE para ${cityName}/${stateUf}`);

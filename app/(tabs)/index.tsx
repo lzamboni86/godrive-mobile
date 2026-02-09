@@ -283,7 +283,7 @@ export default function DashboardScreen() {
                   <Calendar size={24} color="#10B981" />
                 </View>
                 {unreadMessagesCount > 0 && (
-                  <View className="bg-red-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
+                  <View className="bg-emerald-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
                     <Text className="text-white text-xs font-bold">
                       {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
                     </Text>

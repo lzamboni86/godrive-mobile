@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
-import { fetchAddressByCep } from '@/services/viacep';
+import { fetchAddressByCep, isValidCepFormat, formatCep } from '@/services/viacep';
 
 export default function StudentSignupScreen() {
   const { signIn } = useAuth();
@@ -313,8 +313,8 @@ export default function StudentSignupScreen() {
                     placeholder="00000-000"
                     placeholderTextColor="#9CA3AF"
                     keyboardType="number-pad"
-                    value={addressZipCode}
-                    onChangeText={setAddressZipCode}
+                    value={formatCep(addressZipCode)}
+                    onChangeText={(text) => setAddressZipCode(text.replace(/\D/g, ''))}
                     maxLength={9}
                   />
                   {isLoadingCep && <ActivityIndicator size="small" color="#10B981" />}

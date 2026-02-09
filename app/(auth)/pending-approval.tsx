@@ -32,7 +32,7 @@ export default function PendingApprovalScreen() {
             Obrigado pelo seu interesse!
           </Text>
           <Text className="text-blue-700 text-center leading-relaxed">
-            Recebemos sua solicitação de cadastro como instrutor parceiro. Nossa equipe administrativa irá analisar suas informações e entrará em contato em até 48 horas úteis.
+            Recebemos sua solicitação de cadastro como instrutor parceiro. Nossa equipe administrativa irá analisar suas informações e se estiver de acordo aprovar seu cadastro em até 48 horas.
           </Text>
         </View>
 
@@ -47,7 +47,7 @@ export default function PendingApprovalScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-neutral-900 font-medium mb-1">Análise Administrativa</Text>
-                <Text className="text-neutral-600 text-sm">Verificação da CNH e documentos do veículo</Text>
+                <Text className="text-neutral-600 text-sm">Verificações necessárias</Text>
               </View>
             </View>
             
@@ -57,7 +57,7 @@ export default function PendingApprovalScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-neutral-900 font-medium mb-1">Contato por WhatsApp</Text>
-                <Text className="text-neutral-600 text-sm">Enviaremos mensagem para seu WhatsApp</Text>
+                <Text className="text-neutral-600 text-sm">Em caso de dúvidas faremos contato por WhatsApp</Text>
               </View>
             </View>
             

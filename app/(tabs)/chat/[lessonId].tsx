@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Send, Lock } from 'lucide-react-native';
+import { Send, Lock, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/Button';
@@ -152,13 +152,12 @@ export default function ChatScreen() {
         {/* Header */}
         <View className="bg-white border-b border-neutral-200 px-4 pt-8 pb-3">
           <View className="flex-row items-center">
-            <Button
-              variant="ghost"
+            <TouchableOpacity
               onPress={() => router.back()}
-              className="mr-3"
+              className="p-2"
             >
-              <Text className="text-neutral-600">←</Text>
-            </Button>
+              <ArrowLeft size={24} color="#374151" />
+            </TouchableOpacity>
             <View className="flex-1">
               <Text className="font-semibold text-neutral-900">
                 {otherParticipant?.name || 'Nome não disponível'}

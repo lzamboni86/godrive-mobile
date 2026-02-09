@@ -345,7 +345,7 @@ export default function InstructorSignupScreen() {
         password,
       });
 
-      Alert.alert('Sucesso', 'Cadastro recebido! Entraremos em contato em até 48h.');
+      Alert.alert('Sucesso', 'Cadastro recebido! Temos até 48h para aprovar seu cadastro.');
       router.replace('/(auth)/pending-approval');
     } catch (error: any) {
       console.error('🔐 Instructor Signup - Erro:', error);
@@ -539,8 +539,8 @@ export default function InstructorSignupScreen() {
                     placeholder="00000-000"
                     placeholderTextColor="#9CA3AF"
                     keyboardType="number-pad"
-                    value={addressZipCode}
-                    onChangeText={setAddressZipCode}
+                    value={formatCep(addressZipCode)}
+                    onChangeText={(text) => setAddressZipCode(text.replace(/\D/g, ''))}
                     maxLength={9}
                   />
                   {isLoadingCep && <ActivityIndicator size="small" color="#3B82F6" />}
@@ -597,48 +597,6 @@ export default function InstructorSignupScreen() {
                     onChangeText={setAddressComplement}
                   />
                 </View>
-              </View>
-
-              {/* CNH Input */}
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Registro da CNH <Text className="text-red-500">*</Text></Text>
-                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
-                  <Car size={20} color="#6B7280" />
-                  <TextInput
-                    className="flex-1 py-4 px-3 text-base text-neutral-900"
-                    placeholder="Número da sua CNH"
-                    placeholderTextColor="#9CA3AF"
-                    value={cnh}
-                    onChangeText={setCnh}
-                  />
-                </View>
-                <Text className="text-neutral-500 text-xs mt-1">
-                  Campo obrigatório para cadastro
-                </Text>
-              </View>
-
-              {/* Gender */}
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">Sexo</Text>
-                <TouchableOpacity
-                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
-                  onPress={() =>
-                    openPicker(
-                      'Sexo',
-                      [
-                        { label: 'Masculino', value: 'MALE' },
-                        { label: 'Feminino', value: 'FEMALE' },
-                        { label: 'Outro', value: 'OTHER' },
-                      ],
-                      (v) => setGender(v as any)
-                    )
-                  }
-                >
-                  <User size={20} color="#6B7280" />
-                  <Text className="flex-1 px-3 text-base text-neutral-900">
-                    {gender === 'MALE' ? 'Masculino' : gender === 'FEMALE' ? 'Feminino' : gender === 'OTHER' ? 'Outro' : 'Selecione'}
-                  </Text>
-                </TouchableOpacity>
               </View>
 
               {/* State */}
@@ -725,6 +683,48 @@ export default function InstructorSignupScreen() {
                         : neighborhoods.length === 0
                           ? 'Nenhum bairro encontrado'
                           : neighborhoodReside || 'Selecione'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* CNH Input */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Registro da CNH <Text className="text-red-500">*</Text></Text>
+                <View className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50">
+                  <Car size={20} color="#6B7280" />
+                  <TextInput
+                    className="flex-1 py-4 px-3 text-base text-neutral-900"
+                    placeholder="Número da sua CNH"
+                    placeholderTextColor="#9CA3AF"
+                    value={cnh}
+                    onChangeText={setCnh}
+                  />
+                </View>
+                <Text className="text-neutral-500 text-xs mt-1">
+                  Campo obrigatório para cadastro
+                </Text>
+              </View>
+
+              {/* Gender */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-neutral-700 mb-2">Sexo</Text>
+                <TouchableOpacity
+                  className="flex-row items-center border border-neutral-300 rounded-xl px-4 bg-neutral-50 py-4"
+                  onPress={() =>
+                    openPicker(
+                      'Sexo',
+                      [
+                        { label: 'Masculino', value: 'MALE' },
+                        { label: 'Feminino', value: 'FEMALE' },
+                        { label: 'Outro', value: 'OTHER' },
+                      ],
+                      (v) => setGender(v as any)
+                    )
+                  }
+                >
+                  <User size={20} color="#6B7280" />
+                  <Text className="flex-1 px-3 text-base text-neutral-900">
+                    {gender === 'MALE' ? 'Masculino' : gender === 'FEMALE' ? 'Feminino' : gender === 'OTHER' ? 'Outro' : 'Selecione'}
                   </Text>
                 </TouchableOpacity>
               </View>

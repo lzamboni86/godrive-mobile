@@ -1,13 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Users, Settings, CheckCircle, AlertTriangle, FileText, DollarSign, Send, BarChart3 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
+import { adminService } from '@/services/admin';
+import { View, Text } from 'react-native';
 
 export default function AdminLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isLoading, isAuthenticated, isAdmin, isInstructor } = useAuth();
+  const [pendingPayouts, setPendingPayouts] = useState(0);
 
   useEffect(() => {
     if (isLoading) return;
@@ -19,8 +22,21 @@ export default function AdminLayout() {
 
     if (!isAdmin) {
       router.replace(isInstructor ? '/(tabs)' : ('/(student)' as any));
+      return;
     }
+
+    // Carregar número de payouts pendentes
+    loadPendingPayouts();
   }, [isLoading, isAuthenticated, isAdmin, isInstructor, router]);
+
+  const loadPendingPayouts = async () => {
+    try {
+      const summary = await adminService.getPayoutSummary();
+      setPendingPayouts(summary.totalPending);
+    } catch (error) {
+      console.error('Erro ao carregar payouts pendentes:', error);
+    }
+  };
 
   if (isLoading) return null;
   if (!isAuthenticated || !isAdmin) return null;
@@ -85,7 +101,18 @@ export default function AdminLayout() {
         name="payouts"
         options={{
           title: 'Payouts',
-          tabBarIcon: ({ color, size }) => <Send size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <View>
+              <Send size={size} color={color} />
+              {pendingPayouts > 0 && (
+                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[16px] h-4 items-center justify-center">
+                  <Text className="text-white text-[10px] font-bold">
+                    {pendingPayouts > 99 ? '99+' : pendingPayouts}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen

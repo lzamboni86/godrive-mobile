@@ -120,7 +120,7 @@ export default function StudentPaymentsScreen() {
           {!isLoading && !error && (
             <>
               {/* Resumo */}
-              <View className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 mb-6">
+              <View className="bg-emerald-600 rounded-2xl p-6 mb-6">
                 <Text className="text-white text-lg font-semibold mb-4">Resumo Financeiro</Text>
                 <View className="grid grid-cols-2 gap-4">
                   <View>
