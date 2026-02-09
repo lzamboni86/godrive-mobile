@@ -2,7 +2,7 @@
   "expo": {
     "name": "Go Drive",
     "slug": "godrive-instrutor",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/logo-app.png",
     "scheme": "godrive",
@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.deltaprotecnologia.godrive",
-      "buildNumber": "10",
+      "buildNumber": "11",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "Precisamos de acesso à sua biblioteca de fotos para você escolher uma foto de perfil.",
