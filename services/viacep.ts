@@ -19,6 +19,18 @@ export interface AddressData {
   state: string;
 }
 
+export type ViaCepErrorCode = 'NETWORK' | 'TIMEOUT' | 'SERVICE';
+
+export class ViaCepError extends Error {
+  code: ViaCepErrorCode;
+
+  constructor(code: ViaCepErrorCode, message: string) {
+    super(message);
+    this.code = code;
+    this.name = 'ViaCepError';
+  }
+}
+
 /**
  * Consulta o endereço pelo CEP usando a API ViaCEP
  * @param cep CEP com ou sem formatação (aceita 00000-000 ou 00000000)
@@ -33,17 +45,35 @@ export async function fetchAddressByCep(cep: string): Promise<AddressData | null
   }
 
   try {
-    const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    let response: Response;
+    try {
+      response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`, {
+        signal: controller.signal,
+      });
+    } catch (error: any) {
+      const name = String(error?.name || '');
+      const message = String(error?.message || '');
+      if (name === 'AbortError' || controller.signal.aborted) {
+        throw new ViaCepError('TIMEOUT', 'ViaCEP request timeout');
+      }
+      if (message.toLowerCase().includes('network request failed')) {
+        throw new ViaCepError('NETWORK', 'ViaCEP network error');
+      }
+      throw new ViaCepError('SERVICE', 'ViaCEP request failed');
+    } finally {
+      clearTimeout(timeoutId);
+    }
     
     if (!response.ok) {
-      console.error('ViaCEP: Erro na requisição', response.status);
-      return null;
+      throw new ViaCepError('SERVICE', `ViaCEP HTTP ${response.status}`);
     }
 
     const data: ViaCepResponse = await response.json();
 
     if (data.erro) {
-      console.log('ViaCEP: CEP não encontrado', cleanCep);
       return null;
     }
 
@@ -54,8 +84,7 @@ export async function fetchAddressByCep(cep: string): Promise<AddressData | null
       state: data.uf || '',
     };
   } catch (error) {
-    console.error('ViaCEP: Erro ao buscar CEP', error);
-    return null;
+    throw error;
   }
 }
 

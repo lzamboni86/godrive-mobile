@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { studentService, type Lesson } from '@/services/student';
+import api from '@/services/api';
 
 export default function StudentHomeScreen() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function StudentHomeScreen() {
   const [confirmedUpcoming, setConfirmedUpcoming] = useState(0);
   const [pendingInstructorUpcoming, setPendingInstructorUpcoming] = useState(0);
   const [pendingReviews, setPendingReviews] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [nextTodayTime, setNextTodayTime] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,6 +80,19 @@ export default function StudentHomeScreen() {
       const confirmed = upcoming.filter((l) => l.status === 'CONFIRMED');
       setConfirmedUpcoming(confirmed.length);
 
+      const unreadResults = await Promise.allSettled(
+        upcoming.map(async (lesson) => {
+          if (lesson.status !== 'CONFIRMED' && lesson.status !== 'IN_PROGRESS') return 0;
+          const res = await api.get(`/chat/lesson/${lesson.id}/unread-count`);
+          return Number((res as any)?.count || 0);
+        }),
+      );
+      const unreadCount = unreadResults.reduce((sum, r) => {
+        if (r.status !== 'fulfilled') return sum;
+        return sum + (Number.isFinite(r.value) ? r.value : 0);
+      }, 0);
+      setUnreadMessagesCount(unreadCount);
+
       const pendingInstructor = upcoming.filter(
         (l) => l.status === 'WAITING_APPROVAL' || l.status === 'REQUESTED' || l.status === 'ADJUSTMENT_PENDING',
       );
@@ -92,6 +107,7 @@ export default function StudentHomeScreen() {
       setPendingInstructorUpcoming(0);
       setPendingReviews(0);
       setNextTodayTime(null);
+      setUnreadMessagesCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -182,8 +198,15 @@ export default function StudentHomeScreen() {
               <View className="items-center">
                 <View className="w-12 h-12 rounded-full bg-blue-100 items-center justify-center mb-3 relative">
                   <Clock size={24} color="#3B82F6" />
-                  {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0 || pendingReviews > 0) && (
+                  {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0 || pendingReviews > 0 || unreadMessagesCount > 0) && (
                     <View className="absolute -top-2 -right-2 flex-row space-x-1">
+                      {unreadMessagesCount > 0 && (
+                        <View className="bg-red-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
+                          <Text className="text-white text-[10px] font-bold">
+                            {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                          </Text>
+                        </View>
+                      )}
                       {confirmedUpcoming > 0 && (
                         <View className="bg-emerald-500 rounded-full px-2 py-1 min-w-[24px] items-center justify-center">
                           <Text className="text-white text-[10px] font-bold">{confirmedUpcoming}</Text>
@@ -208,6 +231,9 @@ export default function StudentHomeScreen() {
                     ? 'Carregando...'
                     : (() => {
                         const parts: string[] = [];
+                        if (unreadMessagesCount > 0) {
+                          parts.push(`${unreadMessagesCount} mensagem${unreadMessagesCount > 1 ? 's' : ''} não lida${unreadMessagesCount > 1 ? 's' : ''}`);
+                        }
                         if (confirmedUpcoming > 0) {
                           parts.push(`${confirmedUpcoming} aprovada${confirmedUpcoming > 1 ? 's' : ''}`);
                         }
@@ -222,8 +248,13 @@ export default function StudentHomeScreen() {
                   }
                 </Text>
 
-                {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0 || pendingReviews > 0) && (
+                {!isLoading && (confirmedUpcoming > 0 || pendingInstructorUpcoming > 0 || pendingReviews > 0 || unreadMessagesCount > 0) && (
                   <View className="flex-row flex-wrap justify-center mt-2">
+                    {unreadMessagesCount > 0 && (
+                      <View className="bg-red-50 border border-red-200 rounded-full px-2 py-1 mr-2 mb-2">
+                        <Text className="text-red-700 text-[10px] font-semibold">Mensagens</Text>
+                      </View>
+                    )}
                     {confirmedUpcoming > 0 && (
                       <View className="bg-emerald-50 border border-emerald-200 rounded-full px-2 py-1 mr-2 mb-2">
                         <Text className="text-emerald-700 text-[10px] font-semibold">Aprovadas</Text>

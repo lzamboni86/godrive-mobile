@@ -6,11 +6,14 @@ import { ArrowLeft, Calendar, Clock, CheckCircle, XCircle, AlertCircle, MessageC
 import { router } from 'expo-router';
 import { studentService, Lesson } from '@/services/student';
 import { useAuth } from '@/contexts/AuthContext';
+import api from '@/services/api';
+
+type LessonWithUnread = Lesson & { unreadMessages?: number };
 
 export default function StudentAgendaScreen() {
   const { user } = useAuth();
-  const [upcomingLessons, setUpcomingLessons] = useState<Lesson[]>([]);
-  const [pastLessons, setPastLessons] = useState<Lesson[]>([]);
+  const [upcomingLessons, setUpcomingLessons] = useState<LessonWithUnread[]>([]);
+  const [pastLessons, setPastLessons] = useState<LessonWithUnread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,8 +38,29 @@ export default function StudentAgendaScreen() {
         studentService.getUpcomingLessons(user.id),
         studentService.getPastLessons(user.id)
       ]);
-      setUpcomingLessons(upcoming);
-      setPastLessons(past);
+
+      const unreadResults = await Promise.allSettled(
+        upcoming.map(async (lesson) => {
+          if (lesson.status !== 'CONFIRMED' && lesson.status !== 'IN_PROGRESS') return { lessonId: lesson.id, count: 0 };
+          const res = await api.get(`/chat/lesson/${lesson.id}/unread-count`);
+          return { lessonId: lesson.id, count: Number((res as any)?.count || 0) };
+        }),
+      );
+
+      const unreadByLessonId = new Map<string, number>();
+      for (const r of unreadResults) {
+        if (r.status === 'fulfilled') {
+          unreadByLessonId.set(r.value.lessonId, Number.isFinite(r.value.count) ? r.value.count : 0);
+        }
+      }
+
+      setUpcomingLessons(
+        upcoming.map((l) => ({
+          ...l,
+          unreadMessages: unreadByLessonId.get(l.id) ?? 0,
+        })),
+      );
+      setPastLessons(past.map((l) => ({ ...l, unreadMessages: 0 })));
     } catch (err: any) {
       setError('Não foi possível carregar suas aulas. Tente novamente.');
       console.error('Erro ao carregar aulas:', err);
@@ -46,21 +70,21 @@ export default function StudentAgendaScreen() {
   };
 
   const formatLessonDate = (dateString: string, timeString?: string) => {
-    const date = new Date(dateString);
-    
-    // Se tiver timeString, usa o horário dela
-    if (timeString) {
-      const timeDate = new Date(timeString);
-      date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
+    const rawDate = String(dateString || '');
+    const datePart = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.slice(0, 10);
+    const match = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+    if (!match) {
+      return rawDate;
     }
-    
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+
+    const year = match[1];
+    const month = match[2];
+    const day = match[3];
+    const formattedDate = `${day}/${month}/${year}`;
+
+    if (!timeString) return formattedDate;
+    return `${formattedDate}, ${formatTime(timeString)}`;
   };
 
   const formatTime = (timeString: string) => {
@@ -109,11 +133,24 @@ export default function StudentAgendaScreen() {
   };
 
   const getLessonDateTime = (lesson: Lesson) => {
-    const date = new Date(lesson.date);
-    const time = new Date(lesson.time);
-    // Use UTC methods to avoid timezone offset
-    date.setUTCHours(time.getUTCHours(), time.getUTCMinutes(), 0, 0);
-    return date;
+    const rawDate = String(lesson.date || '');
+    const datePart = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.slice(0, 10);
+    const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+    const rawTime = String(lesson.time || '');
+    const timePart = rawTime.includes('T') ? (rawTime.split('T')[1] || '') : rawTime;
+    const timeMatch = timePart.match(/(\d{2}):(\d{2})/);
+
+    if (!dateMatch) return new Date(rawDate);
+
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+
+    const hours = timeMatch ? Number(timeMatch[1]) : 0;
+    const minutes = timeMatch ? Number(timeMatch[2]) : 0;
+
+    return new Date(year, month - 1, day, hours, minutes, 0, 0);
   };
 
   const canRequestAdjustment = (lesson: Lesson) => {
@@ -226,10 +263,17 @@ export default function StudentAgendaScreen() {
                                     e.stopPropagation();
                                     openChat(lesson.id);
                                   }}
-                                  className="flex-row items-center bg-emerald-500 px-3 py-1 rounded-full"
+                                  className="flex-row items-center bg-emerald-500 px-3 py-1 rounded-full relative"
                                 >
                                   <MessageCircle size={14} color="white" />
                                   <Text className="text-white text-xs font-medium ml-1">Chat</Text>
+                                  {(lesson.unreadMessages ?? 0) > 0 && (
+                                    <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+                                      <Text className="text-white text-[10px] font-bold">
+                                        {(lesson.unreadMessages ?? 0) > 99 ? '99+' : (lesson.unreadMessages ?? 0)}
+                                      </Text>
+                                    </View>
+                                  )}
                                 </TouchableOpacity>
                               )}
                             </View>

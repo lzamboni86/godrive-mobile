@@ -49,6 +49,7 @@ export default function ScheduleScreen() {
         weekday: 'long',
         day: '2-digit',
         month: '2-digit',
+        timeZone: 'UTC',
       });
     } catch {
       return String(raw);
@@ -74,25 +75,24 @@ export default function ScheduleScreen() {
 
   const getLessonDateTime = useCallback((lesson: Pick<ScheduledLesson, 'lessonDate' | 'lessonTime'>) => {
     try {
-      const date = new Date(String(lesson.lessonDate));
+      const rawDate = String(lesson.lessonDate || '');
+      const datePart = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.slice(0, 10);
+      const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
       const rawTime = String(lesson.lessonTime || '');
-      if (rawTime.includes('T')) {
-        const timeDate = new Date(rawTime);
-        if (!Number.isNaN(timeDate.getTime()) && !Number.isNaN(date.getTime())) {
-          date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0);
-          return date;
-        }
-      }
+      const timePart = rawTime.includes('T') ? (rawTime.split('T')[1] || '') : rawTime;
+      const timeMatch = timePart.match(/(\d{2}):(\d{2})/);
 
-      const match = rawTime.match(/(\d{2}):(\d{2})/);
-      if (match && !Number.isNaN(date.getTime())) {
-        const hours = Number(match[1]);
-        const minutes = Number(match[2]);
-        date.setHours(hours, minutes, 0, 0);
-        return date;
-      }
+      if (!dateMatch) return new Date(rawDate);
 
-      return date;
+      const year = Number(dateMatch[1]);
+      const month = Number(dateMatch[2]);
+      const day = Number(dateMatch[3]);
+
+      const hours = timeMatch ? Number(timeMatch[1]) : 0;
+      const minutes = timeMatch ? Number(timeMatch[2]) : 0;
+
+      return new Date(year, month - 1, day, hours, minutes, 0, 0);
     } catch {
       return null;
     }

@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { isValidCpf, formatCpf, unmaskCpf } from '@/utils/cpf-validator';
-import { fetchAddressByCep, isValidCepFormat, formatCep } from '@/services/viacep';
+import { fetchAddressByCep, isValidCepFormat, formatCep, ViaCepError } from '@/services/viacep';
 
 export default function StudentSignupScreen() {
   const { signIn } = useAuth();
@@ -87,8 +87,17 @@ export default function StudentSignupScreen() {
           setCepError('CEP não encontrado');
         }
       } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
-        setCepError('Erro ao buscar CEP');
+        if (error instanceof ViaCepError) {
+          if (error.code === 'NETWORK') {
+            setCepError('Não foi possível consultar o CEP. Verifique sua conexão com a internet e tente novamente.');
+          } else if (error.code === 'TIMEOUT') {
+            setCepError('Consulta de CEP demorou demais. Tente novamente em instantes.');
+          } else {
+            setCepError('Não foi possível consultar o CEP no momento. Tente novamente mais tarde.');
+          }
+        } else {
+          setCepError('Não foi possível consultar o CEP no momento. Tente novamente.');
+        }
       } finally {
         setIsLoadingCep(false);
       }
