@@ -108,7 +108,9 @@ export default function InstructorSignupScreen() {
     try {
       setIsLoadingNeighborhoods(true);
       const data = await getNeighborhoodsByCityDynamic(cityName, stateUf);
-      setNeighborhoods(data);
+      // Remove duplicates and sort
+      const unique = Array.from(new Set(data)).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      setNeighborhoods(unique);
     } catch (e) {
       console.error('Erro ao carregar bairros:', e);
       setNeighborhoods([]);
@@ -446,9 +448,9 @@ export default function InstructorSignupScreen() {
                             !pickerSearch || 
                             opt.label.toLowerCase().includes(pickerSearch.toLowerCase())
                           )
-                          .map((opt) => (
+                          .map((opt, index) => (
                           <TouchableOpacity
-                            key={`${picker?.title}-${opt.value}`}
+                            key={`${picker?.title}-${opt.value}-${index}`}
                             className="py-4 border-b border-neutral-100"
                             onPress={() => {
                               picker?.onSelect(opt.value);

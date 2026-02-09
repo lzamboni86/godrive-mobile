@@ -56,16 +56,21 @@ export default function RequestsScreen() {
 };
 
   const formatDateTime = (dateString: string, timeString: string) => {
-    const date = new Date(dateString);
-    const time = new Date(timeString);
-    date.setHours(time.getHours(), time.getMinutes(), 0, 0);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    // Parse date directly from YYYY-MM-DD to avoid timezone issues
+    const rawDate = String(dateString || '');
+    const datePart = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.slice(0, 10);
+    const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    
+    if (!dateMatch) {
+      return `${dateString} ${formatTime(timeString)}`;
+    }
+
+    const year = dateMatch[1];
+    const month = dateMatch[2];
+    const day = dateMatch[3];
+    const formattedDate = `${day}/${month}/${year}`;
+
+    return `${formattedDate}, ${formatTime(timeString)}`;
   };
 
   const loadRequests = async () => {
@@ -312,7 +317,8 @@ export default function RequestsScreen() {
                         {new Date(request.lessonDate).toLocaleDateString('pt-BR', {
                           weekday: 'long',
                           day: '2-digit',
-                          month: '2-digit'
+                          month: '2-digit',
+                          timeZone: 'UTC'
                         })}
                       </Text>
                     </View>
