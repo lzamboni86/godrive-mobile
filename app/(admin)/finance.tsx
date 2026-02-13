@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DollarSign, Calendar, CheckCircle, Clock, FileText, Download, AlertCircle, TrendingUp } from 'lucide-react-native';
+import { Calendar, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react-native';
 import { adminService } from '@/services/admin';
 
 interface PaymentRequest {
@@ -36,18 +36,94 @@ export default function AdminFinanceScreen() {
 
   const loadPayments = async () => {
     try {
-      const data = await adminService.getPayments();
-      setPayments(data);
+      const [financeStats, financeHistory, financialReport] = await Promise.all([
+        adminService.getFinanceStats(),
+        adminService.getFinanceHistory(),
+        adminService.getFinancialReport({
+          startDate: new Date(new Date().getFullYear(), 0, 1).toISOString(),
+          endDate: new Date().toISOString(),
+        }),
+      ]);
+
+      const isPaymentReceivedStatus = (status: string) => {
+        const s = String(status || '').toUpperCase();
+        return s === 'PAID' || s === 'RELEASED';
+      };
+
+      const totalRevenue = financialReport.transactions
+        .filter((t) => isPaymentReceivedStatus(t.status))
+        .reduce((sum, t) => {
+          const afterMP = t.amount * 0.9;
+          const appCommission = afterMP * 0.12;
+          return sum + appCommission;
+        }, 0);
+
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const monthRevenue = financialReport.transactions
+        .filter((t) => {
+          const date = new Date(t.createdAt);
+          return isPaymentReceivedStatus(t.status) && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((sum, t) => {
+          const afterMP = t.amount * 0.9;
+          const appCommission = afterMP * 0.12;
+          return sum + appCommission;
+        }, 0);
+
       setStats({
-        totalPending: data.filter(p => p.status === 'pending').length,
-        totalPaid: data.filter(p => p.status === 'paid').length,
-        totalRevenue: data.reduce((sum, p) => sum + (p.status === 'paid' ? p.finalAmount : 0), 0),
-        monthRevenue: data
-          .filter(p => p.status === 'paid' && new Date(p.createdAt).getMonth() === new Date().getMonth())
-          .reduce((sum, p) => sum + p.finalAmount, 0)
+        totalPending: financeStats.pendingCount,
+        totalPaid: financeStats.paidCount,
+        totalRevenue,
+        monthRevenue,
       });
+
+      const parseAmount = (value: unknown) => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+          const n = Number(value);
+          return Number.isFinite(n) ? n : 0;
+        }
+        return 0;
+      };
+
+      const paymentHistory = (financeHistory || []).map((lesson) => {
+        const grossAmount = Math.max(0, parseAmount(lesson.payment?.amount) || parseAmount(lesson.instructor?.hourlyRate));
+        const payoutAmount = grossAmount * 0.78;
+        const feeAmount = grossAmount - payoutAmount;
+
+        const lessonDateRaw = String(lesson.lessonDate || '');
+        const datePart = lessonDateRaw.includes('T') ? lessonDateRaw.split('T')[0] : lessonDateRaw.slice(0, 10);
+
+        const lessonTimeRaw = String(lesson.lessonTime || '');
+        const timePart = lessonTimeRaw.includes('T') ? (lessonTimeRaw.split('T')[1] || '') : lessonTimeRaw;
+        const timeMatch = timePart.match(/(\d{2}:\d{2})/);
+
+        return {
+          id: lesson.id,
+          lessonId: lesson.id,
+          instructorName: lesson.instructor?.user?.name || lesson.instructor?.user?.email || 'Instrutor',
+          studentName: lesson.student?.name || lesson.student?.email || 'Aluno',
+          lessonDate: datePart || lessonDateRaw,
+          lessonTime: timeMatch ? timeMatch[1] : '--:--',
+          originalAmount: grossAmount,
+          commissionFee: feeAmount,
+          finalAmount: payoutAmount,
+          status: 'paid' as const,
+          createdAt: lesson.payoutProcessedAt || lessonDateRaw,
+        };
+      });
+
+      setPayments(paymentHistory);
     } catch (error) {
       console.error('Erro ao carregar pagamentos:', error);
+      setStats({
+        totalPending: 0,
+        totalPaid: 0,
+        totalRevenue: 0,
+        monthRevenue: 0
+      });
+      setPayments([]);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -57,38 +133,6 @@ export default function AdminFinanceScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     loadPayments();
-  };
-
-  const handlePayment = async (paymentId: string) => {
-    Alert.alert(
-      'Confirmar Pagamento',
-      'Deseja confirmar o pagamento ao instrutor?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Confirmar', 
-          onPress: async () => {
-            try {
-              // TODO: Implementar endpoint real
-              await adminService.processPayment(paymentId);
-              loadPayments();
-              Alert.alert('Sucesso', 'Pagamento processado com sucesso!');
-            } catch (error) {
-              Alert.alert('Erro', 'Não foi possível processar o pagamento');
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  const generateInvoice = async (paymentId: string) => {
-    try {
-      // TODO: Implementar endpoint real para gerar PDF
-      Alert.alert('Nota Fiscal', 'Nota fiscal gerada com sucesso!');
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível gerar a nota fiscal');
-    }
   };
 
   const getStatusColor = (status: string) => {
@@ -184,98 +228,59 @@ export default function AdminFinanceScreen() {
             </View>
           </View>
 
-          {/* Payments List */}
           <View className="bg-white rounded-2xl shadow-sm">
             <View className="p-4 border-b border-neutral-100">
-              <Text className="text-neutral-900 font-semibold">Solicitações de Pagamento</Text>
+              <Text className="text-neutral-900 font-semibold">Histórico de Pagamentos</Text>
             </View>
-            
-            <View className="divide-y divide-neutral-100">
-              {payments.map((payment) => (
-                <View key={payment.id} className="p-4">
-                  <View className="flex-row justify-between items-start mb-3">
-                    <View className="flex-1">
-                      <Text className="text-neutral-900 font-medium">Aula #{payment.lessonId}</Text>
-                      <Text className="text-neutral-500 text-sm">
-                        {payment.instructorName} → {payment.studentName}
-                      </Text>
-                      <View className="flex-row items-center mt-1">
-                        <Calendar size={12} color="#9CA3AF" />
-                        <Text className="text-neutral-400 text-xs ml-1">
-                          {formatDate(payment.lessonDate)} às {payment.lessonTime}
-                        </Text>
-                      </View>
-                    </View>
-                    <View className={`px-2 py-1 rounded-full border ${getStatusColor(payment.status)}`}>
-                      <Text className="text-xs font-medium">{getStatusText(payment.status)}</Text>
-                    </View>
-                  </View>
-                  
-                  <View className="bg-neutral-50 rounded-xl p-3 mb-3">
-                    <View className="flex-row justify-between items-center">
-                      <View>
-                        <Text className="text-neutral-500 text-xs">Valor da Aula</Text>
-                        <Text className="text-neutral-900 font-semibold">R$ {payment.originalAmount.toFixed(2)}</Text>
-                      </View>
-                      <View className="text-center">
-                        <Text className="text-neutral-500 text-xs">Comissão (12%)</Text>
-                        <Text className="text-red-600 font-semibold">-R$ {payment.commissionFee.toFixed(2)}</Text>
-                      </View>
-                      <View className="text-right">
-                        <Text className="text-neutral-500 text-xs">Valor Líquido</Text>
-                        <Text className="text-green-600 font-bold">R$ {payment.finalAmount.toFixed(2)}</Text>
-                      </View>
-                    </View>
-                    {payment.rating && (
-                      <View className="flex-row items-center mt-2 pt-2 border-t border-neutral-200">
-                        <Text className="text-neutral-500 text-xs mr-2">Avaliação:</Text>
-                        <Text className="text-amber-500 text-xs">{'⭐'.repeat(payment.rating)}</Text>
-                      </View>
-                    )}
-                  </View>
-                  
-                  <View className="flex-row gap-2">
-                    {payment.status === 'pending' && (
-                      <TouchableOpacity
-                        className="flex-1 bg-green-500 rounded-xl p-3 flex-row items-center justify-center"
-                        onPress={() => handlePayment(payment.id)}
-                      >
-                        <DollarSign size={16} color="#FFFFFF" />
-                        <Text className="text-white font-medium ml-2">Pagar</Text>
-                      </TouchableOpacity>
-                    )}
-                    
-                    {payment.status === 'paid' && (
-                      <TouchableOpacity
-                        className="flex-1 bg-blue-500 rounded-xl p-3 flex-row items-center justify-center"
-                        onPress={() => generateInvoice(payment.id)}
-                      >
-                        <FileText size={16} color="#FFFFFF" />
-                        <Text className="text-white font-medium ml-2">NF PDF</Text>
-                      </TouchableOpacity>
-                    )}
-                    
-                    {payment.status === 'invoiced' && (
-                      <TouchableOpacity
-                        className="flex-1 bg-purple-500 rounded-xl p-3 flex-row items-center justify-center"
-                        onPress={() => generateInvoice(payment.id)}
-                      >
-                        <Download size={16} color="#FFFFFF" />
-                        <Text className="text-white font-medium ml-2">Baixar NF</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
 
-          {payments.length === 0 && (
-            <View className="items-center py-12">
-              <AlertCircle size={48} color="#9CA3AF" />
-              <Text className="text-neutral-400 mt-4">Nenhuma solicitação de pagamento</Text>
-            </View>
-          )}
+            {payments.length === 0 ? (
+              <View className="items-center py-12">
+                <AlertCircle size={48} color="#9CA3AF" />
+                <Text className="text-neutral-400 mt-4">Nenhum pagamento realizado</Text>
+              </View>
+            ) : (
+              <View className="divide-y divide-neutral-100">
+                {payments.map((payment) => (
+                  <View key={payment.id} className="p-4">
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View className="flex-1">
+                        <Text className="text-neutral-900 font-medium">Aula #{payment.lessonId}</Text>
+                        <Text className="text-neutral-500 text-sm">
+                          {payment.instructorName} → {payment.studentName}
+                        </Text>
+                        <View className="flex-row items-center mt-1">
+                          <Calendar size={12} color="#9CA3AF" />
+                          <Text className="text-neutral-400 text-xs ml-1">
+                            {formatDate(payment.lessonDate)} às {payment.lessonTime}
+                          </Text>
+                        </View>
+                      </View>
+                      <View className={`px-2 py-1 rounded-full border ${getStatusColor(payment.status)}`}>
+                        <Text className="text-xs font-medium">{getStatusText(payment.status)}</Text>
+                      </View>
+                    </View>
+
+                    <View className="bg-neutral-50 rounded-xl p-3">
+                      <View className="flex-row justify-between items-center">
+                        <View>
+                          <Text className="text-neutral-500 text-xs">Valor da Aula</Text>
+                          <Text className="text-neutral-900 font-semibold">R$ {payment.originalAmount.toFixed(2)}</Text>
+                        </View>
+                        <View className="text-center">
+                          <Text className="text-neutral-500 text-xs">Taxas (22%)</Text>
+                          <Text className="text-red-600 font-semibold">-R$ {payment.commissionFee.toFixed(2)}</Text>
+                        </View>
+                        <View className="text-right">
+                          <Text className="text-neutral-500 text-xs">Pago ao Instrutor (78%)</Text>
+                          <Text className="text-green-600 font-bold">R$ {payment.finalAmount.toFixed(2)}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

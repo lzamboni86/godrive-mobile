@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, Users, UserCheck, DollarSign, FileText, Download, ChevronDown, ChevronUp } from 'lucide-react-native';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { adminService, StudentsReport, InstructorsReport, FinancialReport, LogsReport } from '@/services/admin';
 
 type ReportType = 'students' | 'instructors' | 'financial' | 'logs';
@@ -28,6 +30,14 @@ export default function AdminReportsScreen() {
 
   const filters = { startDate, endDate };
 
+  const toggleReport = async (type: ReportType) => {
+    if (expandedReport === type) {
+      setExpandedReport(null);
+      return;
+    }
+    await loadReport(type);
+  };
+
   const loadReport = async (type: ReportType) => {
     setIsLoading(true);
     setSelectedReport(type);
@@ -52,7 +62,7 @@ export default function AdminReportsScreen() {
       }
       setExpandedReport(type);
     } catch (error: any) {
-      Alert.alert('Erro', 'Não foi possível carregar o relatório');
+      Alert.alert('Erro', error?.message || 'Não foi possível carregar o relatório');
     } finally {
       setIsLoading(false);
     }
@@ -60,14 +70,56 @@ export default function AdminReportsScreen() {
 
   const exportCSV = async (type: ReportType) => {
     try {
-      const url = adminService.getCSVExportUrl(type, filters);
+      const csv = await adminService.exportReportCsv(type, filters);
+      const filename = `${type}_${filters.startDate}_${filters.endDate}.csv`;
+
       if (Platform.OS === 'web') {
-        window.open(url, '_blank');
-      } else {
-        await Linking.openURL(url);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        return;
       }
+
+      // Try file-based sharing first
+      const fsAny = FileSystem as any;
+      const fs = fsAny?.default || fsAny;
+      const dirRaw = fs?.cacheDirectory || fs?.documentDirectory;
+
+      if (dirRaw) {
+        try {
+          const canShare = await Sharing.isAvailableAsync();
+          if (canShare) {
+            const dir = String(dirRaw).endsWith('/') ? String(dirRaw) : `${dirRaw}/`;
+            const fileUri = `${dir}${filename}`;
+            const content = `\uFEFF${csv}`;
+            const encoding = fs?.EncodingType?.UTF8 || 'utf8';
+            await fs.writeAsStringAsync(fileUri, content, { encoding });
+
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'text/csv',
+              dialogTitle: filename,
+              UTI: 'public.comma-separated-values-text',
+            });
+            return;
+          }
+        } catch (fileError) {
+          console.warn('File sharing failed, falling back to text share:', fileError);
+        }
+      }
+
+      // Fallback: use React Native Share with text content
+      await Share.share({
+        message: csv,
+        title: filename,
+      });
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível exportar o relatório');
+      Alert.alert('Erro', (error as any)?.message || String(error) || 'Não foi possível exportar o relatório');
     }
   };
 
@@ -152,7 +204,7 @@ export default function AdminReportsScreen() {
               <View key={report.id} className="mb-4">
                 <TouchableOpacity
                   className={`${colorClasses.bg} border ${colorClasses.border} rounded-2xl p-4`}
-                  onPress={() => loadReport(report.id)}
+                  onPress={() => toggleReport(report.id)}
                   disabled={isLoading}
                 >
                   <View className="flex-row items-center justify-between">
@@ -168,7 +220,11 @@ export default function AdminReportsScreen() {
                         <>
                           <TouchableOpacity
                             className="bg-white rounded-lg px-3 py-2 mr-2"
-                            onPress={() => exportCSV(report.id)}
+                            onPress={(e) => {
+                              // Prevent triggering the parent onPress
+                              e?.stopPropagation?.();
+                              exportCSV(report.id);
+                            }}
                           >
                             <View className="flex-row items-center">
                               <Download size={16} color={colorClasses.icon} />

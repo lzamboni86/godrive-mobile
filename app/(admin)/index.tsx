@@ -114,7 +114,11 @@ export default function AdminDashboardScreen() {
                 <TrendingUp size={20} color="#3B82F6" />
                 <Text className="text-blue-700 text-sm font-semibold ml-2">Receita</Text>
               </View>
-              <Text className="text-blue-900 text-2xl font-bold">R$ {(dashboard?.revenue || 0).toFixed(1)}k</Text>
+              <Text className="text-blue-900 text-2xl font-bold">
+                {(dashboard?.revenue || 0) >= 1000 
+                  ? `R$ ${((dashboard?.revenue || 0) / 1000).toFixed(1)}k`
+                  : `R$ ${(dashboard?.revenue || 0).toFixed(2)}`}
+              </Text>
               <Text className="text-blue-600 text-xs mt-1">Este mês</Text>
             </View>
           </View>

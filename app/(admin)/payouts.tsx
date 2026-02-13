@@ -146,9 +146,9 @@ export default function AdminPayoutsScreen() {
                 <Text className="text-emerald-700 text-sm font-semibold ml-2">Total</Text>
               </View>
               <Text className="text-emerald-900 text-2xl font-bold">
-                R$ {summary.totalAmount.toFixed(2)}
+                R$ {(summary.totalAmount * 0.78).toFixed(2)}
               </Text>
-              <Text className="text-emerald-600 text-xs">A ser pago</Text>
+              <Text className="text-emerald-600 text-xs">A ser pago (78% do total)</Text>
             </View>
           </View>
 
@@ -193,8 +193,14 @@ export default function AdminPayoutsScreen() {
                         <Text className="text-neutral-500 text-sm">{lesson.instructorEmail}</Text>
                       </View>
                       <View className="items-end">
-                        <Text className="text-emerald-600 font-bold text-lg">
+                        <Text className="text-neutral-500 text-xs line-through">
                           R$ {lesson.amount.toFixed(2)}
+                        </Text>
+                        <Text className="text-emerald-600 font-bold text-lg">
+                          R$ {(lesson.amount * 0.78).toFixed(2)}
+                        </Text>
+                        <Text className="text-neutral-400 text-xs">
+                          78% do total
                         </Text>
                       </View>
                     </View>

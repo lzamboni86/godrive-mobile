@@ -93,7 +93,8 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="finance"
         options={{
-          title: 'Fin',
+          title: 'Financeiro',
+          headerTitle: 'Financeiro',
           tabBarIcon: ({ color, size }) => <DollarSign size={size} color={color} />,
         }}
       />

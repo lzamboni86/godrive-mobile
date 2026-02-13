@@ -1,4 +1,4 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 
 export interface Instructor {
   id: string;
@@ -67,6 +67,27 @@ export interface PayoutBatchResult {
   success: number;
   failed: number;
   errors: Array<{ lessonId: string; error: string }>;
+}
+
+export interface FinanceHistoryLesson {
+  id: string;
+  lessonDate: string;
+  lessonTime: string;
+  payoutStatus: string;
+  payoutProcessedAt?: string | null;
+  receiptUrl?: string | null;
+  payment?: { amount?: number | string | null } | null;
+  student?: { name?: string | null; email?: string | null } | null;
+  instructor?: {
+    hourlyRate?: number | null;
+    user?: { name?: string | null; email?: string | null } | null;
+  } | null;
+}
+
+export interface FinanceStats {
+  pendingCount: number;
+  paidCount: number;
+  totalPendingAmount: number;
 }
 
 // ========== REPORTS INTERFACES ==========
@@ -265,6 +286,28 @@ export const adminService = {
     }
   },
 
+  async getFinanceHistory(): Promise<FinanceHistoryLesson[]> {
+    console.log('💰 [FRONTEND] Buscando histórico de pagamentos (admin)...');
+    try {
+      const data = await api.get<FinanceHistoryLesson[]>('/finance/history');
+      return data || [];
+    } catch (error) {
+      console.error('💰 [FRONTEND] Erro ao buscar histórico de pagamentos:', error);
+      return [];
+    }
+  },
+
+  async getFinanceStats(): Promise<FinanceStats> {
+    console.log('💰 [FRONTEND] Buscando stats financeiro (admin)...');
+    try {
+      const data = await api.get<FinanceStats>('/finance/stats');
+      return data || { pendingCount: 0, paidCount: 0, totalPendingAmount: 0 };
+    } catch (error) {
+      console.error('💰 [FRONTEND] Erro ao buscar stats financeiro:', error);
+      return { pendingCount: 0, paidCount: 0, totalPendingAmount: 0 };
+    }
+  },
+
   async getLogs(): Promise<any[]> {
     console.log('🔍 [FRONTEND] Buscando logs...');
     try {
@@ -373,9 +416,17 @@ export const adminService = {
     }
   },
 
+  async exportReportCsv(
+    reportType: 'students' | 'instructors' | 'financial' | 'logs',
+    filters: ReportFilters,
+  ): Promise<string> {
+    return api.get<string>(`/reports/${reportType}/csv?startDate=${filters.startDate}&endDate=${filters.endDate}`, {
+      responseType: 'text',
+    });
+  },
+
   getCSVExportUrl(reportType: 'students' | 'instructors' | 'financial' | 'logs', filters: ReportFilters): string {
-    const baseUrl = 'https://godrive-7j7x.onrender.com';
-    return `${baseUrl}/reports/${reportType}/csv?startDate=${filters.startDate}&endDate=${filters.endDate}`;
+    return `${API_BASE_URL}/reports/${reportType}/csv?startDate=${filters.startDate}&endDate=${filters.endDate}`;
   },
 
   /**

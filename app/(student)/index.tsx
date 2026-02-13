@@ -17,6 +17,7 @@ export default function StudentHomeScreen() {
   const [pendingReviews, setPendingReviews] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [nextTodayTime, setNextTodayTime] = useState<string | null>(null);
+  const [totalEarnings, setTotalEarnings] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const getLessonDateTime = (lesson: Lesson) => {
@@ -97,6 +98,42 @@ export default function StudentHomeScreen() {
         (l) => l.status === 'WAITING_APPROVAL' || l.status === 'REQUESTED' || l.status === 'ADJUSTMENT_PENDING',
       );
       setPendingInstructorUpcoming(pendingInstructor.length);
+
+      // Revenue: use same calculation as finance screen (current month)
+      try {
+        const financialReport = await api.get<{
+          transactions: Array<{ amount: number; status: string; createdAt: string }>;
+        }>('/reports/financial', {
+          params: {
+            startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+            endDate: new Date().toISOString(),
+          },
+        });
+
+        const isPaymentReceivedStatus = (status: string) => {
+          const s = String(status || '').toUpperCase();
+          return s === 'PAID' || s === 'RELEASED';
+        };
+
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        
+        const total = financialReport.transactions
+          .filter((t) => {
+            const date = new Date(t.createdAt);
+            return isPaymentReceivedStatus(t.status) && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+          })
+          .reduce((sum, t) => {
+            const afterMP = t.amount * 0.9;
+            const appCommission = afterMP * 0.12;
+            return sum + appCommission;
+          }, 0);
+        
+        setTotalEarnings(total);
+      } catch (error) {
+        console.warn('⚠️ [STUDENT-HOME] Erro ao buscar revenue do mês:', error);
+        setTotalEarnings(0);
+      }
     } catch (error: any) {
       console.error('❌ [STUDENT-HOME] Erro ao carregar dashboard:', error);
       console.error('❌ [STUDENT-HOME] Mensagem:', error?.message);
@@ -108,6 +145,7 @@ export default function StudentHomeScreen() {
       setPendingReviews(0);
       setNextTodayTime(null);
       setUnreadMessagesCount(0);
+      setTotalEarnings(0);
     } finally {
       setIsLoading(false);
     }
@@ -171,6 +209,19 @@ export default function StudentHomeScreen() {
                 {completedLessons > 0 ? 'Este mês' : 'Nenhuma ainda'}
               </Text>
             </View>
+          </View>
+
+          <View className="bg-purple-50 rounded-2xl p-4 border border-purple-200 mb-6">
+            <View className="flex-row items-center mb-2">
+              <CreditCard size={20} color="#9333EA" />
+              <Text className="text-purple-700 text-sm font-semibold ml-2">Receitas</Text>
+            </View>
+            <Text className="text-purple-900 text-2xl font-bold">
+              {isLoading ? '...' : `R$ ${totalEarnings.toFixed(2)}`}
+            </Text>
+            <Text className="text-purple-600 text-xs mt-1">
+              {totalEarnings > 0 ? 'Comissão do APP (12% sobre valor líquido)' : 'Nenhuma receita ainda'}
+            </Text>
           </View>
 
           <Text className="text-neutral-900 text-lg font-semibold mb-4">
