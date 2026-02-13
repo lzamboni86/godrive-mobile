@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -35,10 +35,12 @@ void SplashScreen.preventAutoHideAsync()
   });
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading, isInstructor, isAdmin } = useAuth();
+  const { isAuthenticated, isLoading, isInstructor, isAdmin, signOut } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const pathname = usePathname();
+
+  const didForceWebSignOutRef = useRef(false);
 
   const { token } = useAuth();
 
@@ -87,6 +89,20 @@ function RootLayoutNav() {
     console.log('🔐 Auth State:', { isAuthenticated, isLoading, isInstructor, isAdmin, segments: segments[0] });
     
     if (isLoading) return;
+
+    if (Platform.OS === 'web' && isAuthenticated && !isAdmin) {
+      if (!didForceWebSignOutRef.current) {
+        didForceWebSignOutRef.current = true;
+        void signOut().finally(() => {
+          router.replace('/(auth)/login');
+        });
+      }
+      return;
+    }
+
+    if (Platform.OS === 'web' && (!isAuthenticated || isAdmin)) {
+      didForceWebSignOutRef.current = false;
+    }
 
     const inAuthGroup = segments[0] === '(auth)';
     const inStudentGroup = segments[0] === '(student)';

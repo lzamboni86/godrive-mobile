@@ -24,7 +24,7 @@ const showAlert = (title: string, message: string) => {
 };
 
 export default function LoginScreen() {
-  const { signIn, isLoading } = useAuth();
+  const { signIn, signOut, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
   
   const [email, setEmail] = useState('');
@@ -50,6 +50,12 @@ export default function LoginScreen() {
       // Verificar acesso web - apenas admins podem acessar via navegador
       if (isWeb && result?.user?.role !== 'ADMIN') {
         console.log('🔐 [LOGIN WEB] Acesso negado - role:', result?.user?.role);
+        try {
+          await signOut();
+        } catch {
+          // ignore
+        }
+        router.replace('/(auth)/login');
         showAlert(
           'Acesso Restrito',
           'Acesso exclusivo via aplicativo móvel. Faça o download do app Go Drive na App Store ou Google Play.',
