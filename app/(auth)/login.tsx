@@ -81,10 +81,13 @@ export default function LoginScreen() {
         <View className="flex-1 px-6 pt-20" style={{ paddingBottom: 24 + Math.max(insets.bottom, 16) }}>
           {/* Logo Section */}
           <View className="items-center mb-12">
-            <View className="w-24 h-24 bg-neutral-50 rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100">
+            <View 
+              style={{ width: 80, height: 80 }}
+              className="bg-neutral-50 rounded-2xl items-center justify-center mb-6 shadow-xl border border-neutral-100"
+            >
               <Image 
                 source={require('@/assets/images/logo-app.png')}
-                className="w-20 h-20 rounded-xl"
+                style={{ width: 64, height: 64 }}
                 resizeMode="contain"
               />
             </View>
