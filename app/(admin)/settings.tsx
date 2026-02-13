@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Settings, LogOut, Shield, Database, Bell } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -8,10 +8,18 @@ import { router } from 'expo-router';
 
 export default function AdminSettingsScreen() {
   const { user, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom']}>
-      <View className="flex-1 p-6">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          padding: 24,
+          paddingBottom: 24 + Math.max(insets.bottom, 16),
+        }}
+      >
         {/* Header */}
         <View className="items-center mb-8">
           <View className="w-32 h-32 rounded-full bg-red-500 items-center justify-center mb-4">
@@ -94,7 +102,7 @@ export default function AdminSettingsScreen() {
         </View>
 
         {/* Logout */}
-        <View className="mt-auto mb-8">
+        <View className="mb-8">
           <Button
             title="Sair da Conta"
             onPress={signOut}
@@ -110,7 +118,7 @@ export default function AdminSettingsScreen() {
             Desenvolvido por: Delta Pro Tecnologia
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
