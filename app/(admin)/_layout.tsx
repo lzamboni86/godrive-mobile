@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, useRouter, Platform } from 'expo-router';
 import { Users, Settings, CheckCircle, AlertTriangle, FileText, DollarSign, Send, BarChart3 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,8 +55,9 @@ export default function AdminLayout() {
           height: 60 + insets.bottom,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: Platform.OS === 'web' ? 14 : 11,
           fontWeight: '500',
+          color: Platform.OS === 'web' ? '#374151' : undefined,
         },
         headerStyle: {
           backgroundColor: '#FFFFFF',
