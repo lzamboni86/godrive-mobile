@@ -101,14 +101,20 @@ export default function StudentHomeScreen() {
 
       // Revenue: use same calculation as finance screen (current month)
       try {
+        const startDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+        const endDate = new Date().toISOString();
+        console.log('🔍 [STUDENT-HOME] Buscando revenue período:', { startDate, endDate });
+        
         const financialReport = await api.get<{
           transactions: Array<{ amount: number; status: string; createdAt: string }>;
         }>('/reports/financial', {
-          params: {
-            startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
-            endDate: new Date().toISOString(),
-          },
+          params: { startDate, endDate },
         });
+
+        console.log('🔍 [STUDENT-HOME] Transactions recebidas:', financialReport.transactions?.length || 0);
+        if (financialReport.transactions?.length > 0) {
+          console.log('🔍 [STUDENT-HOME] Primeira transação:', financialReport.transactions[0]);
+        }
 
         const isPaymentReceivedStatus = (status: string) => {
           const s = String(status || '').toUpperCase();
@@ -117,18 +123,26 @@ export default function StudentHomeScreen() {
 
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
+        console.log('🔍 [STUDENT-HOME] Filtros:', { currentMonth, currentYear });
         
-        const total = financialReport.transactions
-          .filter((t) => {
-            const date = new Date(t.createdAt);
-            return isPaymentReceivedStatus(t.status) && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-          })
-          .reduce((sum, t) => {
-            const afterMP = t.amount * 0.9;
-            const appCommission = afterMP * 0.12;
-            return sum + appCommission;
-          }, 0);
+        const filteredTransactions = financialReport.transactions.filter((t) => {
+          const date = new Date(t.createdAt);
+          const statusMatch = isPaymentReceivedStatus(t.status);
+          const dateMatch = date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+          console.log(`🔍 [STUDENT-HOME] Transação: amount=${t.amount}, status=${t.status}, statusMatch=${statusMatch}, date=${t.createdAt}, dateMatch=${dateMatch}`);
+          return statusMatch && dateMatch;
+        });
         
+        console.log('🔍 [STUDENT-HOME] Transações filtradas (mês atual + status):', filteredTransactions.length);
+
+        const total = filteredTransactions.reduce((sum, t) => {
+          const afterMP = t.amount * 0.9;
+          const appCommission = afterMP * 0.12;
+          console.log(`🔍 [STUDENT-HOME] Cálculo: amount=${t.amount} → afterMP=${afterMP} → commission=${appCommission}`);
+          return sum + appCommission;
+        }, 0);
+        
+        console.log('🔍 [STUDENT-HOME] Total final:', total);
         setTotalEarnings(total);
       } catch (error) {
         console.warn('⚠️ [STUDENT-HOME] Erro ao buscar revenue do mês:', error);
@@ -217,7 +231,7 @@ export default function StudentHomeScreen() {
               <Text className="text-purple-700 text-sm font-semibold ml-2">Receitas</Text>
             </View>
             <Text className="text-purple-900 text-2xl font-bold">
-              {isLoading ? '...' : `R$ ${totalEarnings.toFixed(2)}`}
+              {isLoading ? '...' : `R$ ${totalEarnings.toFixed(2).replace('.', ',')}`}
             </Text>
             <Text className="text-purple-600 text-xs mt-1">
               {totalEarnings > 0 ? 'Comissão do APP (12% sobre valor líquido)' : 'Nenhuma receita ainda'}

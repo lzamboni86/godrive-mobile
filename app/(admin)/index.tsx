@@ -26,6 +26,7 @@ export default function AdminDashboardScreen() {
   const { showToast } = useToast();
   const { isLoading: authLoading, isAuthenticated, isAdmin, isInstructor } = useAuth();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [monthRevenue, setMonthRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,8 +47,36 @@ export default function AdminDashboardScreen() {
 
   async function loadDashboard() {
     try {
-      const data = await adminService.getDashboard();
+      const [data, financialReport] = await Promise.all([
+        adminService.getDashboard(),
+        adminService.getFinancialReport({
+          startDate: new Date(new Date().getFullYear(), 0, 1).toISOString(),
+          endDate: new Date().toISOString(),
+        }),
+      ]);
+      
       setDashboard(data);
+
+      // Calculate monthRevenue same as finance screen
+      const isPaymentReceivedStatus = (status: string) => {
+        const s = String(status || '').toUpperCase();
+        return s === 'PAID' || s === 'RELEASED';
+      };
+
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const calculatedMonthRevenue = financialReport.transactions
+        .filter((t) => {
+          const date = new Date(t.createdAt);
+          return isPaymentReceivedStatus(t.status) && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((sum, t) => {
+          const afterMP = t.amount * 0.9;
+          const appCommission = afterMP * 0.12;
+          return sum + appCommission;
+        }, 0);
+      
+      setMonthRevenue(calculatedMonthRevenue);
     } catch (error: any) {
       console.error('Erro ao carregar dashboard:', error);
       showToast('Erro ao carregar dashboard', 'error');
@@ -115,9 +144,9 @@ export default function AdminDashboardScreen() {
                 <Text className="text-blue-700 text-sm font-semibold ml-2">Receita</Text>
               </View>
               <Text className="text-blue-900 text-2xl font-bold">
-                {(dashboard?.revenue || 0) >= 1000 
-                  ? `R$ ${((dashboard?.revenue || 0) / 1000).toFixed(1)}k`
-                  : `R$ ${(dashboard?.revenue || 0).toFixed(2)}`}
+                {monthRevenue >= 1000 
+                  ? `R$ ${(monthRevenue / 1000).toFixed(1).replace('.', ',')}k`
+                  : `R$ ${monthRevenue.toFixed(2).replace('.', ',')}`}
               </Text>
               <Text className="text-blue-600 text-xs mt-1">Este mês</Text>
             </View>
