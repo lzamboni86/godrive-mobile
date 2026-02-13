@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs, useRouter, Platform } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Users, Settings, CheckCircle, AlertTriangle, FileText, DollarSign, Send, BarChart3 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminService } from '@/services/admin';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 
 export default function AdminLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isLoading, isAuthenticated, isAdmin, isInstructor } = useAuth();
   const [pendingPayouts, setPendingPayouts] = useState(0);
+  const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
     if (isLoading) return;
@@ -46,18 +47,23 @@ export default function AdminLayout() {
       screenOptions={{
         tabBarActiveTintColor: '#DC2626',
         tabBarInactiveTintColor: '#9CA3AF',
+        tabBarShowLabel: true,
+        tabBarLabelPosition: 'below-icon',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          paddingTop: 8,
-          paddingBottom: 8 + insets.bottom,
-          height: 60 + insets.bottom,
+          paddingTop: isWeb ? 10 : 8,
+          paddingBottom: (isWeb ? 10 : 8) + insets.bottom,
+          height: (isWeb ? 78 : 60) + insets.bottom,
         },
         tabBarLabelStyle: {
-          fontSize: Platform.OS === 'web' ? 14 : 11,
+          fontSize: isWeb ? 13 : 11,
           fontWeight: '500',
-          color: Platform.OS === 'web' ? '#374151' : undefined,
+          color: isWeb ? '#111827' : undefined,
+        },
+        tabBarIconStyle: {
+          marginBottom: isWeb ? 2 : 0,
         },
         headerStyle: {
           backgroundColor: '#FFFFFF',
